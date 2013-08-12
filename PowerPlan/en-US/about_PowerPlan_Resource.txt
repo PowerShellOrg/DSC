@@ -1,0 +1,12 @@
+Syntax
+
+PowerPlan [string] #ResourceName
+{
+    Name = [string]
+    [ Ensure = [string] { Absent | Present }  ]
+}
+
+Properties
+
+Name - Name of the PowerPlan.  Common plans are "Balanced", "High performance", and "Power saver".
+Ensure - Set this property to "Present" to activate the desired Power Plan.  Set this property to "Absent" to return to "Balanced" from other plans (if it is already set to "Balanced", it'll set it to "High performance").
