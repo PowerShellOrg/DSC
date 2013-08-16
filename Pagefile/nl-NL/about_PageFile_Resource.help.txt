@@ -1,0 +1,14 @@
+﻿Syntax
+
+Pagefile [string] #ResourceName
+{
+    InitialSize = [long]
+    MaximumSize = [long]
+    [ Ensure = [string] { Absent | Present }  ]
+}
+
+Properties
+
+InitialSize - The minimum size for the machine's page file, in bytes.
+MaximumSize - The maximum size for the machine's page file, in bytes.
+Ensure - Set this property to "Present" to disable automatic page file and set the minimum and maximum sizes for the page file.  Set this file to "Absent" to enable automatic page file management.  Values are required for Initial and Maximum size, but they will be ignored when Ensure is set to "Absent".
