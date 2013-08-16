@@ -1,0 +1,8 @@
+
+[version("1.0.0"), FriendlyName("AutomaticUpdates")]
+class AutomaticUpdates : MSFT_BaseResourceConfiguration
+{
+	[Key] sint64 InstallDays;
+	[Key] sint64 InstallTime;
+	[write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+};
