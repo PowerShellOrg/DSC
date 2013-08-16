@@ -29,6 +29,7 @@ Import-LocalizedData LocalizedData -filename PowerPlanProvider.psd1
 
 function Get-TargetResource
 {
+    [OutputType([Hashtable])]
     param (
         [parameter(Mandatory = $true)]        
         [string]
@@ -90,6 +91,7 @@ function Set-TargetResource
 
 function Test-TargetResource
 {
+    [OutputType([boolean])]
     param (
         [parameter(Mandatory = $true)]        
         [string]

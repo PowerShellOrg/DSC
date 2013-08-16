@@ -1,5 +1,5 @@
 [version("1.0.0"), FriendlyName("PowerPlan")]
-class PowerPlan : MSFT_BaseResourceConfiguration
+class PowerPlan :  MSFT_BaseResourceConfiguration
 {
 	[Key] string Name;
 	[write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;

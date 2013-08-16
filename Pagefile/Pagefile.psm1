@@ -17,6 +17,7 @@ Import-LocalizedData LocalizedData -filename PagefileProvider.psd1
 
 function Get-TargetResource
 {
+    [OutputType([Hashtable])]
     param (
         [parameter(Mandatory = $true)]        
         [long]
@@ -105,6 +106,7 @@ function Set-TargetResource
 
 function Test-TargetResource
 {
+    [OutputType([boolean])]
     param (
         [parameter(Mandatory = $true)]        
         [long]

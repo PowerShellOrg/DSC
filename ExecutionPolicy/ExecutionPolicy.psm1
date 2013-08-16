@@ -18,12 +18,18 @@ Import-LocalizedData LocalizedData -filename ExecutionPolicyProvider.psd1
 
 function Get-TargetResource
 {
+    [OutputType([Hashtable])]
     param (
         [parameter(Mandatory = $true)]
         [ValidateSet('Restricted', 'AllSigned', 'RemoteSigned', 'Unrestricted')]
         [string]
-        $Name
+        $Name,
+        [parameter()]
+        [ValidateSet('Present','Absent')]
+        [string]
+        $Ensure = 'Present'
     )
+
     $Configuration = @{
             Name = $Name
     }
@@ -86,6 +92,7 @@ function Set-TargetResource
 
 function Test-TargetResource
 {
+    [OutputType([boolean])]
     param (
         [parameter(Mandatory = $true)]
         [ValidateSet('Restricted', 'AllSigned', 'RemoteSigned', 'Unrestricted')]
