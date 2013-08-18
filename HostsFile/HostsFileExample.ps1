@@ -1,4 +1,4 @@
-﻿COnfiguration HostsFileExample {
+﻿Configuration HostsFileExample {
     Node "SRV2-WS2012R2" {
         HostsFile HostsFileDemo {
             hostName = "testhost100"
