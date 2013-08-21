@@ -1,13 +1,17 @@
 ﻿function Get-TargetResource
 {
+    [OutputType([Hashtable])]
     param (
         [parameter(Mandatory = $true)]
         [string]
         $hostName,
-
         [parameter(Mandatory = $true)]
         [string]
-        $IPAddress
+        $ipAddress,
+        [parameter()]
+        [ValidateSet('Present','Absent')]
+        [string]
+        $Ensure = 'Present'
     )
     
     $Configuration = @{
@@ -29,11 +33,14 @@ function Set-TargetResource
 {
     param (
         [parameter(Mandatory = $true)]
+        [string]
         $hostName,
         [parameter(Mandatory = $true)]
+        [string]
         $ipAddress,
         [parameter()]
         [ValidateSet('Present','Absent')]
+        [string]
         $Ensure = 'Present'
     )     
 
@@ -54,10 +61,13 @@ function Set-TargetResource
 
 function Test-TargetResource
 {
+    [OutputType([boolean])]
     param (
         [parameter(Mandatory = $true)]
+        [string]
         $hostName,
         [parameter(Mandatory = $true)]
+        [string]
         $ipAddress,
         [parameter()]
         [ValidateSet('Present','Absent')]
