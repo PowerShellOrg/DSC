@@ -9,15 +9,19 @@
        New-MofFile -Name Pagefile
     #>
     param (
-        $Name,
         $ModuleName,
+        $Name,        
         $Version = '1.0.0'
     )
 
-    if ([string]::IsNullOrEmpty($ModuleName))
+    $module = Import-Module $ModuleName -PassThru
+    $ModuleName = $Module.Name    
+    
+    if ([string]::IsNullOrEmpty($Name))
     {
-        $ModuleName = $Name
+        $Name = $module.Name
     }
+
     #Switch MSFT_BaseResourceConfiguration to OMI_BaseResource for WMF4 and RTM
     $Template = @"
 [version("$Version"), FriendlyName("$Name")]
@@ -86,7 +90,7 @@ class $ModuleName :  MSFT_BaseResourceConfiguration
     $Template += @'
 };
 '@
-    $module = Get-Module $ModuleName
+    
     $TargetPath = join-path $Module.ModuleBase "$ModuleName.schema.mof"
     
     if (Test-Path $TargetPath)
