@@ -3,11 +3,13 @@ PowerShell Community DSC Modules
 
 Desired State Configuration Modules to augment the initial offering in PowerShell V4
 
+NOTE: This needs to be updated for the breaking changes in General Availability of Server 2012 R2/Windows 8.1
+
 ToDo
 =====
 - [x] Initial upload
 - [ ] Make New-MofFile handle more data types and complex data types
-- [ ] Improve the DSC Module creation documentation
+- [ ] Improve the DSC Module creation documentation for General Availability
 - [ ] Add samples of complete configurations
 - [ ] Add samples of nested configurations
 - [ ] MORE Modules!
