@@ -14,7 +14,10 @@ DATA localizedData
 '@
 }
 
-Import-LocalizedData LocalizedData -filename ExecutionPolicyProvider.psd1
+if (Test-Path $PSScriptRoot\en-us)
+{
+    Import-LocalizedData LocalizedData -filename ExecutionPolicyProvider.psd1
+}
 
 function Get-TargetResource
 {

@@ -16,8 +16,10 @@ ConvertFrom-StringData @'
     InnerException=Nested error trying to create hosts file entry: {1}.
 '@
 }
-
-Import-LocalizedData LocalizedData -filename HostsFileProvider.psd1
+if (Test-Path $PSScriptRoot\en-us)
+{
+    Import-LocalizedData LocalizedData -filename HostsFileProvider.psd1
+}
 
 function Get-TargetResource
 {

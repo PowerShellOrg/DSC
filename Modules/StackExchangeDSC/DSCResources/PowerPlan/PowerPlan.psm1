@@ -24,7 +24,10 @@ ActivePlanNotSetToAndShouldNotBe=The active Power Plan is not set to {0}, and sh
 '@
 }
 
-Import-LocalizedData LocalizedData -filename PowerPlanProvider.psd1
+if (Test-Path $PSScriptRoot\en-us)
+{
+    Import-LocalizedData LocalizedData -filename PowerPlanProvider.psd1
+}
 
 
 function Get-TargetResource
