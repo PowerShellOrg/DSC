@@ -3,11 +3,10 @@ PowerShell Community DSC Modules
 
 Desired State Configuration Modules to augment the initial offering in PowerShell V4
 
-NOTE: This needs to be updated for the breaking changes in General Availability of Server 2012 R2/Windows 8.1
-
 ToDo
 =====
 - [x] Initial upload
+- [x] Update docs for GA
 - [ ] Make New-MofFile handle more data types and complex data types
 - [ ] Improve the DSC Module creation documentation for General Availability
 - [ ] Add samples of complete configurations
@@ -33,11 +32,11 @@ The second type of MOF file is created by running the configuration, with one ge
 
 The general flow of Resource Processing in DSC (from Configuration MOF to Desired State)
 
-When you run the configuration function, a MOF file for each node is generated.  This describes the state the machine should be in after processing the MOF file.  
+When you run the configuration function, a MOF file for each node is generated.  This describes the state the machine should be in after processing the MOF file.  The generated configuration MOF will note the resources used and their host module (see below).  
 
   
 
-For each resource defined, the DSC engine uses the classes defined in the MOF to marshal parameters to call the PowerShell DSC provider module.
+For each resource defined, the DSC engine uses the classes defined in the MOF to marshal parameters to call the PowerShell DSC resource (which is basically a PowerShell module).
 
   
 
@@ -45,19 +44,19 @@ The DSC engine calls Test-TargetResource with the parameters defined in the MOF 
 
   
 
-###Provider Modules
+###DSC Resources
 
+DSC Resources are nested in a module (which I'll call the host module).  Resources are located in a subfolder in a host module called DscResources.  One host module can contain zero or more DSC Resources.
+DSC Resources are modules as well, but by not being located directly on the PSModulePath, they won't clutter up your environment.
+
+####Versioning
+
+DSC Resources are versioned by the module version of their host module.
   
 
 ####Naming
 
-The module name will be the resource name when configurations are defined.  The module will have to export three functions (you can have more, but it has to export these three specific functions).  You can specify an alias name for the module in the MOF schema (detailed below).  
-
-  
-
-####Module Metadata
-
-The module must contain a PSD1 module metadata file (for versioning purposes).  That PSD1 can load and export the required functions from any valid source (separate PS1s, or a PSM1).
+The module name will be the resource name when configurations are defined, unless you specify an alias name for the module in the MOF schema (detailed below).  
 
   
 
@@ -95,10 +94,9 @@ Detailed documentation about MOF datatypes can be found here - [http://msdn.micr
 
 ####In creating the MOF schema file, there are a couple of rules.  
 
-- All resource classes (those that represent the parameters for the Set-TargetResource) must inherit from MSFT_BaseResourceConfiguration.   
-- The file is named {module}.schema.mof 
-- Classes are attributed with a version number.   
-    - I don’t know if that version has to match the module version number, but keeping those in sync would probably be a good practice. 
+- All resource classes (those that represent the parameters for the Set-TargetResource) must inherit from OMI_BaseResource.   
+- The file is named {resource}.schema.mof 
+- Classes are attributed with a version number which is currently meaningless 
 
 - Classes can be attributed with a “FriendlyName”, which would be the name that the resource would use in the configuration declaration.  The full class name is used in the generated configuration MOF. 
 - Mandatory parameters are annotated as [Key] values. 
@@ -119,7 +117,7 @@ mofcomp.exe -check {path to your mof file}.
 ````  
 [version("1.0.0"), FriendlyName("PowerPlan")]
 
-class PowerPlan : MSFT_BaseResourceConfiguration
+class PowerPlan : OMI_BaseResource
 
 {
 
