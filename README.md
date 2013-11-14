@@ -3,6 +3,18 @@ PowerShell Community DSC Modules
 
 Desired State Configuration Modules to augment the initial offering in PowerShell V4
 
+Check out my blog series on DSC at PowerShell.org:
+-Overview (<http://powershell.org/wp/2013/10/02/building-a-desired-state-configuration-infrastructure/>)
+-Configuring the Pull Server (REST version) (<http://powershell.org/wp/2013/10/03/building-a-desired-state-configuration-pull-server/>)
+-Creating Configurations (<http://powershell.org/wp/2013/10/08/building-a-desired-state-configuration-configuration/>, <http://powershell.org/wp/2013/10/14/building-a-desired-state-configuration-configuration-part-2/>)
+-Configuring Clients (<http://powershell.org/wp/2013/11/06/configuring-a-desired-state-configuration-client/>)
+-Building Custom Resources
+-Packaging Custom Resources
+-Advanced Client Targeting
+
+
+
+
 ToDo
 =====
 - [x] Initial upload
