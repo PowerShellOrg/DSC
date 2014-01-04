@@ -1,7 +1,0 @@
-[ClassVersion("1.0.0"), FriendlyName("Pagefile")]
-class Pagefile :  OMI_BaseResource
-{
-	[Key] sint64 InitialSize;
-	[Key] sint64 MaximumSize;
-	[write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
-};

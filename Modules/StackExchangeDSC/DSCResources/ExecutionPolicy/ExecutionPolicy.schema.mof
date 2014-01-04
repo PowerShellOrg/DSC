@@ -1,6 +1,0 @@
-[ClassVersion("1.0.0"), FriendlyName("ExecutionPolicy")]
-class ExecutionPolicy :  OMI_BaseResource
-{
-	[Key,ValueMap{"Restricted", "AllSigned", "RemoteSigned", "Unrestricted"},Values{"Restricted", "AllSigned", "RemoteSigned", "Unrestricted"}] string Name;
-	[write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
-};

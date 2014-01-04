@@ -1,6 +1,0 @@
-[ClassVersion("1.0.0"), FriendlyName("PowerPlan")]
-class PowerPlan :  OMI_BaseResource
-{
-	[Key] string Name;
-	[write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
-};
