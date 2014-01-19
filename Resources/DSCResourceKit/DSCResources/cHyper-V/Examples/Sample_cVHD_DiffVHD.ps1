@@ -1,4 +1,4 @@
-﻿configuration Sample_cVhd_DiffVhd
+configuration Sample_cVhd_DiffVhd
 {
     param
     (

@@ -1,4 +1,4 @@
-﻿Configuration Sample_cWebsite_FromConfigurationData
+Configuration Sample_cWebsite_FromConfigurationData
 {
     # Import the module that defines custom resources
     Import-DscResource -Module cWebAdministration

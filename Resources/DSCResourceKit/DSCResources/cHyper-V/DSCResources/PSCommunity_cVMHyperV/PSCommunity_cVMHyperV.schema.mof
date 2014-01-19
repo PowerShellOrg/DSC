@@ -1,0 +1,26 @@
+[ClassVersion("1.0.0"), FriendlyName("cVMHyperV")]
+class PSCommunity_cVMHyperV : OMI_BaseResource
+{
+	[Key, Description("Name of the VM")] String Name;
+	[Required, Description("VHD associated with the VM")] String VhdPath;
+	[Write, Description("Virtual switch associated with the VM")] String SwitchName;
+	[Write, Description("State of the VM"), ValueMap{"Running","Paused","Off"}, Values{"Running","Paused","Off"}] String State;
+	[Write, Description("Folder where the VM data will be stored")] String Path;
+	[Write, Description("Associated Virtual disk format - Vhd or Vhdx"), ValueMap{"Vhd","Vhdx"}, Values{"Vhd","Vhdx"}] String Generation;
+	[Write, Description("Startup RAM for the VM")] Uint64 StartupMemory;
+	[Write, Description("Minimum RAM for the VM. This enables dynamic memory")] Uint64 MinimumMemory;
+	[Write, Description("Maximum RAM for the VM. This enable dynamic memory")] Uint64 MaximumMemory;
+	[Write, Description("MAC address of the VM")] String MACAddress;
+	[Write, Description("Processor count for the VM")] Uint32 ProcessorCount;
+	[Write, Description("Waits for VM to get valid IP address")] Boolean WaitForIP;
+	[Write, Description("If specified, shutdowns and restarts the VM as needed for property changes")] Boolean RestartIfNeeded;
+	[Write, Description("Should the VM be created or deleted"), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+	[Read, Description("VM unique ID")] String ID;
+	[Read, Description("Status of the VM")] String Status;
+	[Read, Description("CPU Usage of the VM")] Uint32 CPUUsage;
+	[Read, Description("Memory assigned to the VM")] Uint64 MemoryAssigned;
+	[Read, Description("Uptime of the VM")] String Uptime;
+	[Read, Description("Creation time of the VM")] DateTime CreationTime;
+	[Read, Description("Does VM has dynamic memory enabled")] Boolean HasDynamicMemory;
+	[Read, Description("Network adapters of the VM")] String NetworkAdapters[];
+};

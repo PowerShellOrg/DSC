@@ -1,4 +1,4 @@
-﻿# A configuration to move a machine from a Domain to a WorkGroup -- note: a credential is required
+# A configuration to move a machine from a Domain to a WorkGroup -- note: a credential is required
 
 Configuration Sample_cComputer_DomainToWorkgroup
 {

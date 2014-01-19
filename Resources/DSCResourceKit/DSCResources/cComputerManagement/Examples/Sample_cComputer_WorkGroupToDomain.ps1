@@ -1,4 +1,4 @@
-﻿# A simple configuration to join a workgroup computer to a domain
+# A simple configuration to join a workgroup computer to a domain
 
 Configuration Sample_cComputer_WorkgroupToDomain
 {

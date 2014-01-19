@@ -1,0 +1,12 @@
+[ClassVersion("1.0.0"), FriendlyName("cWebsite")] 
+class PSCommunity_cWebsite : OMI_BaseResource
+{
+  [Key] string Name;
+  [write] string PhysicalPath;
+  [write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+  [write,ValueMap{"Started","Stopped"},Values{"Started", "Stopped"}] string State;
+  [write,ValueMap{"http"},Values{"http"}] string Protocol[];
+  [write] string BindingInfo[];
+  [write] string ApplicationPool;
+  [read] string ID;
+};

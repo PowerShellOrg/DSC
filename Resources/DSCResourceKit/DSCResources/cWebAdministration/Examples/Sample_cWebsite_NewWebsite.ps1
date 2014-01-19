@@ -1,4 +1,4 @@
-﻿configuration Sample_cWebsite_NewWebsite
+configuration Sample_cWebsite_NewWebsite
 {
     param
     (
