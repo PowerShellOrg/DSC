@@ -1,6 +1,6 @@
 
 [ClassVersion("1.0.0"), FriendlyName("cComputer")] 
-class MSFT_cComputer : OMI_BaseResource
+class PSCommunity_cComputer : OMI_BaseResource
 {
     [key] string Name;
 

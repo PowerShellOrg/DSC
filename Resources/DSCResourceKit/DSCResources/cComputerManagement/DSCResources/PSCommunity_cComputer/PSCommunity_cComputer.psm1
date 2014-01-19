@@ -16,7 +16,7 @@ function Get-TargetResource
 	[string] $WorkGroupName
   	)
 
-    $convertToCim = New-CimInstance -ClassName MSFT_Credential -Property @{Username=[string]$Credential.UserName; Password=[string]$null} -Namespace root/microsoft/windows/desiredstateconfiguration -ClientOnly
+    $convertToCim = New-CimInstance -ClassName PSCommunity_Credential -Property @{Username=[string]$Credential.UserName; Password=[string]$null} -Namespace root/microsoft/windows/desiredstateconfiguration -ClientOnly
     $returnValue = @{
 		Name = $env:COMPUTERNAME
         DomainName =(gwmi WIN32_ComputerSystem).Domain

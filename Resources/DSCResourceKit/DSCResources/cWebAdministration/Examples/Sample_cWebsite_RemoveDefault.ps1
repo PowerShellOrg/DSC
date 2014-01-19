@@ -1,4 +1,4 @@
-﻿configuration Sample_cWebsite_StopDefault
+configuration Sample_cWebsite_StopDefault
 {
     param
     (

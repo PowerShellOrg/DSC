@@ -1,4 +1,4 @@
-﻿configuration Sample_cIPAddress_Parameterized
+configuration Sample_cIPAddress_Parameterized
 {
     param
     (
