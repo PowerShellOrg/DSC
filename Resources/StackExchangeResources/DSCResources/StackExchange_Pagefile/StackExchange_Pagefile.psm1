@@ -36,7 +36,7 @@ function Get-TargetResource
 
     #Needs to return a hashtable that returns the current
     #status of the configuration component
-    $ComputerSystem = Get-WmiObject win32_computersystem -EnableAllPrivileges
+    $ComputerSystem = Get-CimInstance -ClassName win32_computersystem 
     if ($ComputerSystem.AutomaticManagedPageFile)
     {
         Write-Verbose  $LocalizedData.AutomaticPageFileConfigured
@@ -46,7 +46,7 @@ function Get-TargetResource
     }
     else
     {        
-        $PageFileSetting = Get-WmiObject Win32_PageFileSetting -EnableAllPrivileges
+        $PageFileSetting = Get-CimInstance Win32_PageFileSetting 
         $Configuration = @{
             Ensure = 'Present'
             InitialSize = $PageFileSetting.InitialSize * 1mb
@@ -72,39 +72,43 @@ function Set-TargetResource
         [string]
         $Ensure = 'Present'
     )
-    if ($Ensure -like 'Present')
+    $ComputerSystem = Get-CimInstance win32_computersystem 
+  
+    if ($ComputerSystem.AutomaticManagedPageFile)
     {
-        
-        $ComputerSystem = Get-WmiObject win32_computersystem -EnableAllPrivileges 
-        if ($ComputerSystem.AutomaticManagedPageFile)
+        if ($Ensure -like 'Present')
         {
             Write-Verbose  $LocalizedData.AutomaticPageFileConfigured
             $ComputerSystem.AutomaticManagedPageFile = $false
             $ComputerSystem.Put() | Out-Null
             Write-Verbose $LocalizedData.DisabledAutomaticPageFile
         }
-           
-        $PageFileSetting = Get-WmiObject Win32_PageFileSetting -EnableAllPrivileges 
-        $PageFileSetting.InitialSize = $InitialSize / 1MB
-        $PageFileSetting.MaximumSize = $MaximumSize / 1MB                
-        $PageFileSetting.put() | out-null
-
-        Write-Verbose ($LocalizedData.PageFileStaticallyConfigured -f $InitialSize, $MaximumSize)
+        else
+        {
+            Write-Verbose "Nothing to configure here."
+        }
     }
     else
-    {
-        $ComputerSystem = Get-WmiObject win32_computersystem -EnableAllPrivileges 
-        if (-not $ComputerSystem.AutomaticManagedPageFile)
-        {
+    {   
+        if ($Ensure -like 'Present')
+        {   
+            $PageFileSetting = Get-CimInstance Win32_PageFileSetting  
+            $PageFileSetting.InitialSize = $InitialSize / 1MB
+            $PageFileSetting.MaximumSize = $MaximumSize / 1MB                
+            $PageFileSetting.put() | Out-Null
+
+            Write-Verbose ($LocalizedData.PageFileStaticallyConfigured -f $InitialSize, $MaximumSize)            
+        }
+        else
+        {                  
             $ComputerSystem.AutomaticManagedPageFile = $true
             $ComputerSystem.Put() | Out-Null
-            Write-Verbose  $LocalizedData.AutomaticPageFileConfigured
+            Write-Verbose  $LocalizedData.AutomaticPageFileConfigured            
         }
     }
     
     Write-Verbose $LocalizedData.RebootRequired
     $global:DSCMachineStatus = 1
-
 }
 
 function Test-TargetResource
@@ -124,8 +128,9 @@ function Test-TargetResource
     )
 
     $Valid = $true
-    $ComputerSystem = Get-WmiObject win32_computersystem -EnableAllPrivileges
-    $PageFileSetting = Get-WmiObject Win32_PageFileSetting -EnableAllPrivileges
+    $ComputerSystem = Get-CimInstance win32_computersystem 
+    $PageFileSetting = Get-CimInstance Win32_PageFileSetting 
+
     if ($Ensure -like 'Present')
     {
          

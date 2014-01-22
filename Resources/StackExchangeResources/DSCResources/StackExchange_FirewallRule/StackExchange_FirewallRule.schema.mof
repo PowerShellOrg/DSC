@@ -1,5 +1,5 @@
 [ClassVersion("1.0.0"), FriendlyName("FirewallRule")]
-class FirewallRule :  OMI_BaseResource
+class StackExchange_FirewallRule :  OMI_BaseResource
 {
 	[Key] string DisplayName;
 	[write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;

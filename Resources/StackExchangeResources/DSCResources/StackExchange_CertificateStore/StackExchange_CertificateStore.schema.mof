@@ -1,5 +1,5 @@
 [ClassVersion("1.0"), FriendlyName("CertificateStore")]
-class CertificateStore : OMI_BaseResource
+class StackExchange_CertificateStore : OMI_BaseResource
 {
 [Key] string Name;
 [Key] string Path;

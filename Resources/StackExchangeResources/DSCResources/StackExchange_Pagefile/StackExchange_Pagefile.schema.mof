@@ -1,5 +1,5 @@
 [ClassVersion("1.0.0"), FriendlyName("Pagefile")]
-class Pagefile :  OMI_BaseResource
+class StackExchange_Pagefile :  OMI_BaseResource
 {
 	[Key] sint64 InitialSize;
 	[Key] sint64 MaximumSize;
