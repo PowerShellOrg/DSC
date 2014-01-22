@@ -1,4 +1,4 @@
-﻿Configuration GlobalAssemlyCacheSample
+Configuration GlobalAssemlyCacheSample
 {   
     Node "CraigRegWeb1"
     {

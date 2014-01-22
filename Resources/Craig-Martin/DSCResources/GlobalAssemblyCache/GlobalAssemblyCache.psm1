@@ -1,4 +1,4 @@
-﻿<#
+<#
 .Synopsys
 The Get-TargetResource cmdlet.
 #>

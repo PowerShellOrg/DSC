@@ -1,4 +1,4 @@
-﻿ConvertFrom-StringData @'    
+ConvertFrom-StringData @'    
     CheckingCurrentExecutionPolicy=Checking for the existing execution policy.
     ExecutionPolicyFound=Located an execution policy of {0}.
     ExecutionPolicyNotFound=Did not find an execution policy of {0}.

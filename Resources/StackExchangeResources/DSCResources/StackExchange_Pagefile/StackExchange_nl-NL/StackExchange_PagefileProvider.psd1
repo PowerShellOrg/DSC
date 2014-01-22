@@ -1,4 +1,4 @@
-﻿# Localized PagefileProvider.psd1
+# Localized PagefileProvider.psd1
 
 ConvertFrom-StringData @'
 ###PSLOC

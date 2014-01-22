@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.ps1", ".psm1")
 $pathtosut = join-path $here $sut
 
@@ -187,3 +187,4 @@ Describe 'how Set-TargetResource responds' {
     Get-Variable -Scope Global -Name Win32_PageFileSettingPutWasCalled | 
         Remove-Variable -Scope Global -Force
 }
+

@@ -1,4 +1,4 @@
-﻿configuration Sample_cVMHyperV_Complete
+configuration Sample_cVMHyperV_Complete
 {
     param
     (

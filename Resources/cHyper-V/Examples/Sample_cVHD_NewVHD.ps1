@@ -1,4 +1,4 @@
-﻿configuration Sample_cVHD_NewVhd
+configuration Sample_cVHD_NewVhd
 {
     param
     (

@@ -1,4 +1,4 @@
-﻿
+
 # Fallback message strings in en-US
 DATA localizedData
 {

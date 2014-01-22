@@ -1,4 +1,4 @@
-﻿# Hashtable to define the environmental data
+# Hashtable to define the environmental data
 @{
     # Node specific data
     AllNodes = @(

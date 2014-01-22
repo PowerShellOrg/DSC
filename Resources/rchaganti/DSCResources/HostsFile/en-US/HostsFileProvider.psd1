@@ -1,4 +1,4 @@
-﻿ConvertFrom-StringData @'    
+ConvertFrom-StringData @'    
     CheckingHostsFileEntry=Checking if the hosts file entry exists.
     HostsFileEntryFound=Found a hosts file entry for {0} and {1}.
     HostsFileEntryNotFound=Did not find a hosts file entry for {0} and {1}.
