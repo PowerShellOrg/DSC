@@ -4,6 +4,6 @@ class PSHOrg_cIPAddress : OMI_BaseResource
   [Key] string IPAddress;
   [Key] string InterfaceAlias;
   [write] string DefaultGateway;
-  [Write] uint32 SubnetMask;
+  [Write] sint32 SubnetMask;
   [Write,ValueMap{"IPv4", "IPv6"},Values{"IPv4", "IPv6"}] string AddressFamily;
 };
