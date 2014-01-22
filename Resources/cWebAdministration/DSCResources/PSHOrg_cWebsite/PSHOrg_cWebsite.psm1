@@ -86,7 +86,7 @@ function Get-TargetResource
 # The Set-TargetResource cmdlet is used to create, delete or configuure a website on the target machine. 
 function Set-TargetResource 
 {
-    [CmdletBinding(SupportsShouldProcess=$true)]
+    [CmdletBinding()]
     param 
     (       
         [ValidateSet("Present", "Absent")]
