@@ -65,7 +65,7 @@ The module name will be the resource name when configurations are defined, unles
 
 - Set-TargetResource 
     - Set-TargetResource is called if Test-TargetResource (described in a bit) returns false.  Test-TargetResource is called with the same parameters as Set-TargetResource. 
-    - This function implements the change requested.  You'll need to support both the case of Ensure = 'Present' and Ensure = 'Absent'.  If this resource represents a multi-step process and that process needs to support suspend/resume or requires reboots, it may be an indication that you want to break it into several resources, otherwise you�ll have to implement the stage checking in this function. 
+    - This function implements the change requested.  You'll need to support both the case of Ensure = 'Present' and Ensure = 'Absent'.  If this resource represents a multi-step process and that process needs to support suspend/resume or requires reboots, it may be an indication that you want to break it into several resources, otherwise you'll have to implement the stage checking in this function. 
     - Each parameter for this function will need to be modeled in the CIM schema in a CIM class named for the resource type, so if you expect structured objects, you'll need to define comprehensive schema documents. 
     - Logging for this function occurs in the form of verbose output (which is written to the DSC event log). 
     - While the DSC engine should only call this function if Test-TargetResource returns false, it would be prudent to write the system state changes in as idempotent a manner as possible. 
