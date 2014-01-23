@@ -1,20 +1,24 @@
-Function ConvertTo-EncryptedFile
+﻿Function ConvertTo-EncryptedFile
 {
     [cmdletbinding(DefaultParameterSetName='LocalCertStoreAndFilePath')]
     Param(
+        #Path to the file to encrypt.
         [Parameter(
             Position=0,
+            Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'LocalCertStoreAndFilePath'
         )]
         [Parameter(
             Position=0,
+            Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ArbitraryCertAndFilePath'
         )]
         [string]
         $Path,
 
+        #FileInfo object to encrypt.
         [Parameter(
             Position=0,
             ValueFromPipeline=$true,
@@ -38,7 +42,7 @@ Function ConvertTo-EncryptedFile
             mandatory=$true,
             position = 1,
             ParameterSetName = 'LocalCertStoreAndInputObject'
-        )]
+        )]        
         [string]
         $CertificatePath,
         
@@ -64,8 +68,8 @@ Function ConvertTo-EncryptedFile
     {
         switch ($PSCmdlet.ParameterSetName)
         {
-            'LocalCertStoreAndFilePath' { $Certificate = Get-Item $CertificatePath }
-            'LocalCertStoreAndInputObject' { $Certificate = Get-Item $CertificatePath ; $Path = $InputObject.FullName }
+            'LocalCertStoreAndFilePath' { Write-Verbose "Loading certificate from $CertificatePath"; $Certificate = Get-Item $CertificatePath }
+            'LocalCertStoreAndInputObject' { Write-Verbose "Loading certificate from $CertificatePath"; $Certificate = Get-Item $CertificatePath ; $Path = $InputObject.FullName }
             'ArbitraryCertAndInputObject' { $Path = $InputObject.FullName }
             'ArbitraryCertAndFilePath' {  }
         }

@@ -1,4 +1,4 @@
-param 
+﻿param 
 (
     [string]
     $ConfigurationDataPath = "$PSScriptRoot\Configuration",
@@ -7,14 +7,30 @@ param
 )
 
 $LocalCertificatePath = "cert:\LocalMachine\My\$LocalCertificateThumbprint"
+$ConfigurationData = @{ AllNodes = @(); SiteData = @{}; Credentials = @{} }
 
 . $PSScriptRoot\ConvertTo-EncryptedFile.ps1
 . $PSScriptRoot\ConvertFrom-EncryptedFile.ps1
 
 function Get-Hashtable
 {
-    param ($path) 
-    invoke-expression "DATA { @{$(get-content -raw -path $path)} }"
+    # Path to PSD1 file to evaluate
+    param (
+        [parameter(
+            Position = 0,
+            ValueFromPipelineByPropertyName,
+            Mandatory
+        )]
+        [ValidateNotNullOrEmpty()]
+        [Alias('FullName')]
+        [string]
+        $Path
+    ) 
+    process 
+    {
+        Write-Verbose "Loading data from $Path."
+        invoke-expression "DATA { $(get-content -raw -path $path) }"
+    }    
 }
 
 function New-Credential
@@ -27,100 +43,139 @@ function New-Credential
 function ConvertTo-CredentialLookup
 {
     param (
+        [parameter(
+            ValueFromPipeline,
+            Mandatory
+        )]
         [System.Collections.Hashtable]
         $PasswordHashtable
     )
-
-    $CredentialHashtable = @{}
-    foreach ($key in $PasswordHashtable.Keys)
+    begin
     {
-        $CredentialHashtable.Add($key, (New-Credential -username $key -password $PasswordHashtable[$key]))
+        $CredentialHashtable = @{}
     }
-    return $CredentialHashtable
+    Process 
+    {                
+        foreach ($key in $PasswordHashtable.Keys)
+        {
+            Write-Verbose "Creating new credential for $key"
+            $CredentialHashtable.Add($key, (New-Credential -username $key -password $PasswordHashtable[$key]))
+        }        
+    }
+    end 
+    {
+        $CredentialHashtable 
+    }
+}
+
+function Get-AllNodesConfigurationData
+{
+    [cmdletbinding()]
+    param ($Path, [switch]$Force)
+    if (($script:ConfigurationData.AllNodes.Count -eq 0) -or ($Force))
+    {  
+        Write-Verbose "Processing AllNodes from $Path."
+        $script:ConfigurationData.AllNodes = @()
+        dir (join-path $Path 'AllNodes\*.psd1') | 
+            Get-Hashtable | 
+            foreach-object { 
+                Write-Verbose "Adding Name: $($_.Name)"
+                $script:ConfigurationData.AllNodes += $_ 
+            }
+    }
+}
+
+function Get-SiteDataConfigurationData
+{
+    [cmdletbinding()]
+    param ($Path, [switch]$Force)
+    if (($script:ConfigurationData.SiteData.Keys.Count -eq 0) -or ($Force))
+    { 
+        Write-Verbose "Processing SiteData from $Path." 
+        foreach ( $item in (dir (join-path $Path 'SiteData\*.psd1')) )
+        {
+            Write-Verbose "Loading data for site $($item.basename) from $($item.fullname)."
+            $script:ConfigurationData.SiteData.Add($item.BaseName, (Get-Hashtable $item.FullName))
+        }
+    }
+}
+
+function Get-CredentialConfigurationData
+{
+    [cmdletbinding()]
+    param ($Path, [switch]$Force)
+    if (($script:ConfigurationData.Credentials.Keys.Count -eq 0) -or ($Force))
+    { 
+        Write-Verbose "Processing Credentials from $Path."
+        foreach ( $item in (dir (join-path $Path 'Credentials\*.psd1.encrypted')) )
+        {
+            $script:ConfigurationData.Credentials = dir (join-path $Path 'Credentials\*.psd1.encrypted') | 
+                Get-EncryptedPassword -StoreName {$_.Name -replace '\.encrypted' -replace '\.psd1'} |
+                ConvertTo-CredentialLookup
+        }
+    }
 }
 
 function Get-ConfigurationData
 {
+    [cmdletbinding(DefaultParameterSetName='NoFilter')]
     param (
         [parameter()]
         [string]
         $Path = $ConfigurationDataPath,
-        [parameter()]
+        [parameter(
+            ParameterSetName = 'NameFilter'
+        )]
         [string]
         $Name,
-        [parameter()]
+        [parameter(
+            ParameterSetName = 'NodeNameFilter'  
+        )]
         [string]
         $NodeName,
-        [parameter()]
+        [parameter(
+            ParameterSetName = 'RoleFilter'  
+        )]
         [string]
-        $Role
-    )
-    $ConfigurationData = @{}
-    $ConfigurationData.AllNodes = @()
-    $ConfigurationData.SiteData = @{}
-    $ConfigurationData.Credentials = @{}
-    
-    $ConfigurationSiteDataPath = join-path $Path '\SiteData\*.psd1'
-    $ConfigurationNodeDataPath = join-path $Path '\AllNodes\*.psd1'
-    $ConfigurationCredentialDataPath = join-path $Path '\Credentials\*.psd1.encrypted'
+        $Role, 
+        [parameter()]
+        [switch]
+        $Force
+    )             
 
-    Write-Verbose "Processing AllNodes from $ConfigurationNodeDataPath."
-    foreach ($datafile in (dir $ConfigurationNodeDataPath))
+
+    Get-AllNodesConfigurationData -Path $path 
+
+    $ofs = ', '
+    $FilteredResults = $true
+    Write-Verbose "Checking for filters of AllNodes."
+    switch ($PSCmdlet.ParameterSetName)
     {
-        Write-Verbose "Loading $($datafile.BaseName) into ConfigurationData.AllNodes."
-        $ConfigurationData.AllNodes += (Get-Hashtable $datafile.FullName)
-    }
-
-    if ((-not $PSBoundParameters.ContainsKey('Name')) -and
-            (-not $PSBoundParameters.ContainsKey('NodeName')) -and
-            (-not $PSBoundParameters.ContainsKey('Role')) 
-        )
-    {       
-        Write-Verbose "Processing SiteData from $ConfigurationSiteDataPath."
-        foreach ($datafile in (dir $ConfigurationSiteDataPath))
-        {
-            Write-Verbose "Loading $($datafile.BaseName) into ConfigurationData.SiteData."
-            $ConfigurationData.SiteData.Add($datafile.BaseName, ((Get-Hashtable $datafile.FullName)))
-        }        
-
-        Write-Verbose "Processing Credentials from $ConfigurationCredentialDataPath."
-        foreach ($datafile in (dir $ConfigurationCredentialDataPath))
-        {
-        
-            $StoreName = ($datafile.Name -replace '\.encrypted' -replace '\.psd1')
-            Write-Verbose "Decrypting Credential Store $StoreName from $($datafile.Name)."
-            $DecryptedPasswordHash = Get-EncryptedPassword -StoreName $StoreName -Path $datafile.Directory
-            Write-Verbose "Converting the saved usernames and passwords to credentials."
-            $CredentialHashTable = ConvertTo-CredentialLookup $DecryptedPasswordHash
-            Write-Verbose "Loading Credentials from $Storename into ConfigurationData.Credentials."
-            $ConfigurationData.Credentials += $CredentialHashTable
-        }
-    }
-    else
-    {
-        $ofs = ', '
-        Write-Verbose "Filtering AllNodes."
-        if ($PSBoundParameters.ContainsKey('Name'))
-        {
+        'Name'  {            
             Write-Verbose "Filtering for nodes with the Name $Name"
-            $ConfigurationData.AllNodes = $ConfigurationData.AllNodes.Where({$_.Name -like $Name})
+            $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({$_.Name -like $Name})
         }
-        if ($PSBoundParameters.ContainsKey('NodeName'))
-        {
+
+        'NodeName' {            
             Write-Verbose "Filtering for nodes with the GUID of $NodeName"
-            $ConfigurationData.AllNodes = $ConfigurationData.AllNodes.Where({$_.NodeName -like $NodeName})
+            $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({$_.NodeName -like $NodeName})
         }
-        if ($PSBoundParameters.ContainsKey('Role'))
-        {
+        'Role'  {
             Write-Verbose "Filtering for nodes with the Role of $Role"
-            $ConfigurationData.AllNodes = $ConfigurationData.AllNodes.Where({ $_.roles -contains $Role})
+            $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({ $_.roles -contains $Role})
+        }
+        default {
+            Write-Verbose "Loading Site Data"
+            Get-SiteDataConfigurationData -Path $path -Force:$Force
+            Write-Verbose "Loading Credential Data"
+            Get-CredentialConfigurationData -Path $path -Force:$Force
         }
     }
     
-    return $ConfigurationData
+    return $script:ConfigurationData
 }
 
-function Add-EncyptedPassword
+function Add-EncryptedPassword
 {
     param (                
         [parameter(mandatory)]
@@ -159,52 +214,104 @@ function Add-EncyptedPassword
         Remove-Item $FilePath -Confirm:$false
     }    
     
+    '@{' | Out-File $FilePath 
     foreach ($key in $Credentials.Keys)
     {
         Write-Verbose "Persisting credentials for $key to disk."
         "'$key' = '$($Credentials[$key])'" | Out-File $FilePath -Append
     }
+    '}' | Out-File $FilePath -Append
+
     Write-Verbose "Encrypting credentials."
     ConvertTo-EncryptedFile -Path $FilePath -CertificatePath $LocalCertificatePath
     Remove-PlainTextPassword $FilePath
 }
 
+function Test-LocalCertificate
+{
+    param ()
+    if (-not [string]::IsNullOrEmpty($LocalCertificateThumbprint))
+    {        
+        Write-Verbose "LocalCertificateThumbprint is present."
+        if (Test-Path $LocalCertificatePath)
+        {
+            Write-Verbose 'Certficate is present in the local certificate store.'
+            return $true
+        }
+        else 
+        {
+            Write-Warning 'Certficate specified is not in the certificate store.'
+            return $false   
+        }
+    }
+    else 
+    {        
+        Write-Warning "No local certificate supplied or configured with the DSC Local Configuration Manager."
+        return $false
+    }
+}
+
 function Get-EncryptedPassword
 {
+    [cmdletbinding(DefaultParameterSetName='ByStoreName')]
     param (
-        [parameter(mandatory)]
+        [parameter(
+            ParameterSetName = 'ByStoreName',
+            ValueFromPipelineByPropertyName,
+            Mandatory
+        )]
+        [Alias('BaseName')]
         [string]
         $StoreName,
-        [parameter()]
+        [parameter(
+            ParameterSetName = 'ByStoreName'         
+        )]        
         [string]
         $Path = (Join-path $ConfigurationDataPath 'Credentials'), 
-        [parameter()]
+        [parameter(
+            ParameterSetName = 'ByPipeline',
+            ValueFromPipelineByPropertyName,
+            Mandatory
+        )]
+        [Alias('FullName')]
         [string]
+        $EncryptedFilePath,
+        [parameter()]
+        [string[]]
         $UserName
     )
-
-    $EncryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
-
-    Write-Verbose "Decrypting $Path."
-    $DecryptedDataFile = ConvertFrom-EncryptedFile -path $EncryptedFilePath -CertificatePath $LocalCertificatePath
-    Write-Verbose "Loading $($DecryptedDataFile.BaseName) into Credentials."
-    $Credentials = (Get-Hashtable $DecryptedDataFile.FullName)
-    Remove-PlainTextPassword $DecryptedDataFile.FullName
-    if ($PSBoundParameters.ContainsKey('UserName'))
+    process
     {
-        $CredentialsToReturn = @{}
-        foreach ($User in $UserName)
+        if (Test-LocalCertificate)
         {
-            $CredentialsToReturn.Add($User,$Credentials[$User])
-        }
-        return $CredentialsToReturn
-    }
-    else
-    {
-        return $Credentials
-    }
-    
+            if (-not $PSBoundParameters.ContainsKey('EncryptedFilePath'))
+            {
+                $EncryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
+            }
 
+            Write-Verbose "Decrypting $EncryptedFilePath."
+            $DecryptedDataFile = ConvertFrom-EncryptedFile -path $EncryptedFilePath -CertificatePath $LocalCertificatePath
+            
+            Write-Verbose "Loading $($DecryptedDataFile.BaseName) into Credentials."
+            $Credentials = (Get-Hashtable $DecryptedDataFile.FullName)
+
+            Remove-PlainTextPassword $DecryptedDataFile.FullName
+            
+            if ($PSBoundParameters.ContainsKey('UserName'))
+            {
+                $CredentialsToReturn = @{}
+                foreach ($User in $UserName)
+                {
+                    $CredentialsToReturn.Add($User,$Credentials[$User])
+                }
+                return $CredentialsToReturn
+            }
+            else
+            {
+                return $Credentials
+            }
+        }
+    }
 }
 
 function Remove-PlainTextPassword
@@ -218,7 +325,6 @@ function Remove-PlainTextPassword
     Start-Sleep -seconds 2
     Write-Verbose "Removing plain text credentials from $path"
     Remove-Item $path -Confirm:$false -Force
-
 }
 
 
@@ -235,4 +341,4 @@ function Remove-PlainTextPassword
 . $PSScriptRoot\Clear-DscEventLog.ps1
 
 . $PSScriptRoot\Set-DscClient.ps1
-
+. $PSScriptRoot\Update-ModuleMetadataVersion.ps1
