@@ -1,4 +1,4 @@
-﻿function Invoke-DscPull
+function Invoke-DscPull
 {
     param (
         $CimSession = $null,

@@ -1,4 +1,4 @@
-﻿function Publish-DscResource
+function Publish-DscResource
 {
     param (
         [parameter()]

@@ -1,4 +1,4 @@
-﻿function New-DscZipFile
+function New-DscZipFile
 {
     param(
         ## The name of the zip archive to create

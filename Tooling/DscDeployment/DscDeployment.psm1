@@ -1,4 +1,4 @@
-﻿param 
+param 
 (
     [string]
     $ConfigurationDataPath = "$PSScriptRoot\Configuration",
@@ -235,3 +235,4 @@ function Remove-PlainTextPassword
 . $PSScriptRoot\Clear-DscEventLog.ps1
 
 . $PSScriptRoot\Set-DscClient.ps1
+
