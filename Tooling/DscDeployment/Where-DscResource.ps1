@@ -68,7 +68,7 @@ function Where-DscResource
                 $GoodResources = $AllModuleResources |
                     Where-Object {
                         Write-Verbose "Testing $($_.Name)"
-                        Test-DscResource -Name $_.Name  -Verbose
+                        Test-cDscResource -Name $_.Name  -Verbose
                     }
                 
             
