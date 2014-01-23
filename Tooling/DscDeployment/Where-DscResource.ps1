@@ -1,4 +1,4 @@
-﻿function Where-DscResource
+function Where-DscResource
 {
     param (
         [parameter(ValueFromPipeline)]

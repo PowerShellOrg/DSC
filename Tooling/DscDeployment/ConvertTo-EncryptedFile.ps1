@@ -1,4 +1,4 @@
-﻿Function ConvertTo-EncryptedFile
+Function ConvertTo-EncryptedFile
 {
     [cmdletbinding(DefaultParameterSetName='LocalCertStoreAndFilePath')]
     Param(

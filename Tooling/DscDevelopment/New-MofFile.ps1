@@ -1,4 +1,4 @@
-﻿function New-MofFile
+function New-MofFile
 {
     <#
     .Synopsis

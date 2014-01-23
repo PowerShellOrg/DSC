@@ -1,4 +1,4 @@
-﻿function Update-ModuleMetadataVersion
+function Update-ModuleMetadataVersion
 {
     [cmdletbinding(DefaultParameterSetName='ByDirectoryInfo')]
     param (

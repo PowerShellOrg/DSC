@@ -1,4 +1,4 @@
-﻿# Fallback message strings in en-US
+# Fallback message strings in en-US
 DATA localizedData
 {
     # same as culture = "en-US"
