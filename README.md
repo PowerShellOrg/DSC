@@ -30,31 +30,25 @@ Getting Started With DSC Modules
   
 
 NOTE: 
-
   
 
-There are two sets of MOF (Managed Object Framework) files generated in this process. �Each provider module has a MOF file defining a class representing the parameters to the functions in provider module. 
-  
+There are two sets of MOF (Managed Object Framework) files generated in this process. Each provider module has a MOF file defining a class representing the parameters to the functions in provider module. 
 
-The second type of MOF file is created by running the configuration, with one generated per target node. �This MOF file is the serialization of the configuration defined in MOF format. �It references the MOF classes defined in the provider modules� schema files and contains the values supplied in the configuration associated to the appropriate parameters.
-  
+The second type of MOF file is created by running the configuration, with one generated per target node.  This MOF file is the serialization of the configuration defined in MOF format.  It references the MOF classes defined in the provider modules schema files and contains the values supplied in the configuration associated to the appropriate parameters.
 
 The general flow of Resource Processing in DSC (from Configuration MOF to Desired State)
 
-When you run the configuration function, a MOF file for each node is generated. �This describes the state the machine should be in after processing the MOF file.  The generated configuration MOF will note the resources used and their host module (see below). 
-  
+When you run the configuration function, a MOF file for each node is generated. This describes the state the machine should be in after processing the MOF file.  The generated configuration MOF will note the resources used and their host module (see below).   
 
-For each resource defined, the DSC engine uses the classes defined in the MOF to marshal parameters to call the PowerShell DSC resource (which is basically a PowerShell module).
+For each resource defined, the DSC engine uses the classes defined in the MOF to marshal parameters to call the PowerShell DSC resource (which is basically a PowerShell module).  
 
-  
-
-The DSC engine calls Test-TargetResource with the parameters defined in the MOF file (as mapped in the schema MOF). �If Test-TargetResource returns $false, then Set-TargetResource is called with the same parameter set.
-
+The DSC engine calls Test-TargetResource with the parameters defined in the MOF file (as mapped in the schema MOF). If Test-TargetResource returns $false, then Set-TargetResource is called with the same parameter set.
   
 
 ###DSC Resources
 
 DSC Resources are nested in a module (which I'll call the host module).  Resources are located in a subfolder in a host module called DscResources.  One host module can contain zero or more DSC Resources.
+
 DSC Resources are modules as well, but by not being located directly on the PSModulePath, they won't clutter up your environment.
 
 ####Versioning
@@ -65,17 +59,14 @@ DSC Resources are versioned by the module version of their host module.
 ####Naming
 
 The module name will be the resource name when configurations are defined, unless you specify an alias name for the module in the MOF schema (detailed below).
-
   
 
 ####Functions
 
-  
-
 - Set-TargetResource 
-    - Set-TargetResource is called if Test-TargetResource (described in a bit) returns false. �Test-TargetResource is called with the same parameters as Set-TargetResource. 
-    - This function implements the change requested. �You�ll need to support both the case of �Ensure = �Present�� and �Ensure = �Absent��. �If this resource represents a multi-step process and that process needs to support �suspend/resume� or requires reboots, it may be an indication that you want to break it into several resources, otherwise you�ll have to implement the stage checking in this function. 
-    - Each parameter for this function will need to be modeled in the CIM schema in a CIM class named for the resource type, so if you expect structured objects, you�ll need to define comprehensive schema documents. 
+    - Set-TargetResource is called if Test-TargetResource (described in a bit) returns false.  Test-TargetResource is called with the same parameters as Set-TargetResource. 
+    - This function implements the change requested.  You'll need to support both the case of Ensure = 'Present' and Ensure = 'Absent'.  If this resource represents a multi-step process and that process needs to support suspend/resume or requires reboots, it may be an indication that you want to break it into several resources, otherwise you�ll have to implement the stage checking in this function. 
+    - Each parameter for this function will need to be modeled in the CIM schema in a CIM class named for the resource type, so if you expect structured objects, you'll need to define comprehensive schema documents. 
     - Logging for this function occurs in the form of verbose output (which is written to the DSC event log). 
     - While the DSC engine should only call this function if Test-TargetResource returns false, it would be prudent to write the system state changes in as idempotent a manner as possible. 
 
@@ -83,7 +74,7 @@ The module name will be the resource name when configurations are defined, unles
     - Test-TargetResource validates whether a resource configuration is in the desired state. 
     - Test-TargetResource offers the same parameters as Set-TargetResource. 
     - Test-TargetResource evaluate the final state of the resource (not intermediate steps) and returns a $true if the configuration matches or $false if the configuration does not. 
-    - This function needs to support both �Ensure = �Present�� and �Ensure = �Absent�� declarations. 
+    - This function needs to support both Ensure = 'Present' and Ensure = 'Absent' declarations. 
 
 - Get-TargetResource 
     - This function inventories the resource based on the key values (mandatory parameters) for the CIM schema. 
