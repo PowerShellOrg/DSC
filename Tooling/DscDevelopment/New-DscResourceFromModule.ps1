@@ -1,4 +1,4 @@
-﻿function New-DscResourceFromModule
+function New-DscResourceFromModule
 {
     param 
     (

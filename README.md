@@ -33,18 +33,15 @@ NOTE:
 
   
 
-There are two sets of MOF (Managed Object Framework) files generated in this process. �Each provider module has a MOF file defining a class representing the parameters to the functions in provider module. �
-
+There are two sets of MOF (Managed Object Framework) files generated in this process. �Each provider module has a MOF file defining a class representing the parameters to the functions in provider module. 
   
 
 The second type of MOF file is created by running the configuration, with one generated per target node. �This MOF file is the serialization of the configuration defined in MOF format. �It references the MOF classes defined in the provider modules� schema files and contains the values supplied in the configuration associated to the appropriate parameters.
-
   
 
 The general flow of Resource Processing in DSC (from Configuration MOF to Desired State)
 
-When you run the configuration function, a MOF file for each node is generated. �This describes the state the machine should be in after processing the MOF file.  The generated configuration MOF will note the resources used and their host module (see below). �
-
+When you run the configuration function, a MOF file for each node is generated. �This describes the state the machine should be in after processing the MOF file.  The generated configuration MOF will note the resources used and their host module (see below). 
   
 
 For each resource defined, the DSC engine uses the classes defined in the MOF to marshal parameters to call the PowerShell DSC resource (which is basically a PowerShell module).
@@ -67,7 +64,7 @@ DSC Resources are versioned by the module version of their host module.
 
 ####Naming
 
-The module name will be the resource name when configurations are defined, unless you specify an alias name for the module in the MOF schema (detailed below). �
+The module name will be the resource name when configurations are defined, unless you specify an alias name for the module in the MOF schema (detailed below).
 
   
 
@@ -77,7 +74,7 @@ The module name will be the resource name when configurations are defined, unles
 
 - Set-TargetResource 
     - Set-TargetResource is called if Test-TargetResource (described in a bit) returns false. �Test-TargetResource is called with the same parameters as Set-TargetResource. 
-    - This function implements the change requested. �You�ll need to support both the case of �Ensure = �Present�� and �Ensure = �Absent��. �If this resource represents a multi-step process and that process needs to support �suspend/resume� or requires reboots, it may be an indication that you want to break it into several resources, otherwise you�ll have to implement the stage checking in this function. � 
+    - This function implements the change requested. �You�ll need to support both the case of �Ensure = �Present�� and �Ensure = �Absent��. �If this resource represents a multi-step process and that process needs to support �suspend/resume� or requires reboots, it may be an indication that you want to break it into several resources, otherwise you�ll have to implement the stage checking in this function. 
     - Each parameter for this function will need to be modeled in the CIM schema in a CIM class named for the resource type, so if you expect structured objects, you�ll need to define comprehensive schema documents. 
     - Logging for this function occurs in the form of verbose output (which is written to the DSC event log). 
     - While the DSC engine should only call this function if Test-TargetResource returns false, it would be prudent to write the system state changes in as idempotent a manner as possible. 
@@ -89,7 +86,7 @@ The module name will be the resource name when configurations are defined, unles
     - This function needs to support both �Ensure = �Present�� and �Ensure = �Absent�� declarations. 
 
 - Get-TargetResource 
-    - This function inventories the resource based on the key values (mandatory parameters) for the CIM schema. � 
+    - This function inventories the resource based on the key values (mandatory parameters) for the CIM schema. 
     - Get-TargetResource returns a hashtable containing the values that match the current state of the resource configuration. 
     - Get-TargetResource only needs to support parameters that are noted as key values in the schema.mof file (mandatory parameters in the Set-TargetResource and Get-TargetResource functions). 
 
@@ -103,18 +100,18 @@ Detailed documentation about MOF datatypes can be found here - [http://msdn.micr
 
   
 
-####In creating the MOF schema file, there are a couple of rules. �
+####In creating the MOF schema file, there are a couple of rules. 
 
-- All resource classes (those that represent the parameters for the Set-TargetResource) must inherit from OMI_BaseResource. � 
+- All resource classes (those that represent the parameters for the Set-TargetResource) must inherit from OMI_BaseResource. 
 - The file is named {resource}.schema.mof 
 - Classes are attributed with a version number which is currently meaningless 
 
-- Classes can be attributed with a �FriendlyName�, which would be the name that the resource would use in the configuration declaration. �The full class name is used in the generated configuration MOF. 
+- Classes can be attributed with a FriendlyName, which would be the name that the resource would use in the configuration declaration. The full class name is used in the generated configuration MOF. 
 - Mandatory parameters are annotated as [Key] values. 
 - Other parameters are annotated as [Write] values. 
     - If there is a ValidateSet or Enumeration, they are represented in a ValueMap and Values combination as part of the Write annotation. 
 
-- The file encoding has to be Unicode or ASCII. �UTF8 will fail validation. 
+- The file encoding has to be Unicode or ASCII. UTF8 will fail validation. 
   
 
 Validation of the MOF file should be done by running:
