@@ -85,7 +85,7 @@ The module name will be the resource name when configurations are defined, unles
 
 ###The Schema
 
-The final bit of creating a provider module is the MOF schema file. �The MOF schema file defines a CIM class used for serializing the parameter values from the configuration file and deserializing to apply as parameters to the call the above functions. 
+The final bit of creating a provider module is the MOF schema file.  The MOF schema file defines a CIM class used for serializing the parameter values from the configuration file and deserializing to apply as parameters to the call the above functions. 
 
 Detailed documentation about MOF datatypes can be found here - [http://msdn.microsoft.com/en-us/library/cc250850.aspx](http://msdn.microsoft.com/en-us/library/cc250850.aspx)
 
