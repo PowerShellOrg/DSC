@@ -1,4 +1,4 @@
-﻿function Set-DscClient
+function Set-DscClient
 {
     param (
         [parameter(ValueFromPipelineByPropertyName)]

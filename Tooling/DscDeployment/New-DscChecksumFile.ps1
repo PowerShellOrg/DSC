@@ -1,4 +1,4 @@
-﻿function New-DscChecksumFile
+function New-DscChecksumFile
 {
     param (
         [parameter(ValueFromPipeline)]
