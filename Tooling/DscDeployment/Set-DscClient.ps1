@@ -1,4 +1,4 @@
-function Set-DscClient
+﻿function Set-DscClient
 {
     param (
         [parameter(ValueFromPipelineByPropertyName)]
@@ -10,9 +10,6 @@ function Set-DscClient
         [parameter(ValueFromPipelineByPropertyName)]
         [string]
         $NodeName, 
-        [parameter()]
-        [string]
-        $TargetPullServer, 
         [parameter()]
         [switch]
         $SkipConfigure, 
@@ -40,15 +37,18 @@ function Set-DscClient
             if (test-path "c:\program files\windowspowershell\modules\")
             {
                 dir "c:\program files\windowspowershell\modules\" | Remove-Item -rec -force
-            }            
+            }   
+            Get-Process -Name WmiPrvSE -ErrorAction SilentlyContinue | 
+                Stop-Process -Force     
         }
         
         if (-not $SkipConfigure)
         {
             if (-not $PSBoundParameters.ContainsKey($NodeName))
             {
-                $NodeName = ($ConfigurationData.AllNodes | 
-                    Where-Object { $_.Name -like $Name }).NodeName
+                $Node = ($ConfigurationData.AllNodes | 
+                    Where-Object { $_.Name -like $Name })
+                $NodeName =  $Node.NodeName
                 Write-Verbose "$Name will be configured with $NodeName."
             }
                        
@@ -75,9 +75,11 @@ function Set-DscClient
             if (-not [string]::IsNullOrEmpty($NodeName))
             {
                 Write-Verbose "Generating Pull Client Configuration for $Name."
-                PullClientConfig -NodeId $NodeName -NodeName $Name -PullServer $TargetPullServer | Out-Null
+                PullClientConfig -NodeId $NodeName -NodeName $Name -PullServer $ConfigurationData['SiteData'][$Node.Location]['PullServer'] | 
+                    Out-Null
             
                 Set-DSCLocalConfigurationManager -Path .\PullClientConfig -ComputerName $Name -Verbose
+                Remove-Item ./pullclientconfig -Recurse -Force
             }
             else
             {

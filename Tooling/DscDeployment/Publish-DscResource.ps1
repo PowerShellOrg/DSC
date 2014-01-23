@@ -1,4 +1,4 @@
-function Publish-DscResource
+﻿function Publish-DscResource
 {
     param (
         [parameter()]
@@ -25,7 +25,8 @@ function Publish-DscResource
                 Where-DscResource -IsValid -verbose 
         }
 
-        $ResourceModules |      
+        $ResourceModules |
+            Update-ModuleMetadataVersion |      
             New-DscZipFile -Force | 
             Where-DscResource -Changed -Destination $Destination -verbose |
             Move-Item -Destination $Destination -Force -PassThru |

@@ -1,4 +1,4 @@
-function Get-DscEventLog
+﻿function Get-DscEventLog
 {
     param ($Session)
 

@@ -1,4 +1,4 @@
-function Clear-DSCEventLog
+﻿function Clear-DSCEventLog
 {  
     param ($session) 
     icm $session {

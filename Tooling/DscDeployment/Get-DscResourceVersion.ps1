@@ -1,4 +1,4 @@
-function Get-DscResourceVersion
+﻿function Get-DscResourceVersion
 {
     param ([string]$path)
     $ModuleName = split-path $path -Leaf
