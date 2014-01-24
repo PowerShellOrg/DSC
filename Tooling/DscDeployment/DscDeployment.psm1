@@ -1,7 +1,7 @@
 param 
 (
     [string]
-    $ConfigurationDataPath = "$PSScriptRoot\Configuration",
+    $ConfigurationDataPath = (Join-path (split-path (split-path $PSScriptRoot)) "Configuration"),
     [string]
     $LocalCertificateThumbprint = "$((Get-DscLocalConfigurationManager).CertificateId)"
 )
@@ -342,4 +342,3 @@ function Remove-PlainTextPassword
 
 . $PSScriptRoot\Set-DscClient.ps1
 . $PSScriptRoot\Update-ModuleMetadataVersion.ps1
-

@@ -18,6 +18,23 @@ Describe 'how Test-TargetResource responds' {
         }
     }
 
+    Context 'when the job exists but should not ' {
+        Mock -commandName Get-ScheduledJob -mockWith {
+            return ([pscustomobject]@{                
+                FilePath = 'c:\scripts\test2.ps1'
+            })
+        }
+        
+        $result = Test-TargetResource -Name Test -FilePath c:\scripts\test.ps1 -Once $true -Hours 1 -Minutes 1 -Ensure Absent
+
+        It "should call Get-ScheduledJob" {
+            Assert-MockCalled -commandName Get-ScheduledJob -times 1 -Exactly
+        }
+        It 'should be false' {
+            $result | should be ($false)
+        }
+    }
+
     Context 'when the job exits exist, but the file path is wrong ' {
         Mock -commandName Test-JobTriggerAtTime -mockWith {return $true}
         Mock -commandName Test-OnceJobTrigger -mockWith {return $true}
@@ -28,7 +45,139 @@ Describe 'how Test-TargetResource responds' {
                 FilePath = 'c:\scripts\test2.ps1'
             })
         }
+
         $result = Test-TargetResource -Name Test -FilePath c:\scripts\test.ps1 -Once $true -Hours 1 -Minutes 1
+
+        It 'should be false ' {
+            $result | should be ($false)
+        }
+    }
+    
+    Context 'when the job exits exist, and is configured to repeat every hour and a half ' {
+        Mock -commandName Test-JobTriggerAtTime -mockWith {return $true}
+        Mock -commandName Test-OnceJobTrigger -mockWith {return $true}
+        Mock -commandName Test-DailyJobTrigger -mockWith {return $true}
+        Mock -commandName Test-WeeklyJobTrigger -mockWith {return $true}
+        Mock -commandName Get-ScheduledJob -mockWith {
+            return ([pscustomobject]@{                
+                Command = 'c:\scripts\test.ps1'                
+                JobTriggers = ,([pscustomobject]@{
+                    Frequency = 'Once'
+                    RepetitionInterval = [pscustomobject]@{
+                        Value = [pscustomobject]@{
+                            Hours = 1
+                            Minutes = 30
+                        }
+                        HasValue = $true
+                    }
+                })             
+            })
+        }
+
+        $result = Test-TargetResource -Name Test -FilePath c:\scripts\test.ps1 -Once $true -Hours 1 -Minutes 30 -At '1/1/2014'
+
+        It 'should call Test-OnceJobTrigger with the proper parameters' {
+            Assert-MockCalled -commandName Test-OnceJobTrigger -times 1 -Exactly -parameterFilter {
+                ($Hours -eq 1) -and ($Minutes -eq 30) -and ($Once) -and ($Trigger -ne $null)
+            }
+        }
+
+        It 'should be true ' {
+            $result | should be ($true)
+        }
+    }
+
+    Context 'when the job exists, and is configured to repeat every hour and a half ' {
+        Mock -commandName Test-JobTriggerAtTime -mockWith {return $true}
+        Mock -commandName Test-OnceJobTrigger -mockWith {return $true}
+        Mock -commandName Test-DailyJobTrigger -mockWith {return $true}
+        Mock -commandName Test-WeeklyJobTrigger -mockWith {return $true}
+        Mock -commandName Get-ScheduledJob -mockWith {
+            return ([pscustomobject]@{                
+                Command = 'c:\scripts\test.ps1'                
+                JobTriggers = ,([pscustomobject]@{
+                    Frequency = 'Once'
+                    RepetitionInterval = [pscustomobject]@{
+                        Value = [pscustomobject]@{
+                            Hours = 1
+                            Minutes = 30
+                        }
+                        HasValue = $true
+                    }
+                })             
+            })
+        }
+
+        $result = Test-TargetResource -Name Test -FilePath c:\scripts\test.ps1 -Once $true -Hours 1 -Minutes 30 -At '1/1/2014'
+
+        It 'should call Test-OnceJobTrigger with the proper parameters' {
+            Assert-MockCalled -commandName Test-OnceJobTrigger -times 1 -Exactly -parameterFilter {
+                ($Hours -eq 1) -and ($Minutes -eq 30) -and ($Once) -and ($Trigger -ne $null)
+            }
+        }
+
+        It 'should be true ' {
+            $result | should be ($true)
+        }
+    }
+
+    Context 'when the job exists, and is configured to repeat every hour and a half but should be weekly ' {
+        Mock -commandName Test-JobTriggerAtTime -mockWith {return $true}
+        Mock -commandName Test-OnceJobTrigger -mockWith {return $true}
+        Mock -commandName Test-DailyJobTrigger -mockWith {return $true}
+        Mock -commandName Test-WeeklyJobTrigger -mockWith {return $false}
+        Mock -commandName Get-ScheduledJob -mockWith {
+            return ([pscustomobject]@{                
+                Command = 'c:\scripts\test.ps1'                
+                JobTriggers = ,([pscustomobject]@{
+                    Frequency = 'Once'
+                    RepetitionInterval = [pscustomobject]@{
+                        Value = [pscustomobject]@{
+                            Hours = 1
+                            Minutes = 30
+                        }
+                        HasValue = $true
+                    }
+                })             
+            })
+        }
+
+        $result = Test-TargetResource -Name Test -FilePath c:\scripts\test.ps1 -weekly $true
+
+        It 'should call Test-OnceJobTrigger with the proper parameters' {
+            Assert-MockCalled -commandName Test-OnceJobTrigger -times 1 -Exactly -parameterFilter {
+                ($Hours -eq 0) -and ($Minutes -eq 0) -and (-not $Once) -and ($Trigger -ne $null)
+            }
+        }
+        It 'should call Test-WeeklyJobTrigger with the proper parameters' {
+            Assert-MockCalled -commandName Test-WeeklyJobTrigger -times 1 -Exactly -parameterFilter {
+                 ($Weekly) -and ($Trigger -ne $null)
+            }
+        }
+
+        It 'should be false ' {
+            $result | should be ($false)
+        }
+    }
+
+    Context 'when the job exists, but should not ' {
+        Mock -commandName Get-ScheduledJob -mockWith {
+            return ([pscustomobject]@{                
+                Command = 'c:\scripts\test.ps1'                
+                JobTriggers = ,([pscustomobject]@{
+                    Frequency = 'Once'
+                    RepetitionInterval = [pscustomobject]@{
+                        Value = [pscustomobject]@{
+                            Hours = 1
+                            Minutes = 30
+                        }
+                        HasValue = $true
+                    }
+                })             
+            })
+        }
+
+        $result = Test-TargetResource -Name Test -FilePath c:\scripts\test.ps1 -Ensure Absent
 
         It 'should be false ' {
             $result | should be ($false)
@@ -122,6 +271,9 @@ Describe 'how Test-OnceJobTrigger responds' {
             $result | should be ($false)
         }
     }
+}
+
+Describe 'how Test-DailyJobTrigger responds' {    
 
     Context 'when job frequency is Daily and should have an interval of 1' {
         $trigger = [pscustomobject]@{
@@ -168,7 +320,9 @@ Describe 'how Test-OnceJobTrigger responds' {
             $result | should be ($false)
         }
     }
+}
 
+Describe 'how Test-JobTriggerAtTime responds' { 
     Context 'when job At time matches configured At time' {
         $trigger = [pscustomobject]@{
             At = [pscustomobject]@{
@@ -198,6 +352,9 @@ Describe 'how Test-OnceJobTrigger responds' {
             $result | should be ($false)
         }
     }
+}
+
+Describe 'how Test-WeeklyJobTrigger responds' { 
 
     Context 'when job frequency is Weekly with days fo the week should be Weekly with days of week ' {
         $trigger = [pscustomobject]@{
@@ -251,5 +408,17 @@ Describe 'how Test-OnceJobTrigger responds' {
         }
     }
 
-}
+    Context 'when job frequency is Daily, but should be Daily ' {
+        $trigger = [pscustomobject]@{
+            Frequency = 'Daily'
+            Interval = 1
+        }
+        
+        $result = Test-WeeklyJobTrigger -Trigger $trigger -Weekly $false
+        
+        It 'should return true ' {
+            $result | should be ($true)
+        }
+    }
 
+}

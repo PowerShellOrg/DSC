@@ -28,9 +28,9 @@ function Get-TargetResource
         
         [parameter()]        
         [bool]
-        $Once = $true,
+        $Once = $false,
 
-        [parameter]
+        [parameter()]
         [int]
         $DaysInterval,
         
@@ -38,8 +38,7 @@ function Get-TargetResource
         [bool]
         $Daily = $false,
         
-        [parameter()]
-        [ValidateSet('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')]
+        [parameter()]        
         [string[]]
         $DaysOfWeek,
 
@@ -55,7 +54,7 @@ function Get-TargetResource
         [string]
         $Ensure = 'Present'
     )
-    
+
     $Job = Get-ScheduledJob -Name $Name -ErrorAction SilentlyContinue
 
     #Needs to return a hashtable that returns the current
@@ -141,9 +140,9 @@ function Set-TargetResource
         
         [parameter()]        
         [bool]
-        $Once = $true,
+        $Once = $false,
 
-        [parameter]
+        [parameter()]
         [int]
         $DaysInterval = 0,
         
@@ -151,8 +150,7 @@ function Set-TargetResource
         [bool]
         $Daily = $false,
         
-        [parameter()]
-        [ValidateSet('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')]
+        [parameter()]        
         [string[]]
         $DaysOfWeek,
 
@@ -249,9 +247,9 @@ function Test-TargetResource
         
         [parameter()]        
         [bool]
-        $Once = $true,
+        $Once = $false,
 
-        [parameter]
+        [parameter()]
         [int]
         $DaysInterval,
         
@@ -259,8 +257,7 @@ function Test-TargetResource
         [bool]
         $Daily = $false,
         
-        [parameter()]
-        [ValidateSet('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')]
+        [parameter()]        
         [string[]]
         $DaysOfWeek,
 
