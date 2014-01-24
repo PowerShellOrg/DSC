@@ -25,8 +25,8 @@ function Publish-DscResource
                 Where-DscResource -IsValid -verbose 
         }
 
-        $ResourceModules |
-            Update-ModuleMetadataVersion |      
+        #Update-ModuleMetadataVersion |      
+        $ResourceModules |            
             New-DscZipFile -Force | 
             Where-DscResource -Changed -Destination $Destination -verbose |
             Move-Item -Destination $Destination -Force -PassThru |

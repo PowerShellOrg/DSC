@@ -50,6 +50,9 @@ function Test-DscBuild
         [switch]
         $SkipResourcePackaging,
 
+        [switch]
+        $ShowConfigurationDebugMessages,
+
         [parameter(
             ParameterSetName = 'Production'
         )]
@@ -65,6 +68,7 @@ function Test-DscBuild
     $PassedParameters = @{
         WorkingDirectory = $WorkingDirectory     
         SkipResourcePackaging = $SkipResourcePackaging 
+        ShowConfigurationDebugMessages = $ShowConfigurationDebugMessages 
         Verbose = $true
     }
 
