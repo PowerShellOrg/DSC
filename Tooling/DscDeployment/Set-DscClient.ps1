@@ -1,18 +1,24 @@
 function Set-DscClient
 {
     param (
-        [parameter(ValueFromPipelineByPropertyName)]
+        [parameter(
+            ValueFromPipelineByPropertyName
+        )]
         [string]
         $Name, 
-        [parameter(ValueFromPipelineByPropertyName)]
+        [parameter(
+            ValueFromPipelineByPropertyName
+        )]
         [System.Management.Automation.Runspaces.PSSession]
         $Session, 
-        [parameter(ValueFromPipelineByPropertyName)]
+        [parameter(
+            ValueFromPipelineByPropertyName
+        )]
         [string]
         $NodeName, 
         [parameter()]
         [switch]
-        $SkipConfigure, 
+        $ClearConfigurationOnly, 
         [parameter()]
         [System.Collections.Hashtable]
         $ConfigurationData = (Get-ConfigurationData)
@@ -42,7 +48,7 @@ function Set-DscClient
                 Stop-Process -Force     
         }
         
-        if (-not $SkipConfigure)
+        if (-not $ClearConfigurationOnly)
         {
             if (-not $PSBoundParameters.ContainsKey($NodeName))
             {

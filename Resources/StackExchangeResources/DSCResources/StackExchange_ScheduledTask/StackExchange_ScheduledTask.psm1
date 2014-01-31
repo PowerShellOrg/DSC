@@ -54,8 +54,9 @@ function Get-TargetResource
         [string]
         $Ensure = 'Present'
     )
-
-    $Job = Get-ScheduledJob -Name $Name -ErrorAction SilentlyContinue
+    
+    $Session = new-pssession -computername $env:computername -Credential $Credential -Authentication CredSSP
+    $Job =Invoke-Command -Session $Session  { Get-ScheduledJob -Name $Name -ErrorAction SilentlyContinue }
 
     #Needs to return a hashtable that returns the current
     #status of the configuration component
@@ -167,11 +168,7 @@ function Set-TargetResource
         $Ensure = 'Present'
     )
 
-    $Job = Get-ScheduledJob -Name $Name -ErrorAction SilentlyContinue
-    if ($Job)
-    {
-        $job | Unregister-ScheduledJob -Force
-    }
+    
 
     if ($Ensure -like 'Present')
     {
@@ -179,7 +176,7 @@ function Set-TargetResource
         $JobParameters = @{
             Name = $Name
             FilePath = $FilePath        
-            Credential = $credential
+            #Credential = $credential
             MaxResultCount = 10
         }
         $JobTriggerParameters = @{}
@@ -209,7 +206,7 @@ function Set-TargetResource
                 $JobTriggerParameters.DaysOfWeek = $DaysOfWeek
             }
         }
-        $JobParameters.Trigger = New-JobTrigger
+        $JobParameters.Trigger = New-JobTrigger @JobTriggerParameters
         Register-ScheduledJob @JobParameters
     }
     else
@@ -317,6 +314,27 @@ function Test-TargetResource
 
 
     return $IsValid
+}
+
+function Remove-Job
+{
+    param (
+        [parameter()]
+        [string]
+        $Name,
+        [parameter()]
+        [System.Management.Automation.PSCredential]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
+    )
+    $Session = new-pssession -computername $env:computername -Credential $Credential -Authentication CredSSP
+    
+    Invoke-Command -Session $Session  {
+        $Job = Get-ScheduledJob -Name $using:Name -ErrorAction SilentlyContinue
+        if ($Job)
+        {
+            $job | Unregister-ScheduledJob -Force -Confirm:$False
+        }
+    }
 }
 
 function Test-JobTriggerAtTime
