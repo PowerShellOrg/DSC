@@ -4,6 +4,7 @@ function Update-ModuleMetadataVersion
     param (
         [parameter(
             ParameterSetName = 'ByPath',
+            Position = 0,
             Mandatory,
             ValueFromPipelineByPropertyName
         )]
