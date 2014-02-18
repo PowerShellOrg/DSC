@@ -1,0 +1,6 @@
+[ClassVersion("1.0.0"), FriendlyName("SCOMBulkMP")] 
+class ICG_SCOMBulkMP : OMI_BaseResource
+{
+    [key] string MPSourcePath;
+    [Write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+};
