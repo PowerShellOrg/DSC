@@ -1,0 +1,10 @@
+
+[ClassVersion("1.0.0"), FriendlyName("SCOMImportMP")] 
+class ICG_SCOMImportMP : OMI_BaseResource
+{
+    [key] string MPName;
+
+    [required] string MPSourcePath;
+
+    [Write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+};

@@ -1,0 +1,10 @@
+
+[ClassVersion("1.0.0"), FriendlyName("SCOMAgentMG")] 
+class ICG_SCOMAgentMgmtGroup : OMI_BaseResource
+{
+    [key] string ManagementGroupName;
+
+    [required] string ManagementServerName;
+
+    [Write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+};
