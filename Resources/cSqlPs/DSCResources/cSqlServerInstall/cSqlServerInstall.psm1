@@ -121,16 +121,26 @@ function Set-TargetResource
     if($SQLSYSADMINACCOUNTS -notcontains "NT AUTHORITY\System"){
         $SQLSYSADMINACCOUNTS += ",NT AUTHORITY\System"
     }
+    $adminAccounts = $SQLSYSADMINACCOUNTS.Split(",")
+    $adminAccountsString = ""
+    foreach($account in $adminAccounts){
+        $adminAccountsString += "`"$account`" "
+    }
+
+    $AGTSVCACCOUNT = "`"$AGTSVCACCOUNT`""
+    $SqlSvcAccount = "`"$SqlSvcAccount`""
     
     $cmd = Join-Path $SourcePath -ChildPath "Setup.exe"
 
     $cmd += " /Q /ACTION=Install /IACCEPTSQLSERVERLICENSETERMS /UpdateEnabled=false /IndicateProgress "
     $cmd += " /FEATURES=$Features /INSTANCENAME=$InstanceName "
     $cmd += " /SQLSVCACCOUNT=$SqlSvcAccount /SQLSVCPASSWORD=$SqlSvcPwd "
-    $cmd += " /SQLSYSADMINACCOUNTS=$SQLSYSADMINACCOUNTS "
+    $cmd += " /SQLSYSADMINACCOUNTS=$adminAccountsString "
     $cmd += " /AGTSVCACCOUNT=$AGTSVCACCOUNT /AGTSVCPASSWORD=$AgtSvcPwd "
     $cmd += " /SECURITYMODE=SQL /SAPWD=$saPwd "
     $cmd += " > $logFile 2>&1 "
+
+    Write-Verbose "Submitting setup command: $cmd"
 
     NetUse -SharePath $SourcePath -SharePathCredential $SourcePathCredential -Ensure "Present"
     try
