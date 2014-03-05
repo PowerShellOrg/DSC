@@ -95,6 +95,8 @@ SetTestTakeReadError=The functions Set-TargetResource and Test-TargetResource ca
 
 #Import-LocalizedData LocalizedData -FileName xDscResourceDesigner.strings.psd1
 
+ $ValidEmbeddedResource = 'MSFT_Credential', 'MSFT_KeyValuePair'
+
 Add-Type -ErrorAction Stop -TypeDefinition @" 
         namespace Microsoft.PowerShell.xDesiredStateConfiguration
         {
@@ -300,7 +302,9 @@ function New-cDscResourceProperty
                      "Sint8[]","Sint16[]","Sint32[]","Sint64[]",`
                      "Real32[]","Real64[]","Char16[]","String[]",`
                      "Boolean[]","DateTime[]","Hashtable[]",`
-                     "PSCredential[]")]
+                     "PSCredential[]", 
+                     'Microsoft.Management.Infrastructure.CimInstance', 
+					 'Microsoft.Management.Infrastructure.CimInstance[]')]
         [System.String]
         $Type,
 
@@ -1702,73 +1706,82 @@ function Test-cDscResource
             Position = 0,
             ValueFromPipelineByPropertyName=$True)]
         [System.String]
-        $Name
+        $Name,
+        [string[]]
+        $AdditionalValidEmbeddedResource = ''
     )
-    
-    
-    $null = Test-AdministratorPrivileges
-    # Will hold path to the .schema.mof file
-    $Schema = ""
-    # Will hold path to the .psm1 file
-    $ResourceModule = ""
-
-    
-    if (-not (Test-ResourcePath $Name ([ref]$Schema) ([ref]$ResourceModule)))
-    {
-        return $false
+    begin {
+        if ($PSBoundParameters.ContainsKey('AdditionalValidEmbeddedResource'))
+        {
+            $Script:ValidEmbeddedResource = $script:ValidEmbeddedResource + $AdditionalValidEmbeddedResource
+        }
     }
-
-
-    # SchemaCimClass and *CommandInfo are being used as [ref] objects
-    #    as such they need to be initialized before they can be dereferenced
-    # They have been assigned to 0, but will point to a CimClass object or
-    #    CommandInfo objects respectively.
-
-    $SchemaCimClass = 0
-
-    $GetCommandInfo = 0
-    $SetCommandInfo = 0
-    $TestCommandInfo = 0
-
-    Write-Verbose $localizedData["TestResourceTestSchemaVerbose"]
-    $SchemaError = -not (Test-cDscSchemaInternal $Schema ([ref]$SchemaCimClass)) 
-
-    Write-Verbose $localizedData["TestResourceTestModuleVerbose"]
-    $ModuleError = -not (Test-DscResourceModule $ResourceModule ([ref]$GetCommandInfo) ([ref]$SetCommandInfo) ([ref]$TestCommandInfo)) 
-
-    if ($SchemaError -or $ModuleError)
+    process
     {
-        return $false
+        $null = Test-AdministratorPrivileges
+        # Will hold path to the .schema.mof file
+        $Schema = ""
+        # Will hold path to the .psm1 file
+        $ResourceModule = ""
+
+        
+        if (-not (Test-ResourcePath $Name ([ref]$Schema) ([ref]$ResourceModule)))
+        {
+            return $false
+        }
+
+
+        # SchemaCimClass and *CommandInfo are being used as [ref] objects
+        #    as such they need to be initialized before they can be dereferenced
+        # They have been assigned to 0, but will point to a CimClass object or
+        #    CommandInfo objects respectively.
+
+        $SchemaCimClass = 0
+
+        $GetCommandInfo = 0
+        $SetCommandInfo = 0
+        $TestCommandInfo = 0
+
+        Write-Verbose $localizedData["TestResourceTestSchemaVerbose"]
+        $SchemaError = -not (Test-cDscSchemaInternal $Schema ([ref]$SchemaCimClass)) 
+
+        Write-Verbose $localizedData["TestResourceTestModuleVerbose"]
+        $ModuleError = -not (Test-DscResourceModule $ResourceModule ([ref]$GetCommandInfo) ([ref]$SetCommandInfo) ([ref]$TestCommandInfo)) 
+
+        if ($SchemaError -or $ModuleError)
+        {
+            return $false
+        }
+        Write-Verbose $localizedData["TestResourceIndividualSuccessVerbose"]
+
+        # Check the dependencies between the files
+
+
+
+        $DscResourceProperties = Convert-SchemaToResourceProperty $SchemaCimClass 
+
+
+        #Check get has all key and required and that they are mandatory
+
+        $getMandatoryError = -not (Test-GetKeyRequiredMandatory $GetCommandInfo.Parameters `
+                            ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Key -eq $_.Attribute) `
+                                        -or ([DscResourcePropertyAttribute]::Required -eq $_.Attribute)}))
+        Write-Verbose ($localizedData["TestResourceGetMandatoryVerbose"] -f (-not $getMandatoryError))
+        #Check that set has all write
+
+        $setNoReadsError = -not (Test-SetHasExactlyAllNonReadProperties $SetCommandInfo.Parameters `
+                        ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}))
+        Write-Verbose ($localizedData["TestResourceSetNoReadsVerbose"] -f (-not $setNoReadsError))
+
+        $getNoReadsError = -not (Test-FunctionTakesNoReads $GetCommandInfo.Parameters `
+                        ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Read -eq $_.Attribute)}) `
+                        -Get)
+        Write-Verbose ($localizedData["TestResourceGetNoReadsVerbose"] -f (-not $getNoReadsError))
+
+        #The Test-TargetResource case is handled by SetHasExactlyAllNonReadProperties
+
+        return -not ($getMandatoryError -or $setNoReadsError -or $getNoReadsError)
     }
-    Write-Verbose $localizedData["TestResourceIndividualSuccessVerbose"]
-
-    # Check the dependencies between the files
-
-
-
-    $DscResourceProperties = Convert-SchemaToResourceProperty $SchemaCimClass 
-
-
-    #Check get has all key and required and that they are mandatory
-
-    $getMandatoryError = -not (Test-GetKeyRequiredMandatory $GetCommandInfo.Parameters `
-                        ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Key -eq $_.Attribute) `
-                                    -or ([DscResourcePropertyAttribute]::Required -eq $_.Attribute)}))
-    Write-Verbose ($localizedData["TestResourceGetMandatoryVerbose"] -f (-not $getMandatoryError))
-    #Check that set has all write
-
-    $setNoReadsError = -not (Test-SetHasExactlyAllNonReadProperties $SetCommandInfo.Parameters `
-                    ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}))
-    Write-Verbose ($localizedData["TestResourceSetNoReadsVerbose"] -f (-not $setNoReadsError))
-
-    $getNoReadsError = -not (Test-FunctionTakesNoReads $GetCommandInfo.Parameters `
-                    ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Read -eq $_.Attribute)}) `
-                    -Get)
-    Write-Verbose ($localizedData["TestResourceGetNoReadsVerbose"] -f (-not $getNoReadsError))
-
-    #The Test-TargetResource case is handled by SetHasExactlyAllNonReadProperties
-
-    return -not ($getMandatoryError -or $setNoReadsError -or $getNoReadsError)
 }
 
 function Test-GetKeyRequiredMandatory
@@ -2158,14 +2171,13 @@ function Test-SchemaProperty
         }
     }
 
-    if ($CimProperty.Qualifiers["EmbeddedInstance"] `
-            -and ($CimProperty.Qualifiers["EmbeddedInstance"].Value -ne "MSFT_Credential") `
-            -and ($CimProperty.Qualifiers["EmbeddedInstance"].Value -ne "MSFT_KeyValuePair"))
+    if ($CimProperty.Qualifiers["EmbeddedInstance"] -and
+        ($ValidEmbeddedResource -notcontains $CimProperty.Qualifiers["EmbeddedInstance"].Value))
     {
         $errorId = "InvalidEmbeddedInstance"
-        Write-Error ($localizedData[$errorId] -f $CimProperty.Name,$CimProperty.Qualifiers["EmbeddedInstance"].Value) `
-            -ErrorId $errorId -ErrorAction Continue
-        $ErrorIdsRef.Value += $errorId
+        Write-Warning ($localizedData[$errorId] -f $CimProperty.Name,$CimProperty.Qualifiers["EmbeddedInstance"].Value) 
+            #-ErrorId $errorId -ErrorAction Continue
+        #$ErrorIdsRef.Value += $errorId
     }
 
     if ($CimProperty.Qualifiers["EmbeddedInstance"] `
@@ -3005,11 +3017,14 @@ function Test-BasicDscFunction
 
         if (-not $TypeMap.ContainsValue($parameter.ParameterType))
         {
-            $errorId = "UnsupportedTypeError"
-            Write-Error ($localizedData[$errorId] -f `
-                $commandName,$parameter.ParameterType,$parameter.Name) `
-                -ErrorId $errorId -ErrorAction Continue
-            $errorIds += $errorId
+            if ($parameter.ParameterType.tostring() -notmatch 'Microsoft\.Management\.Infrastructure\.CimInstance')
+            {
+                $errorId = "UnsupportedTypeError"
+                Write-Error ($localizedData[$errorId] -f `
+                    $commandName,$parameter.ParameterType,$parameter.Name) `
+                    -ErrorId $errorId -ErrorAction Continue
+                $errorIds += $errorId
+            }
         }
         elseif ((Test-ParameterIsMandatory $parameter) `
                 -and ($parameter.ParameterType.BaseType -ne [System.Array]))
@@ -3261,6 +3276,7 @@ function Convert-CimType
     $reverseEmbeddedInstance = @{
         "MSFT_KeyValuePair" = "Hashtable";
         "MSFT_Credential" = "PSCredential";
+        "MSFT_xFileDirectory" = "Microsoft.Management.Infrastructure.CimInstance"
     }
 
     $arrayAddOn = ""

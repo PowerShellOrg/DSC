@@ -8,95 +8,115 @@ function Where-DscResource
         [string]
         $Destination, 
         [switch]
-        $Changed,
+        [alias('Changed')]
+        $CheckIfChanged,
         [switch]
-        $IsValid
+        [alias('IsValid')]
+        $CheckIfIsValid
     )
     begin
     {
-        if ($IsValid)
+        if ($CheckIfIsValid)
         {
             $AllResources = Get-DscResource
         }
     }
     process
     {
-        
-        if ($Changed)
+        if ( ($CheckIfChanged -and (Test-ZippedModuleChanged)) -or
+               ($CheckIfIsValid -and (Test-DscModuleResourceIsValid))  )
         {
-            $DestModule = join-path $Destination $inputobject.name
-            if (Test-path $DestModule)
-            {            
-                Write-Verbose "There was an existing version of $($inputobject.Name)."
-                $newhash = (Get-FileHash -path $inputobject.fullname).hash 
-                $oldhash = (Get-FileHash -path $DestModule).hash 
-                if ($newhash -ne $oldhash)
-                {
-                    Write-Verbose "Existing version of $($inputobject.Name) was different."
-                    $InputObject
-                }
-                else
-                {
-                    Write-Verbose "Existing version of $($inputobject.Name) matches the current."
-                }                            
-            }
-            else
-            {
-                Write-Verbose "No previous version of $($InputObject.Name)."
-                $InputObject
-            }
+             $InputObject
         }
+    }
+}
 
-        if ($IsValid)
+
+function Test-ZippedModuleChanged
+{
+    [cmdletbinding()]
+    param ()
+    Write-Verbose "Attempting to check if a resource has changed."
+    $DestModule = join-path $Destination $inputobject.name
+    if (Test-path $DestModule)
+    {            
+        Write-Verbose "There was an existing version of $($inputobject.Name)."
+        $newhash = (Get-FileHash -path $inputobject.fullname).hash 
+        $oldhash = (Get-FileHash -path $DestModule).hash 
+        if ($newhash -ne $oldhash)
         {
-            $Name = $_.Name
-            Write-Verbose "Checking Resources in $Name."
-        
-            $AllModuleResources = @()
-            $AllModuleResources = @($AllResources | 
-                Where-Object { 
-                    Write-Verbose "`tChecking for $($_.name) in $name."
-                    $_.module -like $name 
-                } |
-                ForEach-Object { 
-                    Write-Verbose "`t$Name contains $($_.Name)."                 
-                    $_ 
-                } )
-
-            if ($AllModuleResources.count -gt 0)
-            {
-                $GoodResources = $AllModuleResources |
-                    Where-Object {
-                        Write-Verbose "Testing $($_.Name)"
-                        Test-cDscResource -Name $_.Name  -Verbose
-                    }
-                
-            
-        
-                $MatchingResources = @(Compare-Object $AllModuleResources $GoodResources -ExcludeDifferent -IncludeEqual)
-                foreach ($resource in $MatchingResources)
-                {
-                    Write-Verbose " "
-                }
-                if ($MatchingResources.count -eq $AllModuleResources.count)
-                {
-                    Write-Verbose "Resources in $Name are valid."
-                    Write-Output $InputObject
-                }
-                else
-                {
-                    Write-Warning "Valid resources in $Name do not match all the resources in "
-                    $AllModuleResources | 
-                        Where-Object {$GoodResources -notcontains $_} |
-                        ForEach-Object { Write-Warning "`tResources $($_.name) is invalid." }
-                    throw "Fix invalid resources in $Name."
-                }
-            }
-            else
-            {
-                Write-Warning "$Name does not contain any resources."
-            }
+            Write-Verbose "Existing version of $($inputobject.Name) was different."
+            return $true
         }
+        else
+        {
+            Write-Verbose "Existing version of $($inputobject.Name) matches the current."
+            return $false
+        }                            
+    }
+    else
+    {
+        Write-Verbose "No previous version of $($InputObject.Name)."
+        return $true
+    }
+}
 
+function Test-DscModuleResourceIsValid
+{
+    [cmdletbinding()]
+    param ()    
+    
+    Write-Verbose "Retrieving all resources and filtering for $($InputObject.Name)."
+    $AllModuleResources = Get-DscResourceForModule -Name $InputObject.Name
+    
+    Write-Verbose "Testing for valid resources."
+    $FailedDscResources = Get-FailedDscResource
+
+    if ($FailedDscResources)
+    {
+        Write-Verbose "Found failed resources."
+        foreach ($resource in $FailedDscResources)
+        {
+            Write-Warning "`t`tFailed Resource - $($resource.Name)"
+        }
+        throw "Fix invalid resources in $($InputObject.Name)."
+    }
+    return $true
+}
+
+function Get-DscResourceForModule
+{
+    [cmdletbinding()]
+    param ([string]$Name)
+
+    Write-Verbose "Checking Resources in $Name."
+    $ResourcesInModule = $AllResources | 
+        Where-Object { 
+            Write-Verbose "`tChecking for $($_.name) in $name."
+            $_.module -like $name 
+        } |
+        ForEach-Object { 
+            Write-Verbose "`t$Name contains $($_.Name)."                 
+            $_ 
+        } 
+    if ($ResourcesInModule.count -eq 0)
+    {
+        Write-Warning "$Name does not contain any resources."
+    }
+    $ResourcesInModule
+}
+
+function Get-FailedDscResource
+{
+    [cmdletbinding()]
+    param ()
+
+    foreach ($resource in $AllModuleResources)
+    {
+        if (-not (Test-cDscResource -Name $Resource.Name -Verbose))        
+        {            
+            Write-Warning "`tResources $($_.name) is invalid."  
+            $resource
+        }
     }
 }
