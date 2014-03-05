@@ -1,4 +1,4 @@
-﻿ #Requires -RunAsAdministrator
+ #Requires -RunAsAdministrator
 # A global variable that contains localized messages.
 data LocalizedData
 {
