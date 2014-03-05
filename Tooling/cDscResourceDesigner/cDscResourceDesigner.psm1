@@ -1,4 +1,4 @@
- #Requires -RunAsAdministrator
+﻿ #Requires -RunAsAdministrator
 # A global variable that contains localized messages.
 data LocalizedData
 {
@@ -204,7 +204,7 @@ $TypeMap = @{
         "Boolean" = [System.Boolean];
         "DateTime"= [System.DateTime];
         
-        "Hashtable"    = [System.Collections.Hashtable];
+        "Hashtable"    = [Microsoft.Management.Infrastructure.CimInstance[]];
         "PSCredential" = [PSCredential];
 
         "Uint8[]"   = [System.Byte[]];
@@ -222,7 +222,7 @@ $TypeMap = @{
         "Boolean[]" = [System.Boolean[]];
         "DateTime[]"= [System.DateTime[]];
         
-        "Hashtable[]"    = [System.Collections.Hashtable[]];
+        "Hashtable[]"    = [Microsoft.Management.Infrastructure.CimInstance[]];
         "PSCredential[]" = [PSCredential[]];
     }
 
@@ -773,6 +773,9 @@ function Test-TypeIsArray
         $Type
     )
     # Returns true if $Type ends with "[]"
+	if($Type -like "hashtable") {
+		return $true;
+	}
     return ($Type -cmatch "^[a-zA-Z][\w_]*\[\]$")
 }
 
