@@ -45,7 +45,7 @@ function Get-TargetResource
             $certificateThumbPrint = $webBinding.certificateHash
 
             @{
-                Name = $EndpointName
+                EndpointName = $EndpointName
                 Port = $website.bindings.Collection[0].bindingInformation.Split(":")[1]
                 PhysicalPath = $website.physicalPath
                 State = $webSite.state
@@ -107,8 +107,8 @@ function Set-TargetResource
     $eseprovider = "ESENT";
     $esedatabase = "$env:PROGRAMFILES\WindowsPowerShell\DscService\Devices.edb";
 
-    $culture = Get-Culture 
-    $language =$culture.TwoLetterISOLanguageName 
+    $culture = Get-Culture
+    $language = $culture.TwoLetterISOLanguageName
 
     $os = [System.Environment]::OSVersion.Version
     $IsBlue = $false;
@@ -133,7 +133,7 @@ function Set-TargetResource
     }
                 
     Write-Verbose "Create the IIS endpoint"    
-    cPSDesiredStateConfiguration\New-PSWSEndpoint -site $EndpointName `
+    xPSDesiredStateConfiguration\New-PSWSEndpoint -site $EndpointName `
                      -path $PhysicalPath `
                      -cfgfile $webConfigFileName `
                      -port $Port `
@@ -264,7 +264,7 @@ function Test-TargetResource
         }
 
         Write-Verbose "Check Physical Path property"
-        if(Test-WebsitePath -Name $EndpointName -PhysicalPath $PhysicalPath)
+        if(Test-WebsitePath -EndpointName $EndpointName -PhysicalPath $PhysicalPath)
         {
             $DesiredConfigurationMatch = $false
             Write-Verbose "Physical Path of Website $EndpointName does not match the desired state."
@@ -321,7 +321,7 @@ function Test-WebsitePath
 
     $pathNeedsUpdating = $false
 
-    if((Get-ItemProperty "IIS:\Sites\$EndpointName" -Name physicalPath).physicalPath -ne $PhysicalPath)
+    if((Get-ItemProperty "IIS:\Sites\$EndpointName" -Name physicalPath) -ne $PhysicalPath)
     {
         $pathNeedsUpdating = $true
     }
