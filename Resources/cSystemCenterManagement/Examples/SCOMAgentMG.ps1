@@ -1,13 +1,13 @@
-﻿Configuration AgentMG {
+Configuration AgentMG {
  
    Import-DscResource -ModuleName cSystemCenterManagement
    
    Node SCOMAG01 {
 
       SCOMAgentMG CheckMG {
-         Ensure = “Present”
-         ManagementGroupName  = “OM_Contoso”
-         ManagementServerName = “SCOM01.Contoso.com”
+         Ensure = ?Present?
+         ManagementGroupName  = ?OM_Contoso?
+         ManagementServerName = ?SCOM01.Contoso.com?
       }
  
    }

@@ -1,4 +1,4 @@
-﻿#####
+#####
 # Unzip cSystemCenterManagement.zip to C:\Program Files\WindowsPowerShell\Modules folder on server you are running this script from
 # Create Share called "DSC", if the share is on another virtual machine besides DC01, change FileShr parameter below.
 # Create folder called DSCResources under share folder and copy cSystemCenterManagement.zip to it.
@@ -18,11 +18,19 @@ Configuration CopyDSCConfig
 
     Node SCOM01
     {
-        Archive cSysCtrZip {            Ensure = "Present"            Path = "$FileShr\DSCResources\cSystemCenterManagement.zip"            Destination = "$Env:ProgramFiles\WindowsPowerShell\Modules"            Force = $True        }
+        Archive cSysCtrZip {
+            Ensure = "Present"
+            Path = "$FileShr\DSCResources\cSystemCenterManagement.zip"
+            Destination = "$Env:ProgramFiles\WindowsPowerShell\Modules"
+            Force = $True
+        }
     }
 }
 
-CopyDSCConfig -FileShr $FileShr -OutputPath "$Env:Temp\CopyDSCConfig"Start-DscConfiguration -Path "$Env:Temp\CopyDSCConfig" -Wait -Force -Verbose -ErrorAction ContinueConfiguration SCOMDSCConfiguration 
+CopyDSCConfig -FileShr $FileShr -OutputPath "$Env:Temp\CopyDSCConfig"
+Start-DscConfiguration -Path "$Env:Temp\CopyDSCConfig" -Wait -Force -Verbose -ErrorAction Continue
+
+Configuration SCOMDSCConfiguration 
 {
     param (
         [Parameter(Mandatory=$true)]
@@ -59,4 +67,5 @@ CopyDSCConfig -FileShr $FileShr -OutputPath "$Env:Temp\CopyDSCConfig"Start-DscC
     }
 }
 
-CopyDSCConfig -FileShr $FileShr -OutputPath "$Env:Temp\SCOMDSCConfiguration"Start-DscConfiguration -Path "$Env:Temp\SCOMDSCConfiguration" -Wait -Force -Verbose -ErrorAction Continue
+CopyDSCConfig -FileShr $FileShr -OutputPath "$Env:Temp\SCOMDSCConfiguration"
+Start-DscConfiguration -Path "$Env:Temp\SCOMDSCConfiguration" -Wait -Force -Verbose -ErrorAction Continue

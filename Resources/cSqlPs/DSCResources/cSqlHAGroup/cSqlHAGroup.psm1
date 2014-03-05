@@ -1,4 +1,4 @@
-﻿#
+#
 # cSqlHAGroup: DSC resource to configure a Sql High Availability (HA) Group. If the HA Group does not exist, it will 
 # create one with given name on given sql instance, it also adds the database(s) to the group. If the HA group
 # already exists, it will join sql instance to the group, replicate the database(s) in the group to local instance.
