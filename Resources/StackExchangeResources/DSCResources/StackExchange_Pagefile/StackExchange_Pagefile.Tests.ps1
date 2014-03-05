@@ -6,21 +6,21 @@ iex ( gc $pathtosut -Raw )
 
 Describe 'how Get-TargetResource reponds' {
     Context 'when automatic page file is configured' {
-        mock -commandName Get-CimInstance -parameterFilter {$ClassName -like 'Win32_ComputerSystem'} -mockWith {
+        mock -commandName Get-WmiObject -parameterFilter {$Class -like 'Win32_ComputerSystem'} -mockWith {
             return ([pscustomobject]@{AutomaticManagedPageFile = $true})
         }
-        mock -commandName Get-CimInstance -parameterFilter {$ClassName -like 'Win32_PageFileSetting'} -mockWith {}
+        mock -commandName Get-WmiObject -parameterFilter {$Class -like 'Win32_PageFileSetting'} -mockWith {}
         
         $result = Get-TargetResource -initialsize 4GB -MaximumSize 4GB -Ensure 'Present'
 
-        It 'should call once Get-CimInstance Win32_ComputerSystem ' {
-            Assert-MockCalled -commandName Get-CimInstance -times 1 -Exactly -parameterFilter {
-                $ClassName -like 'Win32_ComputerSystem'
+        It 'should call once Get-WmiObject Win32_ComputerSystem ' {
+            Assert-MockCalled -commandName Get-WmiObject -times 1 -Exactly -parameterFilter {
+                $Class -like 'Win32_ComputerSystem'
             }
         }
-        It 'should not call Get-CimInstance Win32_PageFileSetting' {
-            Assert-MockCalled -commandName Get-CimInstance -times 0 -Exactly -parameterFilter {
-                $ClassName -like 'Win32_PageFileSetting'
+        It 'should not call Get-WmiObject Win32_PageFileSetting' {
+            Assert-MockCalled -commandName Get-WmiObject -times 0 -Exactly -parameterFilter {
+                $Class -like 'Win32_PageFileSetting'
             }
         }
         It "should return Ensure = 'Absent'" {
@@ -28,10 +28,10 @@ Describe 'how Get-TargetResource reponds' {
         }
     }
     Context 'when automatic page file not configured' {
-        mock -commandName Get-CimInstance -parameterFilter {$ClassName -like 'Win32_ComputerSystem'} -mockWith {
+        mock -commandName Get-WmiObject -parameterFilter {$Class -like 'Win32_ComputerSystem'} -mockWith {
             return ([pscustomobject]@{AutomaticManagedPageFile = $false})
         }
-        mock -commandName Get-CimInstance -parameterFilter {$ClassName -like 'Win32_PageFileSetting'} -mockWith {
+        mock -commandName Get-WmiObject -parameterFilter {$Class -like 'Win32_PageFileSetting'} -mockWith {
             return ([pscustomobject]@{
                                         InitialSize = (3GB/1MB)
                                         MaximumSize = (3GB/1MB)
@@ -40,14 +40,14 @@ Describe 'how Get-TargetResource reponds' {
         
         $result = Get-TargetResource -initialsize 4GB -MaximumSize 4GB -Ensure 'Present'
 
-        It 'should call once Get-CimInstance Win32_ComputerSystem ' {
-            Assert-MockCalled -commandName Get-CimInstance -times 1 -Exactly -parameterFilter {
-                $ClassName -like 'Win32_ComputerSystem'
+        It 'should call once Get-WmiObject Win32_ComputerSystem ' {
+            Assert-MockCalled -commandName Get-WmiObject -times 1 -Exactly -parameterFilter {
+                $Class -like 'Win32_ComputerSystem'
             }
         }
-        It 'should call once Get-CimInstance Win32_PageFileSetting' {
-            Assert-MockCalled -commandName Get-CimInstance -times 1 -Exactly -parameterFilter {
-                $ClassName -like 'Win32_PageFileSetting'
+        It 'should call once Get-WmiObject Win32_PageFileSetting' {
+            Assert-MockCalled -commandName Get-WmiObject -times 1 -Exactly -parameterFilter {
+                $Class -like 'Win32_PageFileSetting'
             }
         }
         It "should return Ensure = 'Present' with Intial and Maximum size at 3GB" {
@@ -60,8 +60,9 @@ Describe 'how Get-TargetResource reponds' {
 }
 
 Describe 'how Set-TargetResource responds' {
+
     Context 'when Ensure is set to Absent and AutomaticPageFile is set' {   
-        Mock -commandName Get-CimInstance -parameterFilter {$ClassName -like 'Win32_ComputerSystem'} -mockWith {
+        Mock -commandName Get-WmiObject -parameterFilter {$Class -like 'Win32_ComputerSystem'} -mockWith {
             $r = [pscustomobject]@{
                 AutomaticManagedPageFile = $true
             } | Add-Member -MemberType ScriptMethod -Name Put -Value {                                    
@@ -78,8 +79,9 @@ Describe 'how Set-TargetResource responds' {
             $global:PutWasCalled | should be ($false)
         }        
     }
+    
     Context 'when Ensure is set to Absent and AutomaticPageFile is not set' {   
-        Mock -commandName Get-CimInstance -parameterFilter {$ClassName -like 'Win32_ComputerSystem'} -mockWith {
+        Mock -commandName Get-WmiObject -parameterFilter {$Class -like 'Win32_ComputerSystem'} -mockWith {
             $r = [pscustomobject]@{
                 AutomaticManagedPageFile = $false
             } | Add-Member -MemberType ScriptMethod -Name Put -Value {                                    
@@ -101,7 +103,7 @@ Describe 'how Set-TargetResource responds' {
           
     }
     Context 'when Ensure is set to Absent and AutomaticPageFile is not set' {   
-        Mock -commandName Get-CimInstance -parameterFilter {$ClassName -like 'Win32_ComputerSystem'} -mockWith {
+        Mock -commandName Get-WmiObject -parameterFilter {$Class -like 'Win32_ComputerSystem'} -mockWith {
             $r = [pscustomobject]@{ AutomaticManagedPageFile = $false 
             } |
                  Add-Member -MemberType ScriptMethod -Name Put -Value {                                    
@@ -110,7 +112,7 @@ Describe 'how Set-TargetResource responds' {
                 } -PassThru
             return ($r)
         }        
-        Mock -commandName Get-CimInstance -parameterFilter {$ClassName -like 'Win32_PageFileSetting'} -mockWith {
+        Mock -commandName Get-WmiObject -parameterFilter {$Class -like 'Win32_PageFileSetting'} -mockWith {
             $r = [pscustomobject]@{
                 InitialSize = 0 
                 MaximumSize = 0 
@@ -137,7 +139,7 @@ Describe 'how Set-TargetResource responds' {
           
     }
     Context 'when Ensure is set to Present and AutomaticPageFile is not set' {   
-        Mock -commandName Get-CimInstance -parameterFilter {$ClassName -like 'Win32_ComputerSystem'} -mockWith {
+        Mock -commandName Get-WmiObject -parameterFilter {$Class -like 'Win32_ComputerSystem'} -mockWith {
             $r = [pscustomobject]@{ AutomaticManagedPageFile = $false 
             } |
                  Add-Member -MemberType ScriptMethod -Name Put -Value {                                    
@@ -146,7 +148,7 @@ Describe 'how Set-TargetResource responds' {
                 } -PassThru
             return ($r)
         }        
-        Mock -commandName Get-CimInstance -parameterFilter {$ClassName -like 'Win32_PageFileSetting'} -mockWith {
+        Mock -commandName Get-WmiObject -parameterFilter {$Class -like 'Win32_PageFileSetting'} -mockWith {
             $r = [pscustomobject]@{
                 InitialSize = 0 
                 MaximumSize = 0 

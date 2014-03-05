@@ -321,7 +321,7 @@ function Test-WebsitePath
 
     $pathNeedsUpdating = $false
 
-    if((Get-ItemProperty "IIS:\Sites\$EndpointName" -Name physicalPath) -ne $PhysicalPath)
+    if((Get-ItemProperty "IIS:\Sites\$EndpointName" -Name physicalPath).physicalPath -ne $PhysicalPath)
     {
         $pathNeedsUpdating = $true
     }

@@ -36,7 +36,7 @@ function Get-TargetResource
 
     #Needs to return a hashtable that returns the current
     #status of the configuration component
-    $ComputerSystem = Get-CimInstance -ClassName win32_computersystem 
+    $ComputerSystem = Get-WmiObject win32_computersystem 
     if ($ComputerSystem.AutomaticManagedPageFile)
     {
         Write-Verbose  $LocalizedData.AutomaticPageFileConfigured
@@ -46,7 +46,7 @@ function Get-TargetResource
     }
     else
     {        
-        $PageFileSetting = Get-CimInstance Win32_PageFileSetting 
+        $PageFileSetting = Get-WmiObject Win32_PageFileSetting 
         $Configuration = @{
             Ensure = 'Present'
             InitialSize = $PageFileSetting.InitialSize * 1mb
@@ -72,7 +72,7 @@ function Set-TargetResource
         [string]
         $Ensure = 'Present'
     )
-    $ComputerSystem = Get-CimInstance win32_computersystem 
+    $ComputerSystem = Get-WmiObject win32_computersystem 
   
     if ($ComputerSystem.AutomaticManagedPageFile)
     {
@@ -92,7 +92,7 @@ function Set-TargetResource
     {   
         if ($Ensure -like 'Present')
         {   
-            $PageFileSetting = Get-CimInstance Win32_PageFileSetting  
+            $PageFileSetting = Get-WmiObject Win32_PageFileSetting  
             $PageFileSetting.InitialSize = $InitialSize / 1MB
             $PageFileSetting.MaximumSize = $MaximumSize / 1MB                
             $PageFileSetting.put() | Out-Null
@@ -128,8 +128,8 @@ function Test-TargetResource
     )
 
     $Valid = $true
-    $ComputerSystem = Get-CimInstance win32_computersystem 
-    $PageFileSetting = Get-CimInstance Win32_PageFileSetting 
+    $ComputerSystem = Get-WmiObject win32_computersystem 
+    $PageFileSetting = Get-WmiObject Win32_PageFileSetting 
 
     if ($Ensure -like 'Present')
     {

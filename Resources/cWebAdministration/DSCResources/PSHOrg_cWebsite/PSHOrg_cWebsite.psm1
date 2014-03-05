@@ -274,7 +274,7 @@ function Test-TargetResource
         Throw "Please ensure that WebAdministration module is installed."
     }
 
-    $website = Get-Website -Name $Name
+    $website = Get-Website -Name $Name -ErrorAction SilentlyContinue
     $Stop = $true
 
     Do
