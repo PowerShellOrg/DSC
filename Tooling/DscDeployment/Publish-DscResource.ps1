@@ -5,23 +5,28 @@ function Publish-DscResource
         [string]$Path,
         [parameter()]
         [string]$Destination,
+        [string[]]
+        $ExcludedModules = ('cActiveDirectory','cComputerManagement', 
+                            'cFailoverCluster', 'cHyper-V', 'cNetworking', 
+                            'cPSDesiredStateConfiguration', 'cSmbShare', 'cSqlPs',
+                            'cWebAdministration', 'rchaganti') ,
         [parameter()]
         [switch]
         $SkipResourceCheck
     )
     end
     {
-        $ResourceModules = @()
+        $ResourceModules = Dir $path -Directory | 
+            Where-object { $ExcludedModules -notcontains $_.name }
         if ($SkipResourceCheck)
         {
             Write-Verbose "Who needs validity checks?"
-            Write-Verbose "  Testing in production is the only way to roll!"
-            $ResourceModules += Dir $path -Directory 
+            Write-Verbose "  Testing in production is the only way to roll!"            
         }
         else
         {                
             Write-Verbose "Checking Module Validity"
-            $ResourceModules += Dir $path -Directory |
+            $ResourceModules += $ResourceModules |
                 Where-DscResource -IsValid -verbose 
         }
 
