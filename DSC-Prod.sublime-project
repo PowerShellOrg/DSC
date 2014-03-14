@@ -1,0 +1,25 @@
+{
+	"folders":
+	[
+		{
+			"file_exclude_patterns":
+			[
+				"*.Tests.ps1"
+			],
+			"path": "."
+		},
+		{
+			"path": "../DSC-Dev"
+		},
+		{
+			"file_exclude_patterns":
+			[
+				"*.Tests.ps1"
+			],
+			"path": "../../github/DSC"
+		},
+		{
+			"path": "../TeamCityBuild/Scripts"
+		}
+	]
+}

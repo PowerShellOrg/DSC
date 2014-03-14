@@ -1,0 +1,16 @@
+{
+	"folders":
+	[
+		{
+			"path": ".",
+			"file_include_patterns": ["*.Tests.ps1"]
+		},
+		{
+			"path": "../DSC-Dev"
+		},
+		{
+			"path": "../../Github/DSC",
+			"file_include_patterns": ["*.Tests.ps1"]
+		}
+	]
+}

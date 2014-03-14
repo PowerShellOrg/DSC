@@ -8,7 +8,7 @@ Check out my blog series on DSC at PowerShell.org:
 - Configuring the Pull Server (REST version) (<http://powershell.org/wp/2013/10/03/building-a-desired-state-configuration-pull-server/>)
 - Creating Configurations (<http://powershell.org/wp/2013/10/08/building-a-desired-state-configuration-configuration/>, <http://powershell.org/wp/2013/10/14/building-a-desired-state-configuration-configuration-part-2/>)
 - Configuring Clients (<http://powershell.org/wp/2013/11/06/configuring-a-desired-state-configuration-client/>)
-- Building Custom Resources
+- Building Custom Resources (<http://powershell.org/wp/2014/03/13/building-desired-state-configuration-custom-resources/>)
 - Packaging Custom Resources
 - Advanced Client Targeting
 

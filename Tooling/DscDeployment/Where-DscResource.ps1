@@ -18,7 +18,8 @@ function Where-DscResource
     {
         if ($CheckIfIsValid)
         {
-            $AllResources = Get-DscResource
+            $AllResources = Get-DscResource | 
+                Where-Object {$_.implementedas -like 'PowerShell'}
         }
     }
     process
