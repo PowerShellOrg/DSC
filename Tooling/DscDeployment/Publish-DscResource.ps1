@@ -6,10 +6,18 @@ function Publish-DscResource
         [parameter()]
         [string]$Destination,
         [string[]]
-        $ExcludedModules = ('cActiveDirectory','cComputerManagement', 
-                            'cFailoverCluster', 'cHyper-V', 'cNetworking', 
-                            'cPSDesiredStateConfiguration', 'cSmbShare', 'cSqlPs',
-                            'cWebAdministration', 'rchaganti') ,
+        $ExcludedModules = ('cActiveDirectory',
+                            'cComputerManagement', 
+                            'cFailoverCluster', 
+                            'cHyper-V', 
+                            'cNetworking', 
+                            'cPSDesiredStateConfiguration', 
+                            'cSmbShare', 
+                            'cSqlPs',
+                            'cSystemCenterManagement',                            
+                            'cWebAdministration', 
+                            'Craig-Martin',
+                            'rchaganti') ,
         [parameter()]
         [switch]
         $SkipResourceCheck
