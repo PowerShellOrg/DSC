@@ -2,6 +2,7 @@
 . $PSScriptRoot\New-MofFile.ps1
 . $PSScriptRoot\Test-DscBuild.ps1
 . $PSScriptRoot\New-DscNodeMetadata.ps1
+. $PSScriptRoot\New-xDscCompositeResource.ps1
 
 
 function Get-Hashtable
