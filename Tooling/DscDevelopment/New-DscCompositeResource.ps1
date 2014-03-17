@@ -70,7 +70,7 @@ Function New-cDscCompositeResource
                 New-Item -ItemType File -Path $resourcePSM -Force:$Force | Out-Null
             }
             if ((-not (test-path $resourcePSD)) -or ($force)) { 
-                New-ModuleManifest -Path $resourcePSD -RootModule $resourcePSMName -FunctionsToExport ('Get-TargetResource','Test-TargetResource','Set-TargetResource')
+                New-ModuleManifest -Path $resourcePSD -RootModule $resourcePSMName
             }
 
         }
