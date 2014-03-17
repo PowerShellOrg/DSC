@@ -2,6 +2,7 @@
 .hgignore
 Configuration/**
 **.sublime-workspace
+**.sublime-project
 Resources/StackExchangeConfigurations/
 Resources/StackExchangeResources/DSCResources/StackExchange_IISKeys/
 Resources/StackExchangeResources/DSCResources/StackExchange_MetaConfiguration/
