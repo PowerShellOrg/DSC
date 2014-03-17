@@ -21,7 +21,7 @@ ToDo
 - [x] Make New-MofFile handle more data types and complex data types
 - [x] Improve the DSC Module creation documentation for General Availability
 - [ ] Add samples of complete configurations
-- [ ] Add samples of nested configurations
+- [ ] Add samples of composite configurations
 - [ ] MORE Modules!
 
 
