@@ -1,4 +1,4 @@
-Function New-xDscCompositeResource
+Function New-cDscCompositeResource
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
     param(
