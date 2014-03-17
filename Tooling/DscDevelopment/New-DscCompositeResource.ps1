@@ -26,45 +26,62 @@ Function New-cDscCompositeResource
         if(-not $admin -and $Path -eq "$env:ProgramFiles\WindowsPowerShell\Modules"){
             throw "Must be in Administrative context to write to $Path"
         }
-        #$PSBoundParameters.Remove('Force') | Out-Null            
-        $PSBoundParameters.Remove('Path') | Out-Null            
-        $PSBoundParameters.Confirm = $false
-
-        # $env:ProgramFiles\WindowsPowerShell\Modules\FooExample
+         
         $rootModule     = Join-Path $Path $ModuleName
-        # FooExample.psm1
-        $rootModuleName = "$($moduleName).psm1"
-        # FooExample.psd1
-        $rootModuleData = "$($moduleName).psd1" 
-        # $env:ProgramFiles\WindowsPowerShell\Modules\FooExample\FooExample.psm1
-        $rootModulePSM  = Join-Path $rootModule $rootModuleName
-        # $env:ProgramFiles\WindowsPowerShell\Modules\FooExample\FooExample.psd1
-        $rootModulePSD  = Join-Path $rootModule $rootModuleData
-        # $env:ProgramFiles\WindowsPowerShell\Modules\FooExample\DSCResources
+        Write-Verbose "Root module path - $RootModule"
+        
+        $rootModulePSD  = Join-Path $rootModule "$($moduleName).psd1" 
+        Write-Verbose "Root module metadata file - $rootModulePSD"
+        
         $rootModulePath = Join-Path $rootModule "DSCResources"
+        Write-Verbose "DSCResources folder path $rootModulePath"
+
+        if (-not (test-path $rootModulePSD)) {
+            if($PSCmdlet.ShouldProcess($rootModule, 'Creating a base module to host DSC Resources')) { 
+                New-Item -ItemType Directory -Path $rootModule -Force:$Force  | Out-Null
+                New-ModuleManifest -Path $rootModulePSD -ModuleVersion '1.0.0'
+            }    
+        }
+        else {
+            Write-Verbose "Module and manifest already exist at $rootModulePSD"
+        }
+        
+        if (-not (test-path $rootModulePath) ) {
+            if($PSCmdlet.ShouldProcess($rootModulePath, 'Creating the DSCResources directory')) {                    
+                New-Item -ItemType Directory -Path $rootModulePath -Force:$Force  | Out-Null
+            }
+        }
+        else {
+            Write-Verbose "DSCResources folder already exists at $rootModulePath"
+        }
     }
     process
     {
-        
-        if($PSCmdlet.ShouldProcess($rootModulePath)){ New-Item -ItemType Directory -Path $rootModulePath -Force:$Force }
-        New-Item -ItemType File -Path $rootModulePSM -Force:$Force
-        New-ModuleManifest -Path $rootModulePSD -RootModule $rootModuleName
-
         $resourceFolder  = Join-Path $rootModulePath $ResourceName
         $resourcePSMName = "$($ResourceName).schema.psm1"
         $resourcePSM     = Join-Path $resourceFolder $resourcePSMName
         $resourcePSD     = Join-Path $resourceFolder "$($ResourceName).psd1"
         
-        if($PSCmdlet.ShouldProcess($resourceFolder)){ New-Item -ItemType Directory -Path $resourceFolder -Force:$Force }
-        New-Item -ItemType File -Path $resourcePSM -Force:$Force
-        New-ModuleManifest -Path $resourcePSD -RootModule $resourcePSMName
+        if($PSCmdlet.ShouldProcess($resourceFolder, "Creating new resource $ResourceName"))
+        { 
+            New-Item -ItemType Directory -Path $resourceFolder -Force:$Force  | Out-Null
+            
+            if ((-not (test-path $resourcePSM)) -or ($force)) { 
+                New-Item -ItemType File -Path $resourcePSM -Force:$Force | Out-Null
+            }
+            if ((-not (test-path $resourcePSD)) -or ($force)) { 
+                New-ModuleManifest -Path $resourcePSD -RootModule $resourcePSMName -FunctionsToExport ('Get-TargetResource','Test-TargetResource','Set-TargetResource')
+            }
+
+        }
+        
     }
 <#
 .EXAMPLE
-New-xDscCompositeResource -Path "C:\TestModules" -ModuleName "Wakka" -ResourceName "Foo"
+New-cDscCompositeResource -Path "C:\TestModules" -ModuleName "Wakka" -ResourceName "Foo"
 .EXAMPLE
-New-xDscCompositeResource -ModuleName "Wakka" -ResourceName "Foo"
+New-cDscCompositeResource -ModuleName "Wakka" -ResourceName "Foo"
 .EXAMPLE
-"Foo","Bar","Baz" | New-xDscCompositeResource -ModuleName "Wakka"
+"Foo","Bar","Baz" | New-cDscCompositeResource -ModuleName "Wakka"
 #>
 }
