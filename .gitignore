@@ -6,3 +6,4 @@ Configuration/**
 Resources/StackExchangeConfigurations/
 Resources/StackExchangeResources/DSCResources/StackExchange_IISKeys/
 Resources/StackExchangeResources/DSCResources/StackExchange_MetaConfiguration/
+Resources/StackExchangeResources/DSCResources/StackExchange_ScollectorInstaller/
