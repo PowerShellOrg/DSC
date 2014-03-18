@@ -56,7 +56,7 @@ function New-DscNodeMetadata
         )]
         [ValidateNotNullOrEmpty()]
         [guid]
-        $NodeName = [Guid]::NewGuid().Guid,
+        $NodeName,
 
         #Path to the AllNodes subfolder in the configuration data folder.
         #Defaults to ${repository root}/Configuration/AllNodes
@@ -77,14 +77,17 @@ function New-DscNodeMetadata
     process
     {
         $configuration = $StartingBlock
-        foreach ($key in $psboundparameters.keys)
-        {
+        foreach ($key in $psboundparameters.keys) {
             if ($commonParameters -notcontains $key )
             {
                 $Configuration += "`n$key = '$($psboundparameters[$key])'"
             }
         }
-        $Configuration += "`nNodeName = '$NodeName'"
+        
+        if (-not $psboundparameters.containskey('NodeName')){
+            $Configuration += "`nNodeName = '$([guid]::NewGuid().Guid)'"
+        }
+        
         $Configuration += $EndingBlock
         $configuration | out-file (join-path $ConfigurationPath "$($Name.toupper()).psd1") -Encoding Ascii
     }

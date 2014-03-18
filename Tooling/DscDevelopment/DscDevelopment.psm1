@@ -27,6 +27,19 @@ function Get-Hashtable
 }
 
 
+function Get-DscWmiClass {
+    param (
+        [parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [string]
+        $Class
+    )
+    begin {
+        $DscNamespace = "root/Microsoft/Windows/DesiredStateConfiguration"        
+    }
+    process {        
+        Get-wmiobject -Namespace $DscNamespace -list @psboundparameters
+    }
+}
 
 function Remove-DscResource {
     param (

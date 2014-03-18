@@ -7,7 +7,7 @@ param
 )
 
 $LocalCertificatePath = "cert:\LocalMachine\My\$LocalCertificateThumbprint"
-$ConfigurationData = @{ AllNodes = @(); SiteData = @{}; Services=@{}; Credentials = @{} }
+$ConfigurationData = $null
 
 . $PSScriptRoot\ConvertTo-EncryptedFile.ps1
 . $PSScriptRoot\ConvertFrom-EncryptedFile.ps1
@@ -71,8 +71,8 @@ function ConvertTo-CredentialLookup
 function Get-AllNodesConfigurationData
 {
     [cmdletbinding()]
-    param ($Path, [switch]$Force)
-    if (($script:ConfigurationData.AllNodes.Count -eq 0) -or ($Force))
+    param ($Path)
+    if (($script:ConfigurationData.AllNodes.Count -eq 0))
     {  
         Write-Verbose "Processing AllNodes from $Path."
         $script:ConfigurationData.AllNodes = @()
@@ -88,8 +88,8 @@ function Get-AllNodesConfigurationData
 function Get-SiteDataConfigurationData
 {
     [cmdletbinding()]
-    param ($Path, [switch]$Force)
-    if (($script:ConfigurationData.SiteData.Keys.Count -eq 0) -or ($Force))
+    param ($Path)
+    if (($script:ConfigurationData.SiteData.Keys.Count -eq 0))
     { 
         Write-Verbose "Processing SiteData from $Path." 
         foreach ( $item in (dir (join-path $Path 'SiteData\*.psd1')) )
@@ -103,8 +103,8 @@ function Get-SiteDataConfigurationData
 function Get-ServiceConfigurationData
 {
     [cmdletbinding()]
-    param ($Path, [switch]$Force)
-    if (($script:ConfigurationData.Services.Keys.Count -eq 0) -or ($Force))
+    param ($Path)
+    if (($script:ConfigurationData.Services.Keys.Count -eq 0))
     { 
         Write-Verbose "Processing Services from $Path." 
         foreach ( $item in (dir (join-path $Path 'Services\*.psd1')) )
@@ -118,8 +118,8 @@ function Get-ServiceConfigurationData
 function Get-CredentialConfigurationData
 {
     [cmdletbinding()]
-    param ($Path, [switch]$Force)
-    if (($script:ConfigurationData.Credentials.Keys.Count -eq 0) -or ($Force))
+    param ($Path)
+    if (($script:ConfigurationData.Credentials.Keys.Count -eq 0) )
     { 
         Write-Verbose "Processing Credentials from $Path."
         foreach ( $item in (dir (join-path $Path 'Credentials\*.psd1.encrypted')) )
@@ -158,38 +158,49 @@ function Get-ConfigurationData
         $Force
     )             
 
-
-    Get-AllNodesConfigurationData -Path $path 
-
-    $ofs = ', '
-    $FilteredResults = $true
-    Write-Verbose "Checking for filters of AllNodes."
-    switch ($PSCmdlet.ParameterSetName)
+    begin
     {
-        'Name'  {            
-            Write-Verbose "Filtering for nodes with the Name $Name"
-            $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({$_.Name -like $Name})
-        }
-
-        'NodeName' {            
-            Write-Verbose "Filtering for nodes with the GUID of $NodeName"
-            $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({$_.NodeName -like $NodeName})
-        }
-        'Role'  {
-            Write-Verbose "Filtering for nodes with the Role of $Role"
-            $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({ $_.roles -contains $Role})
-        }
-        default {
-            Write-Verbose "Loading Site Data"
-            Get-SiteDataConfigurationData -Path $path -Force:$Force
-            Write-Verbose "Loading Services Data"
-            Get-ServiceConfigurationData -Path $path -Force:$Force
-            Write-Verbose "Loading Credential Data"
-            Get-CredentialConfigurationData -Path $path -Force:$Force
+        if (($script:ConfigurationData -eq $null) -or $force) 
+        {
+            $script:ConfigurationData = @{ AllNodes = @(); SiteData = @{}; Services=@{}; Credentials = @{} }
         }
     }
+    end { 
+
+        Get-AllNodesConfigurationData -Path $path 
+
+        $ofs = ', '
+        $FilteredResults = $true
+        Write-Verbose "Checking for filters of AllNodes."
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'Name'  {            
+                Write-Verbose "Filtering for nodes with the Name $Name"
+                $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({$_.Name -like $Name})
+            }
+
+            'NodeName' {            
+                Write-Verbose "Filtering for nodes with the GUID of $NodeName"
+                $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({$_.NodeName -like $NodeName})
+            }
+            'Role'  {
+                Write-Verbose "Filtering for nodes with the Role of $Role"
+                $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({ $_.roles -contains $Role})
+            }
+            default {
+                Write-Verbose "Loading Site Data"
+                Get-SiteDataConfigurationData -Path $path
+                Write-Verbose "Loading Services Data"
+                Get-ServiceConfigurationData -Path $path
+                Write-Verbose "Loading Credential Data"
+                Get-CredentialConfigurationData -Path $path
+            }
+        }
+        
+        return $script:ConfigurationData
+    }
+
     
-    return $script:ConfigurationData
 }
 
 function Add-EncryptedPassword
