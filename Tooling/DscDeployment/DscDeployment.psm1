@@ -7,7 +7,7 @@ param
 )
 
 $LocalCertificatePath = "cert:\LocalMachine\My\$LocalCertificateThumbprint"
-$ConfigurationData = @{ AllNodes = @(); SiteData = @{}; Credentials = @{} }
+$ConfigurationData = @{ AllNodes = @(); SiteData = @{}; Services=@{}; Credentials = @{} }
 
 . $PSScriptRoot\ConvertTo-EncryptedFile.ps1
 . $PSScriptRoot\ConvertFrom-EncryptedFile.ps1
@@ -100,6 +100,21 @@ function Get-SiteDataConfigurationData
     }
 }
 
+function Get-ServiceConfigurationData
+{
+    [cmdletbinding()]
+    param ($Path, [switch]$Force)
+    if (($script:ConfigurationData.Services.Keys.Count -eq 0) -or ($Force))
+    { 
+        Write-Verbose "Processing Services from $Path." 
+        foreach ( $item in (dir (join-path $Path 'Services\*.psd1')) )
+        {
+            Write-Verbose "Loading data for site $($item.basename) from $($item.fullname)."
+            $script:ConfigurationData.Services.Add($item.BaseName, (Get-Hashtable $item.FullName))
+        }
+    }
+}
+
 function Get-CredentialConfigurationData
 {
     [cmdletbinding()]
@@ -167,6 +182,8 @@ function Get-ConfigurationData
         default {
             Write-Verbose "Loading Site Data"
             Get-SiteDataConfigurationData -Path $path -Force:$Force
+            Write-Verbose "Loading Services Data"
+            Get-ServiceConfigurationData -Path $path -Force:$Force
             Write-Verbose "Loading Credential Data"
             Get-CredentialConfigurationData -Path $path -Force:$Force
         }
