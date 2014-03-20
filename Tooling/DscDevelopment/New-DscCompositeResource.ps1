@@ -73,6 +73,7 @@ Function New-cDscCompositeResource
             
             if ((-not (test-path $resourcePSM)) -or ($force)) { 
                 New-Item -ItemType File -Path $resourcePSM -Force:$Force | Out-Null
+                Add-Content -Path $resourcePSM -Value "Configuration $ResourceName`n{`n}"
             }
             if ((-not (test-path $resourcePSD)) -or ($force)) { 
                 New-ModuleManifest -Path $resourcePSD -RootModule $resourcePSMName -ModuleVersion '1.0.0' -Author $Author -CompanyName $Company -Copyright $Copyright
