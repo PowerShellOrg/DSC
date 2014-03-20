@@ -17,6 +17,11 @@ Function New-cDscCompositeResource
         [ValidateNotNullOrEmpty()]
         [string]
         $ResourceName,
+        [string]
+        $Author = $env:USERNAME,
+        [string]
+        $Company = "Unknown",
+        $Copyright = "(c) $([DateTime]::Now.Year) $env:USERNAME. All rights reserved.",
         [switch]
         $Force
     )
@@ -39,7 +44,7 @@ Function New-cDscCompositeResource
         if (-not (test-path $rootModulePSD)) {
             if($PSCmdlet.ShouldProcess($rootModule, 'Creating a base module to host DSC Resources')) { 
                 New-Item -ItemType Directory -Path $rootModule -Force:$Force  | Out-Null
-                New-ModuleManifest -Path $rootModulePSD -ModuleVersion '1.0.0'
+                New-ModuleManifest -Path $rootModulePSD -ModuleVersion '1.0.0' -Author $Author -CompanyName $Company -Description "CompositeResource Main module" -Copyright $Copyright
             }    
         }
         else {
@@ -70,7 +75,7 @@ Function New-cDscCompositeResource
                 New-Item -ItemType File -Path $resourcePSM -Force:$Force | Out-Null
             }
             if ((-not (test-path $resourcePSD)) -or ($force)) { 
-                New-ModuleManifest -Path $resourcePSD -RootModule $resourcePSMName
+                New-ModuleManifest -Path $resourcePSD -RootModule $resourcePSMName -ModuleVersion '1.0.0' -Author $Author -CompanyName $Company -Copyright $Copyright
             }
 
         }
