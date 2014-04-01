@@ -4,7 +4,9 @@ function Resolve-ConfigurationProperty {
 		[string[]]
 		$ServiceName,
 		[string]
-		$PropertyName
+		$PropertyName,
+		[switch]
+		$AllowMultipleResults
 	)
 	
 	$Value = $null 
@@ -16,8 +18,15 @@ function Resolve-ConfigurationProperty {
 		$Value = Assert-GlobalSetting @psboundparameters
 	}
 	$Value = $Value | where-object {-not [string]::IsNullOrEmpty($_)}
-
-	return $Value
+	if ($AllowMultipleResults) {
+		return $Value
+	} 
+	elseif ((-not $AllowMultipleResults) -and ($Value.count -gt 1)) {
+		throw "More than one result was returned for $PropertyName.  Verify that your property configurations are correct.  If multiples are to be allowed, use -AllowMultipleResults."
+	}
+	else {
+		return $Value
+	}	
 }
 
 function Assert-NodeOverride {
