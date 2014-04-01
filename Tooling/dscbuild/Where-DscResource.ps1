@@ -24,8 +24,9 @@ function Where-DscResource
     }
     process
     {
-        if ( ($CheckIfChanged -and (Test-ZippedModuleChanged)) -or
-               ($CheckIfIsValid -and (Test-DscModuleResourceIsValid))  )
+        Write-Verbose "Checking $($inputobject.Name)."
+        if ( ($CheckIfChanged -and (Test-ZippedModuleChanged @psboundparameters)) -or
+               ($CheckIfIsValid -and (Test-DscModuleResourceIsValid @psboundparameters))  )
         {
              $InputObject
         }
@@ -34,11 +35,26 @@ function Where-DscResource
 
 
 function Test-ZippedModuleChanged
-{
-    [cmdletbinding()]
-    param ()
-    Write-Verbose "Attempting to check if a resource has changed."
+{    
+    [cmdletbinding()]    
+    param (
+        [parameter(ValueFromPipeline)]
+        [IO.FileSystemInfo]
+        $InputObject,    
+        [parameter()]
+        [string]
+        $Destination, 
+        [switch]
+        [alias('Changed')]
+        $CheckIfChanged,
+        [switch]
+        [alias('IsValid')]
+        $CheckIfIsValid
+    )
+    Write-Verbose "Attempting to check if $($InputObject.Name) resource has changed." 
+
     $DestModule = join-path $Destination $inputobject.name
+    Write-Verbose "Checking if $DestModule is present"
     if (Test-path $DestModule)
     {            
         Write-Verbose "There was an existing version of $($inputobject.Name)."
@@ -54,18 +70,32 @@ function Test-ZippedModuleChanged
             Write-Verbose "Existing version of $($inputobject.Name) matches the current."
             return $false
         }                            
-    }
+    }    
     else
     {
         Write-Verbose "No previous version of $($InputObject.Name)."
         return $true
     }
+    
 }
 
 function Test-DscModuleResourceIsValid
 {
     [cmdletbinding()]
-    param ()    
+    param (
+        [parameter(ValueFromPipeline)]
+        [IO.FileSystemInfo]
+        $InputObject,    
+        [parameter()]
+        [string]
+        $Destination, 
+        [switch]
+        [alias('Changed')]
+        $CheckIfChanged,
+        [switch]
+        [alias('IsValid')]
+        $CheckIfIsValid
+    )   
     
     Write-Verbose "Retrieving all resources and filtering for $($InputObject.Name)."
     $AllModuleResources = Get-DscResourceForModule -Name $InputObject.Name

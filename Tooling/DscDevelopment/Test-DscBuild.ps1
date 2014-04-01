@@ -89,8 +89,8 @@ Working directory not found.  Please supply a path to the DSC-Prod repository.
     }
     elseif ($Development)
     {
-        $PassedParameters.DestinationDirectory = Join-Path (Split-Path (Split-Path (Split-Path $psscriptroot))) 'DSC-Dev'    
-        $PassedParameters.SkipResourceReset = $true
+        $PassedParameters.DestinationDirectory = Join-Path (Split-Path (Split-Path (Split-Path $psscriptroot))) 'DSC-Dev' 
+        $PassedParameters.SkipResourceReset = $true  
     }
     else 
     {
