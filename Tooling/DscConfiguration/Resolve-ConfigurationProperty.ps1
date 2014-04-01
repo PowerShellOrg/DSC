@@ -102,6 +102,7 @@ function Test-NodeOverride {
 	param (
 		[string[]]
 		$ServiceName,
+		[string]
 		$PropertyName
 	)
 	$IsPresent = $false
@@ -128,7 +129,9 @@ function Test-NodeOverride {
 function Test-SiteOverride {
 	[cmdletbinding()]
 	param (
+		[string[]]
 		$ServiceName,
+		[string]
 		$PropertyName
 	)
 	$IsPresent = $false
@@ -159,7 +162,9 @@ function Test-SiteOverride {
 function Test-GlobalSetting {
 	[cmdletbinding()]
 	param (
+		[string[]]
 		$ServiceName,
+		[string]
 		$PropertyName
 	)
 	$IsPresent = $false
