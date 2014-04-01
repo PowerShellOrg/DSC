@@ -25,32 +25,3 @@ function Get-Hashtable
         invoke-expression "DATA { $(get-content -raw -path $path) }"
     }    
 }
-
-
-function Get-DscWmiClass {
-    param (
-        [parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [string]
-        $Class
-    )
-    begin {
-        $DscNamespace = "root/Microsoft/Windows/DesiredStateConfiguration"        
-    }
-    process {        
-        Get-wmiobject -Namespace $DscNamespace -list @psboundparameters
-    }
-}
-
-function Remove-DscResource {
-    param (
-        [parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [string]
-        $ResourceType
-    )
-    begin {
-        $DscNamespace = "root/Microsoft/Windows/DesiredStateConfiguration"        
-    }
-    process {        
-        (Get-wmiobject -Namespace $DscNamespace -list -Class $ResourceType).psbase.delete()
-    }
-}
