@@ -21,6 +21,12 @@ function Resolve-ConfigurationProperty {
 	}
 	$Value = $Value | where-object {-not [string]::IsNullOrEmpty($_)}
 
+	if (($Value -eq $null) -and ($ServiceName.Count -gt 0))
+	{
+		$psboundparameters.Remove('ServiceName') | out-null
+		$Value = Resolve-ConfigurationProperty @psboundparameters
+	}
+	
 	if ($Value -eq $null)
 	{
 		throw "Failed to resolve $PropertyName for $($Node.Name).  Please update your node, service, site, or all sites with a default value."
