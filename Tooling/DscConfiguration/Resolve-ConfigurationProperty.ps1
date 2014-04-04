@@ -1,6 +1,8 @@
 function Resolve-ConfigurationProperty {
 	[cmdletbinding()]
 	param (
+		[System.Collections.Hashtable]
+		$Node,
 		[string[]]
 		$ServiceName,
 		[string]
@@ -18,11 +20,17 @@ function Resolve-ConfigurationProperty {
 		$Value = Assert-GlobalSetting @psboundparameters
 	}
 	$Value = $Value | where-object {-not [string]::IsNullOrEmpty($_)}
+
+	if ($Value -eq $null)
+	{
+		throw "Failed to resolve $PropertyName for $($Node.Name).  Please update your node, service, site, or all sites with a default value."
+	}
+
 	if ($AllowMultipleResults) {
 		return $Value
 	} 
 	elseif ((-not $AllowMultipleResults) -and ($Value.count -gt 1)) {
-		throw "More than one result was returned for $PropertyName.  Verify that your property configurations are correct.  If multiples are to be allowed, use -AllowMultipleResults."
+		throw "More than one result was returned for $PropertyName for $($Node.Name).  Verify that your property configurations are correct.  If multiples are to be allowed, use -AllowMultipleResults."
 	}
 	else {
 		return $Value
@@ -32,10 +40,14 @@ function Resolve-ConfigurationProperty {
 function Assert-NodeOverride {
 	[cmdletbinding()]
 	param (
+		[System.Collections.Hashtable]
+		$Node,
 		[string[]]
 		$ServiceName,
 		[string]
-		$PropertyName
+		$PropertyName,
+		[switch]
+		$AllowMultipleResults
 	)
 	$Value = $null
 
@@ -57,10 +69,14 @@ function Assert-NodeOverride {
 function Assert-SiteOverride {
 	[cmdletbinding()]
 	param (
+		[System.Collections.Hashtable]
+		$Node,
 		[string[]]
 		$ServiceName,
 		[string]
-		$PropertyName
+		$PropertyName,
+		[switch]
+		$AllowMultipleResults
 	)
 	$Value = $null
 
@@ -81,10 +97,14 @@ function Assert-SiteOverride {
 function Assert-GlobalSetting {
 	[cmdletbinding()]
 	param (
+		[System.Collections.Hashtable]
+		$Node,
 		[string[]]
 		$ServiceName,
 		[string]
-		$PropertyName
+		$PropertyName,
+		[switch]
+		$AllowMultipleResults
 	)
 	$Value = $null
 	if ($ServiceName.count -eq 0) {
@@ -109,22 +129,24 @@ function Assert-GlobalSetting {
 function Test-NodeOverride {
 	[cmdletbinding()]
 	param (
+		[System.Collections.Hashtable]
+		$Node,
 		[string[]]
 		$ServiceName,
 		[string]
-		$PropertyName
+		$PropertyName,
+		[switch]
+		$AllowMultipleResults
 	)
 	$IsPresent = $false
 	if (($ServiceName.count -eq 0)) {
 		Write-Verbose "First Check if the Node has a key of $PropertyName"
-		$IsPresent = (test-path variable:\Node) -and 
-			$Node.ContainsKey($PropertyName) 
+		$IsPresent = $Node.ContainsKey($PropertyName) 
 	}
 	else {
 		foreach ($Service in $ServiceName) {
 			Write-Verbose "First Check if the Node has a key of $PropertyName for service $Service"
-			$IsPresent = (test-path variable:\Node) -and 
-				$Node.ContainsKey('Services') -and
+			$IsPresent = $Node.ContainsKey('Services') -and
 				$Node.Services.ContainsKey($Service) -and 
 				$Node.Services[$Service].ContainsKey($PropertyName)
 			if ($IsPresent) {
@@ -138,10 +160,14 @@ function Test-NodeOverride {
 function Test-SiteOverride {
 	[cmdletbinding()]
 	param (
+		[System.Collections.Hashtable]
+		$Node,
 		[string[]]
 		$ServiceName,
 		[string]
-		$PropertyName
+		$PropertyName,
+		[switch]
+		$AllowMultipleResults
 	)
 	$IsPresent = $false
 	if ([string]::IsNullOrEmpty($ServiceName)) {
@@ -171,10 +197,14 @@ function Test-SiteOverride {
 function Test-GlobalSetting {
 	[cmdletbinding()]
 	param (
+		[System.Collections.Hashtable]
+		$Node,
 		[string[]]
 		$ServiceName,
 		[string]
-		$PropertyName
+		$PropertyName,
+		[switch]
+		$AllowMultipleResults
 	)
 	$IsPresent = $false
 	if ([string]::IsNullOrEmpty($ServiceName)) {
