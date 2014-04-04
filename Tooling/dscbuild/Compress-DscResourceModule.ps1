@@ -8,7 +8,7 @@ function Compress-DscResourceModule {
     else {
     	$ProgramFilesModules = join-path $env:ProgramFiles 'WindowsPowerShell\Modules'
     	Dir $ProgramFilesModules -Directory | 
-    		New-DscZipFile -ZipFile { join-path $script:DscBuildParameters.ModuleOutputPath "$($_.Name).zip" } -Force | 
+    		New-DscZipFile -ZipFile { join-path $script:DscBuildParameters.ModuleOutputPath "$($_.Name)" } -Force | 
             Foreach-Object {Write-Verbose "New compressed resource module $($_.fullname)"}
     }
 }
