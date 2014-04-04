@@ -49,6 +49,9 @@ function Test-DscBuild
         [parameter()]
         [switch]
         $SkipResourcePackaging,
+      
+	[switch]
+	$CleanEnvironment,        
 
         [switch]
         $ShowConfigurationDebugMessages,
@@ -114,7 +117,13 @@ Failed to find a build script at $BuildScript.
 Either specify a path to the build script or clone the TeamCityBuild repository adjacent to the DSC-Prod repo.
 "@
     }
-    
+
+	if ($CleanEnvironment) {
+		remove-item (join-path $PassedParameters.DestinationDirectory 'Configuration') -recurse -erroraction SilentlyContinue
+		remove-item (join-path $PassedParameters.DestinationDirectory 'Modules') -recurse -erroraction SilentlyContinue
+        remove-item (join-path $PassedParameters.WorkingDirectory 'BuildOutput') -recurse -erroraction SilentlyContinue
+	}    
+
     start-job -ArgumentList $BuildScript, $PassedParameters {
             param ([string]$BuildScript, [System.Collections.Hashtable]$PassedParameters)
 		    & $BuildScript @PassedParameters

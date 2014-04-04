@@ -21,7 +21,7 @@ function Assert-DestinationDirectory {
     mkdir $script:DscBuildParameters.DestinationConfigurationDirectory | out-null
 
     $script:DscBuildParameters |
-        add-member -membertype Noteproperty -Name ConfigurationOutputPath -value  (join-path $script:DscBuildParameters.WorkingDirectory 'TestOutput\Configuration') -force
+        add-member -membertype Noteproperty -Name ConfigurationOutputPath -value  (join-path $script:DscBuildParameters.WorkingDirectory 'BuildOutput\Configuration') -force
     if (Test-Path $script:DscBuildParameters.ConfigurationOutputPath)
     {
         remove-item $script:DscBuildParameters.ConfigurationOutputPath -recurse -force        
@@ -30,7 +30,7 @@ function Assert-DestinationDirectory {
     mkdir $script:DscBuildParameters.ConfigurationOutputPath | out-null
 
     $script:DscBuildParameters |
-        add-member -membertype Noteproperty -Name ModuleOutputPath -value  (join-path $script:DscBuildParameters.WorkingDirectory 'TestOutput\Modules') -force
+        add-member -membertype Noteproperty -Name ModuleOutputPath -value  (join-path $script:DscBuildParameters.WorkingDirectory 'BuildOutput\Modules') -force
     if (Test-Path $script:DscBuildParameters.ModuleOutputPath)
     {
         remove-item $script:DscBuildParameters.ModuleOutputPath -recurse -force        
