@@ -3,17 +3,15 @@ function Invoke-DscConfiguration {
 	param ()
 
     Write-Verbose 'Importing configuration module.'
-
-    $SetVerbosePreference = 'SilentlyContinue'
-    $SetDebugPreference = 'SilentlyContinue'
-    if ($script:DscBuildParameters.ShowConfigurationDebugMessages){
-        $SetVerbosePreference = 'Continue'
-        $SetDebugPreference = 'Continue'
-    }
-    import-module $script:DscBuildParameters.ConfigurationModuleName -force -Verbose:$false -ArgumentList $SetVerbosePreference, $SetDebugPreference
+    
+    import-module $script:DscBuildParameters.ConfigurationModuleName -force -Verbose:$false 
     
     try
     {
+        if ($script:DscBuildParameters.ShowConfigurationDebugMessages){
+            $VerbosePreference = 'Continue'
+            $DebugPreference = 'Continue'
+        }
         Write-Verbose 'Starting to generate configurations.'
         Write-Verbose "`tWriting configurations to $($script:DscBuildParameters.ConfigurationOutputPath)"
         $ErrorActionPreference = 'Stop'

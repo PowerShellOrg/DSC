@@ -50,44 +50,48 @@ function Add-CachedCimClass
     [CmdletBinding(DefaultParameterSetName="FromMofFile")]
     param (
         # The MOF file to import classes from
-        [Parameter(ParameterSetName="FromMofFile", Position=0)]
+        [Parameter(ParameterSetName="FromMofFile", ValueFromPipelineByPropertyName, Position=0)]
+        [alias('fullname', 'path')]
+        [string]
             $MofClassFile,
         [Parameter(ParameterSetName="FromModule")]
             $Module
     )
  
-    $errors = New-Object System.Collections.ObjectModel.Collection[Exception]
- 
-    try
-    {
-        if ($PSCmdlet.ParameterSetName -eq "FromMofFile")
-        {
-        $resolvedMofPath = Resolve-Path -ErrorAction stop $MofClassFile
-        [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportClasses($resolvedMofPath, $null, $errors)
-        $errors | Write-Error
-        }
-        else
-        {
-            foreach ($mi in Get-Module -ListAvailable -Name $Module)
-            {
-                Write-Verbose -Verbose:$Verbose "Processing module $($module.Name)"
-                $schemaFile = ""
-                [void] [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportCimKeywordsFromModule($mi, $null, [ref] $schemaFile)
-                if ($schemaFile)
-                {
-                    Write-Verbose -Verbose:$verbose "  Schema loaded from file: '$schemaFile'"
-                }
-                else
-                {
-                    Write-Verbose -Verbose:$verbose "  No schema file was found."
-                }
-            }
-        }
-    }
-    catch
-    {
-        throw $_
-    }
+    process {
+      $errors = New-Object System.Collections.ObjectModel.Collection[Exception]
+   
+      try
+      {
+          if ($PSCmdlet.ParameterSetName -eq "FromMofFile")
+          {
+          $resolvedMofPath = Resolve-Path -ErrorAction stop $MofClassFile
+          [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportClasses($resolvedMofPath, $null, $errors)
+          $errors | Write-Error
+          }
+          else
+          {
+              foreach ($mi in Get-Module -ListAvailable -Name $Module)
+              {
+                  Write-Verbose -Verbose:$Verbose "Processing module $($module.Name)"
+                  $schemaFile = ""
+                  [void] [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportCimKeywordsFromModule($mi, $null, [ref] $schemaFile)
+                  if ($schemaFile)
+                  {
+                      Write-Verbose -Verbose:$verbose "  Schema loaded from file: '$schemaFile'"
+                  }
+                  else
+                  {
+                      Write-Verbose -Verbose:$verbose "  No schema file was found."
+                  }
+              }
+          }
+      }
+      catch
+      {
+          throw $_
+      }
+  }
 }
  
 <#
@@ -150,16 +154,22 @@ function Get-CachedCimClass
 function Import-CimInstances
 {
     param (
+        [parameter(ValueFromPipelineByPropertyName)]
+        [alias('fullname', 'path')]
+        [string]
         $MofInstanceFilePath
     )
  
-    try
-    {
-        $resolvedMofPath = Resolve-Path -ErrorAction stop $MofInstanceFilePath
-        [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($resolvedMofPath)
-    }
-    catch
-    {
-        throw $_
+    process {
+      try
+      {
+          
+          $resolvedMofPath = Resolve-Path -ErrorAction stop $MofInstanceFilePath
+          [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($resolvedMofPath)
+      }
+      catch
+      {
+          Write-Error -Exception $_.Exception -Message "Error with $MofInstanceFilePath"
+      }
     }
 }
