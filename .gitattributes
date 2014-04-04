@@ -23,5 +23,5 @@
 
 *.ps1	text diff merge
 *.psm1	text diff merge
-*.psd1	text diff=astextplain
-*.mof	text diff=astextplain
+*.psd1	text diff merge
+*.mof	text diff merge
