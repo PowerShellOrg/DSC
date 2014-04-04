@@ -4,11 +4,12 @@ if (-not (Test-Path $sut))
 {
 	$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.ps1", ".ps1")
 }
-if (-not (Test-Path $sut))
-{
-    Write-Error "Failed to find script to test at $sut"
-}
 $pathtosut = join-path $here $sut
+if (-not (Test-Path $pathtosut))
+{
+    Write-Error "Failed to find script to test at $pathtosut"
+}
+
 
 iex ( gc $pathtosut -Raw )
 
@@ -31,7 +32,7 @@ describe 'how Resolve-ConfigurationProperty responds' {
             PullServerPath = 'OverrideValue'
         }
 
-        $result = Resolve-ConfigurationProperty -PropertyName 'PullServerPath' 
+        $result = Resolve-ConfigurationProperty -Node $Node -PropertyName 'PullServerPath' 
         
         it "should return the node's override" {
             $result | should be 'OverrideValue'
@@ -44,7 +45,7 @@ describe 'how Resolve-ConfigurationProperty responds' {
             Location = 'NY'            
         }
 
-        $result = Resolve-ConfigurationProperty -PropertyName 'PullServerPath'
+        $result = Resolve-ConfigurationProperty -Node $Node -PropertyName 'PullServerPath'
         it "should return the site's default value" {
             $result | should be 'ConfiguredBySite'
         }
@@ -56,7 +57,7 @@ describe 'how Resolve-ConfigurationProperty responds' {
             Location = 'OR'            
         }
 
-        $result = Resolve-ConfigurationProperty -PropertyName 'PullServerPath' 
+        $result = Resolve-ConfigurationProperty -Node $Node -PropertyName 'PullServerPath' 
         it "should return the site's default value" {
             $result | should be 'ConfiguredByDefault'
         }
@@ -64,11 +65,14 @@ describe 'how Resolve-ConfigurationProperty responds' {
 }
 
 
-describe 'how Resolve-ConfigurationProperty responds' {
+describe 'how Resolve-ConfigurationProperty  responds' {
     $ConfigurationData = @{
         Services = @{
             MyTestService = @{
                 DataSource = 'MyDefaultValue'
+            }
+            MySecondTestService = @{
+                MissingFromFirstServiceConfig = 'FromSecondServiceConfig'
             }
         }            
     }
@@ -83,7 +87,7 @@ describe 'how Resolve-ConfigurationProperty responds' {
             }
         }
 
-        $result = Resolve-ConfigurationProperty -ServiceName MyTestService -PropertyName DataSource 
+        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource 
 
         it 'should return the override from the node' {
             $result | should be 'MyCustomValue'
@@ -105,7 +109,7 @@ describe 'how Resolve-ConfigurationProperty responds' {
             Location = 'NY'
         }
 
-        $result = Resolve-ConfigurationProperty -ServiceName MyTestService -PropertyName DataSource
+        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource
 
         it 'should return the override from the site' {
             $result | should be 'MySiteValue'
@@ -125,11 +129,37 @@ describe 'how Resolve-ConfigurationProperty responds' {
             Location = 'NY'
         }
 
-        $result = Resolve-ConfigurationProperty -ServiceName MyTestService -PropertyName DataSource 
+        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource 
 
-        it 'should return the override from the site' {
+        it 'should return the default value from the service' {
             $result | should be 'MyDefaultValue'
 
+        }
+    }
+
+    context 'when no service default is specified' {
+
+        $Node = @{
+            Location = 'NY'
+            MissingFromFirstServiceConfig = 'FromNodeWithoutService'
+        }
+
+        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName MissingFromFirstServiceConfig 
+        it 'should fall back to checking for the parameter without the service name' {
+            $result | should be 'FromNodeWithoutService'
+        }
+    }
+
+    context 'when two services are specified default is specified' {
+
+        $Node = @{
+            Location = 'NY'
+            MissingFromFirstServiceConfig = 'FromNodeWithoutService'
+        }
+
+        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService, MySecondTestService -PropertyName MissingFromFirstServiceConfig 
+        it 'should retrieve the parameter from the second service before falling back to the node' {
+            $result | should be 'FromSecondServiceConfig'
         }
     }
 
