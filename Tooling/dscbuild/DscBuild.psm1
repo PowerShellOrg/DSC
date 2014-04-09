@@ -17,4 +17,3 @@
 $DscBuildParameters = $null
 
 Clear-CachedDscResource 
-import-module 'Pester', 'cDscResourceDesigner' -verbose:$false

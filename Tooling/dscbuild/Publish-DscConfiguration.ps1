@@ -8,6 +8,6 @@ function Publish-DscConfiguration {
 
     dir (join-path $script:DscBuildParameters.ConfigurationOutputPath '*.mof') | 
         foreach-object { Write-Verbose "Moving $($_.name) to $($script:DscBuildParameters.DestinationConfigurationDirectory)"; $_ } |
-        Move-Item -Destination $script:DscBuildParameters.DestinationConfigurationDirectory -PassThru |        
+        Move-Item -Destination $script:DscBuildParameters.DestinationConfigurationDirectory -force -PassThru |        
         New-DscChecksumFile -Verbose:$false
 }

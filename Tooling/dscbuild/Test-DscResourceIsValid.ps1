@@ -3,13 +3,12 @@ function Test-DscResourceIsValid {
 	param ()
 
 	$ProgramFilesModules = join-path $env:ProgramFiles 'WindowsPowerShell\Modules'
-    if ($script:DscBuildParameters.SkipResourceCheck)
-    {
+    if ($script:DscBuildParameters.SkipResourceCheck) {
         Write-Verbose "Skipping Dsc Resource Validation."
     }
-    else {
+    else {        
     	dir $ProgramFilesModules | 
             Where-DscResource -IsValid | 
-            Out-Null
+            Out-Null        
     }
 }

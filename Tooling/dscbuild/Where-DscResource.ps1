@@ -144,7 +144,7 @@ function Get-FailedDscResource
 
     foreach ($resource in $AllModuleResources)
     {
-        if (-not (Test-cDscResource -Name $Resource.Name -Verbose))        
+        if (-not (Test-cDscResource -Name $Resource.Name))        
         {            
             Write-Warning "`tResources $($_.name) is invalid."  
             $resource
