@@ -39,7 +39,7 @@ function Resolve-ConfigurationProperty {
 		throw "More than one result was returned for $PropertyName for $($Node.Name).  Verify that your property configurations are correct.  If multiples are to be allowed, use -AllowMultipleResults."
 	}
 	else {
-		return $Value
+		return [string]$Value
 	}	
 }
 

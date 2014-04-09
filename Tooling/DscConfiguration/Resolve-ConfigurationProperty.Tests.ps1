@@ -65,7 +65,7 @@ describe 'how Resolve-ConfigurationProperty responds' {
 }
 
 
-describe 'how Resolve-ConfigurationProperty  responds' {
+describe 'how Resolve-ConfigurationProperty (services) responds' {
     $ConfigurationData = @{
         Services = @{
             MyTestService = @{
@@ -162,6 +162,4 @@ describe 'how Resolve-ConfigurationProperty  responds' {
             $result | should be 'FromSecondServiceConfig'
         }
     }
-
-
 }
