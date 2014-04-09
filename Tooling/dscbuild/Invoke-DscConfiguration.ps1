@@ -9,9 +9,11 @@ function Invoke-DscConfiguration {
     else {
         Write-Warning "Unable to resolve the module '$($script:DscBuildParameters.ConfigurationModuleName)'"
         Write-Warning "Current modules on PSModulePath"
-        dir ($env:psmodulepath -split ';') | foreach {
-            Write-Warning "`tFound $($_.Name)"
-        }
+        $env:psmodulepath -split ';' | 
+            get-childitem -directory | 
+            foreach {
+                Write-Warning "`tFound $($_.Name)"
+            }
         throw "Failed to load configuration module"
     }
 
