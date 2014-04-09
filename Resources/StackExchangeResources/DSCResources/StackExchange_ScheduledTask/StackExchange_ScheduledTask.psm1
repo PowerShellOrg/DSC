@@ -38,7 +38,8 @@ function Get-TargetResource
         [bool]
         $Daily = $false,
         
-        [parameter()]        
+        [parameter()]  
+        #[ValidateSet('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')]        
         [string[]]
         $DaysOfWeek,
 
@@ -151,7 +152,8 @@ function Set-TargetResource
         [bool]
         $Daily = $false,
         
-        [parameter()]        
+        [parameter()]  
+        #[ValidateSet('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')]        
         [string[]]
         $DaysOfWeek,
 
@@ -254,7 +256,8 @@ function Test-TargetResource
         [bool]
         $Daily = $false,
         
-        [parameter()]        
+        [parameter()]
+        #[ValidateSet('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')]        
         [string[]]
         $DaysOfWeek,
 
@@ -271,39 +274,37 @@ function Test-TargetResource
         $Ensure = 'Present'
     )
 
-    $IsValid = $true
+    New-TargetResourceObject @psboundparameters    
     
-    $Job = Get-ScheduledJob -Name $Name -ErrorAction SilentlyContinue
-    if ($Ensure -like 'Present')
+    if ($script:TargetResource.Ensure -like 'Present')
     {
-        if ($Job)
+        if ($script:TargetResource.Job)
         {
-            $IsValid = $IsValid -and ( $FilePath -like $Job.Command )
-            Write-Verbose "Checking Filepath against existing command.  Status is $IsValid."
-
-            $IsValid = $IsValid -and (Test-JobTriggerAtTime -Trigger $job.JobTriggers[0] -At $At)
-            Write-Verbose "Checking Job Trigger At time.  Status is $IsValid."
+            Test-JobFilePath   
+            Test-JobTriggerAtTime 
+            Test-JobFrequency        
             
-            $IsValid = $IsValid -and (Test-OnceJobTrigger -Trigger $job.JobTriggers[0] -Hours $Hours -Minutes $Minutes -Once $Once)
-            Write-Verbose "Checking Job Trigger repetition is set to Once.  Status is $IsValid."
-
-            $IsValid = $IsValid -and (Test-DailyJobTrigger -Trigger $Job.JobTriggers[0] -Interval $DaysInterval -Daily $Daily)            
-            Write-Verbose "Checking Job Trigger repetition is set to Daily.  Status is $IsValid."
-            
-            $IsValid = $IsValid -and (Test-WeeklyJobTrigger -Trigger $Job.JobTriggers[0] -DaysOfWeek $DaysOfWeek -Weekly $Weekly)            
-            Write-Verbose "Checking Job Trigger repetition is set to Weekly.  Status is $IsValid."            
+            if ($script:TargetResource.Once) {
+                Test-OnceJobTrigger
+            }
+            if ($script:TargetResource.Daily) {
+                Test-DailyJobTrigger
+            }
+            if ($script:TargetResource.Weekly) {
+                Test-WeeklyJobTrigger
+            }      
         }
         else
         {
-            $IsValid = $false
+            $script:TargetResource.IsValid = $false
             Write-Verbose "Unable to find matching job."
         }
     }
     else
     {
-        if ($job)
+        if ($script:TargetResource.job)
         {
-            $IsValid = $false
+            $script:TargetResource.IsValid = $false
             Write-Verbose "Job should not be present, but is registered."
         }
         else
@@ -313,11 +314,95 @@ function Test-TargetResource
     }
 
 
-    return $IsValid
+    return $script:TargetResource.IsValid
 }
 
-function Remove-Job
-{
+$TargetResource = $null
+function New-TargetResourceObject {
+    param (
+        [parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $Name,
+        
+        [parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $FilePath,
+
+        [parameter()]
+        [string]
+        $At = (Get-Date),
+
+        [parameter()]
+        [int]
+        $Hours = 0,
+
+        [parameter()]
+        [int]
+        $Minutes = 0,
+        
+        [parameter()]        
+        [bool]
+        $Once = $false,
+
+        [parameter()]
+        [int]
+        $DaysInterval,
+        
+        [parameter()]        
+        [bool]
+        $Daily = $false,
+        
+        [parameter()] 
+        #[ValidateSet('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')]         
+        [string[]]
+        $DaysOfWeek,
+
+        [parameter()]        
+        [bool]
+        $Weekly = $false,
+
+        [parameter()]
+        [System.Management.Automation.PSCredential]
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
+
+        [ValidateSet('Present','Absent')]
+        [string]
+        $Ensure = 'Present'
+    )
+    if (-not $psboundparameters.containskey('At')) {
+        $psboundparameters.Add('At', $At)
+    }
+    if (-not $psboundparameters.containskey('Hours')) {
+        $psboundparameters.Add('Hours', $Hours)
+    }
+    if (-not $psboundparameters.containskey('Minutes')) {
+        $psboundparameters.Add('Minutes', $Minutes)
+    }
+    if (-not $psboundparameters.containskey('Once')) {
+        $psboundparameters.Add('Once', $Once)
+    }
+    if (-not $psboundparameters.containskey('Daily')) {
+        $psboundparameters.Add('Daily', $Daily)
+    }
+    if (-not $psboundparameters.containskey('Weekly')) {
+        $psboundparameters.Add('Weekly', $Weekly)
+    }
+
+    
+    $Job = Get-ScheduledJob -Name $Name -ErrorAction SilentlyContinue
+    if ($Job) {
+        $psboundparameters.Add('Job', $Job)    
+    }
+    if (-not $psboundparameters.containskey('Ensure')) {
+        $psboundparameters.Add('Ensure', $Ensure)
+    }
+    $psboundparameters.Add('IsValid', $true)
+    $script:TargetResource = [pscustomobject]$psboundparameters
+}
+
+function Remove-Job {
     param (
         [parameter()]
         [string]
@@ -337,108 +422,108 @@ function Remove-Job
     }
 }
 
-function Test-JobTriggerAtTime
-{
-    param (
-        [object]
-        $Trigger,
-        [string]
-        $At
-    )  
+function Test-JobFilePath {
+    [cmdletbinding()]
+    param ()
+
+    if ($script:TargetResource.IsValid) {
+        Write-Verbose "Comparing $($script:TargetResource.FilePath) to $($script:TargetResource.Job.Command)"
+        $script:TargetResource.IsValid =  $script:TargetResource.FilePath -like $script:TargetResource.Job.Command 
+    }    
+    Write-Verbose "Checking Filepath against existing command.  Status is $($script:TargetResource.IsValid)."
+}
+
+function Test-JobTriggerAtTime {
+    [cmdletbinding()]
+    param ()  
       
-    $IsValid = $Trigger.At.HasValue
-    if ($IsValid)
-    {
-        $IsValid = $IsValid -and ( [datetime]::Parse($At) -eq $Trigger.At.Value )                
+    $Trigger = $script:TargetResource.job.JobTriggers[0]
+    if ($script:TargetResource.IsValid) {
+        if ($Trigger.At.HasValue) {
+            $script:TargetResource.IsValid =  [datetime]::Parse($script:TargetResource.At) -eq $Trigger.At.Value 
+        }
+        else {
+            $script:TargetResource.IsValid = $False
+        }
     }
-    return $IsValid
+    Write-Verbose "Checking Job Trigger At time.  Status is $($script:TargetResource.IsValid)."    
+}
+
+function Test-JobFrequency {
+    [cmdletbinding()]
+    param()
+
+    $Frequency = $script:TargetResource.Job.JobTriggers[0].Frequency
+    if ($script:TargetResource.Once) {
+        $script:TargetResource.IsValid = 'Once' -like $Frequency
+    }
+    if ($script:TargetResource.Daily) {
+        $script:TargetResource.IsValid = 'Daily' -like $Frequency
+    }
+    if ($script:TargetResource.Weekly) {
+        $script:TargetResource.IsValid = 'Weekly' -like $Frequency
+    }
+}
+
+function Test-OnceJobTrigger {
+    [cmdletbinding()]
+    param ()
+
+    $Trigger = $script:TargetResource.Job.JobTriggers[0]
+    if ($script:TargetResource.IsValid -and $script:TargetResource.Once) {
+        if ($Trigger.RepetitionInterval.HasValue) {
+            $script:TargetResource.IsValid = $script:TargetResource.Hours -eq $Trigger.RepetitionInterval.Value.Hours 
+            $script:TargetResource.IsValid = $script:TargetResource.Minutes -eq $Trigger.RepetitionInterval.Value.Minutes
+        }
+        else {
+            $script:TargetResource.IsValid = $false
+        }
+    } 
+    Write-Verbose "Checking Job Trigger repetition is set to Once.  Status is $($script:TargetResource.IsValid)."    
+}
+
+function Test-DailyJobTrigger {
+    [cmdletbinding()]
+    param ()
+
+    $Trigger = $script:TargetResource.Job.JobTriggers[0]    
+    if ($script:TargetResource.IsValid -and $script:TargetResource.Daily) {        
+        $script:TargetResource.IsValid = $script:TargetResource.DaysInterval -eq $Trigger.Interval
+    }
+    Write-Verbose "Checking Job Trigger repetition is set to Daily.  Status is $($script:TargetResource.IsValid)."
 }
 
 function Test-WeeklyJobTrigger
 {
-    param 
-    (
-        [object]
-        $Trigger,
-        [string[]]
-        $DaysOfWeek,
-        [bool]
-        $Weekly 
-    )
+    [cmdletbinding()]
+    param()
+    
+    $Trigger = $script:TargetResource.Job.JobTriggers[0]
+    if ($script:TargetResource.IsValid -and $script:TargetResource.Weekly) {
+        Test-DaysOfWeekInWeeklyJobTrigger
+    }
+    Write-Verbose "Checking Job Trigger repetition is set to Weekly.  Status is $($script:TargetResource.IsValid)."    
+}
 
-    $IsValid = $true
-    if ( $Weekly )    
-    {
-        $IsValid = $IsValid -and ( 'Weekly' -like $Trigger.Frequency )
-        $IsValid = $IsValid -and ( $DaysOfWeek.Count -eq $Trigger.DaysOfWeek.count )
-        if ($IsValid -and ($DaysOfWeek.count -gt 0))
-        {
-            foreach ($day in $Trigger.DaysOfWeek)
-            {
-                $IsValid = $IsValid -and ($DaysOfWeek -contains $day)
+function Test-DaysOfWeekInWeeklyJobTrigger {
+    [cmdletbinding()]
+    param()
+
+    if ( $script:TargetResource.DaysOfWeek.Count -eq $Trigger.DaysOfWeek.count ){
+        if ($script:TargetResource.DaysOfWeek.count -gt 0) {
+            foreach ($day in $Trigger.DaysOfWeek) {
+                if (-not $script:TargetResource.IsValid) {
+                    break
+                }                        
+                $script:TargetResource.IsValid = ($script:TargetResource.DaysOfWeek -contains $day)
             }
-        }                
+        }         
     }
-    else
-    {
-        $IsValid = $IsValid -and ( 'Weekly' -notlike $Trigger.Frequency )
+    else {
+        $script:TargetResource.IsValid = $false
     }
-    return $IsValid
 }
 
-function Test-DailyJobTrigger
-{
-    param (
-        [object]
-        $Trigger,
-        [int]
-        $DaysInterval,
-        [bool]
-        $Daily
-    )
 
-    $IsValid = $true
-    if ( $Daily )
-    {
-        $IsValid = $IsValid -and ( 'Daily' -like $Trigger.Frequency )
-        $IsValid = $IsValid -and ( $DaysInterval -eq $Trigger.Interval )
-    }
-    else
-    {
-        $IsValid = $IsValid -and ( 'Daily' -notlike $Trigger.Frequency )
-    }
-    return $IsValid
-}
 
-function Test-OnceJobTrigger
-{
-    param (
-        [object]
-        $Trigger,
-        [int]
-        $Hours,
-        [int]
-        $Minutes,
-        [bool]
-        $Once
-    )
 
-    $IsValid = $true
-    if ($Once)
-    {
-        $IsValid = $IsValid -and ( 'Once' -like $Trigger.Frequency )
-        $IsValid = $IsValid -and $Trigger.RepetitionInterval.HasValue
-        
-        if ($IsValid)
-        {           
-            $IsValid = $IsValid -and ( $Hours -eq $Trigger.RepetitionInterval.Value.Hours )
-            $IsValid = $IsValid -and ( $Minutes -eq $Trigger.RepetitionInterval.Value.Minutes )            
-        }        
-        Write-Verbose "Checking Job Trigger repetition interval.  Status is $IsValid."
-    }
-    else
-    {
-        $IsValid = $IsValid -and ( 'Once' -notlike $Trigger.Frequency )
-    }
-    return $IsValid
-}
