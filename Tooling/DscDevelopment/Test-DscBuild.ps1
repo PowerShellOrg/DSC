@@ -50,8 +50,8 @@ function Test-DscBuild
         [switch]
         $SkipResourcePackaging,
       
-	[switch]
-	$CleanEnvironment,        
+    	[switch]
+    	$CleanEnvironment,        
 
         [switch]
         $ShowConfigurationDebugMessages,
@@ -71,8 +71,12 @@ function Test-DscBuild
     $PassedParameters = @{
         WorkingDirectory = $WorkingDirectory     
         SkipResourcePackaging = $SkipResourcePackaging 
-        ShowConfigurationDebugMessages = $ShowConfigurationDebugMessages 
-        Verbose = $true
+        ShowConfigurationDebugMessages = $ShowConfigurationDebugMessages            
+    }
+
+    if ($PSBoundParameters.ContainsKey('Verbose'))
+    {
+        $PassedParameters.Verbose = $true
     }
 
     if (-not (Test-Path $WorkingDirectory))
@@ -126,7 +130,7 @@ Either specify a path to the build script or clone the TeamCityBuild repository 
 
     start-job -ArgumentList $BuildScript, $PassedParameters {
             param ([string]$BuildScript, [System.Collections.Hashtable]$PassedParameters)
-		    & $BuildScript @PassedParameters
+		    . $BuildScript @PassedParameters
 	    } | receive-job -wait
 
 }
