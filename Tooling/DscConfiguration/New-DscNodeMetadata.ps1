@@ -6,9 +6,9 @@ function New-DscNodeMetadata
         .Description
             Create a new Dsc metadata file to populate AllNodes in a Dsc Configuration.
         .Example
-            New-DscNodeMetadata -Name NY-TestSQL01 -Location NY -ServerType VM -Roles SqlServerEngine
+            New-DscNodeMetadata -Name NY-TestSQL01 -Location NY -ServerType VM 
         .Example
-            New-DscNodeMetadata -Name NY-TestService01 -Location NY -ServerType Physical -Roles FileServer, ServiceBox
+            New-DscNodeMetadata -Name NY-TestService01 -Location NY -ServerType Physical 
     #>
     param 
     (
@@ -41,14 +41,6 @@ function New-DscNodeMetadata
         [string]
         $ServerType,  
 
-        #Roles that the server fulfills.  Select as many as required.
-        [parameter(         
-            ValueFromPipelineByPropertyName,
-            Position = 3
-        )]
-        [ValidateSet('SqlClusterNode', 'SqlServerEngine', 'FileServer', 'WebServer', 'ServiceBox', 'PullServer')]
-        [string[]]
-        $Roles, 
 
         #Unique identifier for this node.  Will automatically generate one if not supplied.
         [parameter(
