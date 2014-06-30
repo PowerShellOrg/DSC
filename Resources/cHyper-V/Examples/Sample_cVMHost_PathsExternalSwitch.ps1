@@ -1,6 +1,5 @@
-configuration Sample_cVMHost 
-{ 
-
+configuration??Sample_cVMHost??
+{
     WindowsFeature hypervRole
     {
         Ensure = 'Present'
@@ -13,31 +12,32 @@ configuration Sample_cVMHost 
         Name = 'Hyper-V-PowerShell'
         DependsOn = '[WindowsFeature]hypervRole'
 
-    } 
+    }
 
-    Import-DscResource -module cHyper-V 
- 
-    PSHOrg_cVMHost hostSettings 
-    { 
-        VMHost = 'localhost'        
-        Ensure = 'Present' 
+Import-DscResource -module cHyper-V
+
+    PSHOrg_cVMHost hostSettings
+    {
+        VMHost = 'localhost'
+        Ensure = 'Present'
         VirtualDiskPath = 'C:\users\public\VHDs'
         VirtualMachinePath = 'C:\users\public\VMConfig'
         VirtualMachineMigration = $true
         EnhancedSessionMode = $false
         # ensure the Hyper-V PowerShell module is added
         DependsOn = '[WindowsFeature]hypervManagement'
-    } 
+    }   
 
     Import-DscResource -module xHyper-V
 
-        xVMSwitch ExternalSwitch 
-        { 
-            Ensure         = 'Present' 
-            Name           = 'VMs' 
-            Type           = 'External' 
-            NetAdapterName = (Get-NetAdapter)[0].Name
-            AllowManagementOS = $true  
-        } 
+    xVMSwitch ExternalSwitch
+    {
+        Ensure = 'Present'
+        Name = 'VMs' 
+        Type = 'External'
+        NetAdapterName = (Get-NetAdapter)[0].Name
+            AllowManagementOS = $true
+    }
     
-} 
+}
+

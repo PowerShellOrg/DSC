@@ -4,3 +4,5 @@ class StackExchange_PowerPlan :  OMI_BaseResource
 	[Key] string Name;
 	[write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
 };
+
+

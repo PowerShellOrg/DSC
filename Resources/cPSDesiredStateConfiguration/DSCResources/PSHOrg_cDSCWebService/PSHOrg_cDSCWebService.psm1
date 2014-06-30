@@ -424,3 +424,4 @@ function Update-LocationTagInApplicationHostConfigForAuthentication
 }
 
 Export-ModuleMember -Function *-TargetResource
+

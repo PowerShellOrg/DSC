@@ -24,3 +24,5 @@ class StackExchange_FirewallRule :  OMI_BaseResource
 	[write] string RemoteUser;
 	[write] string Service;
 };
+
+

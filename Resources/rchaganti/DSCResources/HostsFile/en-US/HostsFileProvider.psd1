@@ -11,3 +11,5 @@ ConvertFrom-StringData @'
     AnErrorOccurred=An error occurred while creating hosts file entry: {1}.
     InnerException=Nested error trying to create hosts file entry: {1}.
 '@
+
+

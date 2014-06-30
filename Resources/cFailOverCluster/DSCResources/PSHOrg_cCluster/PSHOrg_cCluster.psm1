@@ -295,3 +295,5 @@ function CloseUserToken([IntPtr] $token)
         throw "Can't close token"
     }
 }
+
+

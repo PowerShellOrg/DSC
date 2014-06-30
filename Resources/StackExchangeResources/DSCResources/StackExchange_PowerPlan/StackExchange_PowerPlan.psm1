@@ -189,3 +189,5 @@ function Set-CIMPowerPlan
     Get-CIMPowerPlan -name $name | 
             Invoke-CimMethod -MethodName Activate
 }
+
+

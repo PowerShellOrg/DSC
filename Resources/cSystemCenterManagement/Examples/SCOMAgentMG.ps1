@@ -19,3 +19,4 @@ Configuration AgentMG {
 AgentMG -OutputPath .\AgentMG
 Start-DscConfiguration -Path .\AgentMG -Wait -Force -Verbose -ErrorAction Continue
 
+

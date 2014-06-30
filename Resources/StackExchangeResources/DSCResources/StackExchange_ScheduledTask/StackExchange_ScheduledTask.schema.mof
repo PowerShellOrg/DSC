@@ -14,3 +14,5 @@ class StackExchange_ScheduledTask : OMI_BaseResource
 [write,EmbeddedInstance("MSFT_Credential")] string Credential;
 [write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
 };
+
+

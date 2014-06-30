@@ -46,3 +46,4 @@ $ConfigData = @{
 
 Sample_cComputer_WorkgroupToDomain -ConfigurationData $ConfigData -MachineName <machineName> -credential (Get-Credential) -Domain <domainName>
 ****************************#>
+

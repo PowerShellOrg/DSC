@@ -80,7 +80,7 @@ function Set-TargetResource
         $Ensure = 'Present'
     )     
 
-    $hostEntry = "`n${ipAddress}`t${hostName}"
+    $hostEntry = "`r`n${ipAddress}`t${hostName}"
 
     try {
 
@@ -157,3 +157,5 @@ function Test-TargetResource
         }
     }
 }
+
+

@@ -7,3 +7,5 @@ class PSHOrg_cIPAddress : OMI_BaseResource
   [Write] uint32 SubnetMask;
   [Write,ValueMap{"IPv4", "IPv6"},Values{"IPv4", "IPv6"}] string AddressFamily;
 };
+
+

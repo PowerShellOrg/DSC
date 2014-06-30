@@ -17,3 +17,4 @@ ActivePlanSetToAndShouldNotBe=The active Power Plan is set to {0}, and should no
 ActivePlanNotSetToAndShouldNotBe=The active Power Plan is not set to {0}, and should not be.  All good here.
 ###PSLOC
 '@
+

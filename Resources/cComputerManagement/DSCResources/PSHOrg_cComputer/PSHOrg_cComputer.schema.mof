@@ -10,3 +10,5 @@ class PSHOrg_cComputer : OMI_BaseResource
 
     [write] string WorkGroupName;
 };
+
+

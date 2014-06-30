@@ -7,3 +7,5 @@ class StackExchange_CertificateStore : OMI_BaseResource
 [write] string Store;
 [write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
 };
+
+

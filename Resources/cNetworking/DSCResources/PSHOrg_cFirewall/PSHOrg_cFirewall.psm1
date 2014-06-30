@@ -726,3 +726,4 @@ function Get-FirewallRuleProperty
 #endregion
 
 Export-ModuleMember -Function *-TargetResource
+

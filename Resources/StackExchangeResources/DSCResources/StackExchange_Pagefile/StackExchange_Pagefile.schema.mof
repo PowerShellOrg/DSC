@@ -5,3 +5,5 @@ class StackExchange_Pagefile :  OMI_BaseResource
 	[Key] sint64 MaximumSize;
 	[write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
 };
+
+

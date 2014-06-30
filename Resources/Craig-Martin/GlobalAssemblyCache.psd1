@@ -38,3 +38,5 @@ FunctionsToExport = @("Get-TargetResource", "Set-TargetResource", "Test-TargetRe
 RequiredModules = @("gac")
 
 }
+
+

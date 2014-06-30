@@ -24,3 +24,5 @@ GlobalAssemlyCacheSample
 
 ### Remove the assembly from the GAC - use this to test that DSC can put it back
 # Get-GacAssembly -Name FimExtensions.FimActivityLibrary | Remove-GacAssembly
+
+

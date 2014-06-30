@@ -220,3 +220,5 @@ function Get-SqlServiceName ($InstanceName)
 }
 
 Export-ModuleMember -Function *-TargetResource
+
+

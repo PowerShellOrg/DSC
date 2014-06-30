@@ -420,3 +420,5 @@ function CloseUserToken([IntPtr] $token)
 
 
 Export-ModuleMember -Function *-TargetResource
+
+

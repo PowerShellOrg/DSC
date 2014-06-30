@@ -69,3 +69,4 @@ Configuration SCOMDSCConfiguration
 
 CopyDSCConfig -FileShr $FileShr -OutputPath "$Env:Temp\SCOMDSCConfiguration"
 Start-DscConfiguration -Path "$Env:Temp\SCOMDSCConfiguration" -Wait -Force -Verbose -ErrorAction Continue
+
