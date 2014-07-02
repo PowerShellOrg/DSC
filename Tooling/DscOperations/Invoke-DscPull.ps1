@@ -17,7 +17,13 @@ function Invoke-DscPull
     if ($Force)
     {
         Get-CimInstance -ClassName Win32_Process -Filter 'Name like "WmiPrvSE.exe"' @parameters | 
-            Invoke-CimMethod -MethodName 'Terminate'
+            Invoke-CimMethod -MethodName 'Terminate' | 
+            Out-Null
+        invoke-command $CimSession {
+            if (test-path 'c:\program files\windowspowershell\modules\') {
+                dir 'c:\program files\windowspowershell\modules\*' -directory | Remove-Item -rec -force
+            }               
+        }       
     }
 
     $parameters = $parameters + @{        
@@ -31,3 +37,5 @@ function Invoke-DscPull
     
     Invoke-CimMethod @parameters 
 }
+
+

@@ -10,13 +10,13 @@ function Test-DscBuild
         WARNING: This will replace the current DSC resource modules on the machine running the build.
     .EXAMPLE
         Test-DscBuild -Development
-        Runs a build to the Dsc-Dev folder that should be located adjacent to the Dsc-Prod folder.
+        Runs a build to the Dsc-Dev folder that should be located in the working directory.
     .EXAMPLE
-        Test-DscBuild -DeploymentDirectory c:\temp -SkipResourcePackaging
+        Test-DscBuild -DeploymentDirectory c:\temp 
         Runs a build to the c:\temp folder and does not create compressed versions of the resource modules 
         (saves a bit of time when repeatedly iterating on configuration changes)
     #>
-    [cmdletbinding(DefaultParameterSetName = 'Manual')]
+    [cmdletbinding(supportsshouldprocess=$true)]
     param (      
         #The path to local copy of the DSC-Prod repository
         #Defaults to two folders above the DscDevelopment module (..\..\DscDevelopment)
@@ -27,91 +27,89 @@ function Test-DscBuild
         $WorkingDirectory = (Split-Path (Split-Path $psscriptroot)),        
         
         #The path to the script build script to run.
-        #By default, this points to the TeamCityBuild folder adjacent to the DSC-Prod folder.
-        [parameter(
-           Position = 1
+        #By default, this points to the TeamCityBuild folder in the working directory.
+        [parameter(            
+            Position = 1
         )]
+        [ValidateNotNullOrEmpty()]
         [string]
-        $BuildScript = (Join-Path (Split-Path (Split-Path (Split-Path $psscriptroot))) '\teamcitybuild\scripts\DSCBuild.ps1'),        
+        $BuildScript,        
 
         #Destination for the generated configurations and packaged resources.
         #Two folders will be created underneath this location, one for Configurations and one for 
         #resource modules.
         [parameter(
-            ParameterSetName = 'Manual',
+            Mandatory,
             Position = 2 
         )]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DeploymentRoot,
+        $DestinationRootDirectory,
+
+        [parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $DestinationToolDirectory,
+
+        [parameter()]
+        [string]
+        $CurrentToolsDirectory,
 
         #
         [parameter()]
         [switch]
-        $SkipResourcePackaging,
+        $ConfigurationOnly,
+
+        [parameter()]
+        [switch]
+        $ResourceOnly,
+
+        [parameter()]
+        [switch]
+        $ToolsOnly,
       
     	[switch]
     	$CleanEnvironment,        
 
         [switch]
-        $ShowConfigurationDebugMessages,
-
-        [parameter(
-            ParameterSetName = 'Production'
-        )]
-        [switch]
-        $Production,
-        [parameter(
-            ParameterSetName = 'Development'
-        )]
-        [switch]
-        $Development
+        $ShowConfigurationDebugMessages
     )
 
     $PassedParameters = @{
         WorkingDirectory = $WorkingDirectory     
-        SkipResourcePackaging = $SkipResourcePackaging 
-        ShowConfigurationDebugMessages = $ShowConfigurationDebugMessages            
+        DestinationToolDirectory = $DestinationToolDirectory
+        CurrentToolsDirectory = $CurrentToolsDirectory
+        ConfigurationOnly = $ConfigurationOnly        
+        ResourceOnly = $ResourceOnly
+        ToolsOnly = $ToolsOnly        
+        ShowConfigurationDebugMessages = $ShowConfigurationDebugMessages          
     }
 
-    if ($PSBoundParameters.ContainsKey('Verbose'))
+    foreach ($key in ('Whatif', 'Verbose', 'Debug'))
     {
-        $PassedParameters.Verbose = $true
+        if ($PSBoundParameters.ContainsKey($key)) {        
+            $PassedParameters[$key] = $PSBoundParameters[$key]
+        }
     }
 
     if (-not (Test-Path $WorkingDirectory))
     {
-        throw @"
-Working directory not found.  Please supply a path to the DSC-Prod repository.
-"@
+        throw 'Working directory not found.  Please supply a path to the directory with DSC_Resources and DSC_Configuration repositories.'
     }
 
-    if ($PSBoundParameters.ContainsKey('DeploymentRoot'))
+    if ($PSBoundParameters.ContainsKey('DestinationRootDirectory'))
     {
-        $PassedParameters.DestinationDirectory = $DeploymentRoot
-    }
-    elseif ($Production)
-    {
-        $PassedParameters.DestinationDirectory = '\\or-util02\c$\ProgramData\PSDSCPullServer'
-    }
-    elseif ($Development)
-    {
-        $PassedParameters.DestinationDirectory = Join-Path (Split-Path (Split-Path (Split-Path $psscriptroot))) 'DSC-Dev' 
-        $PassedParameters.SkipResourceReset = $true  
+        $PassedParameters.DestinationRootDirectory = $DestinationRootDirectory
     }
     else 
     {
-        throw   "Need an environment or DeploymentRoot."  
-    }
-    if (-not (Test-Path $PassedParameters.DestinationDirectory))
-    {
-        mkdir $PassedParameters.DestinationDirectory
+        throw   "Need to supply a DestinationRootDirectory."  
     }
 
     Write-Verbose "Parameters to pass are: "
     foreach ($key in $PassedParameters.Keys)
     {
-        Write-Verbose "`t`tKey: $Key Value: $PassedParameters[$key]"
+        Write-Verbose "`t`tKey: $Key Value: $($PassedParameters[$key])"
     }
 
     if (-not (Test-Path $BuildScript))
@@ -134,3 +132,5 @@ Either specify a path to the build script or clone the TeamCityBuild repository 
 	    } | receive-job -wait
 
 }
+
+

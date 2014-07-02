@@ -1,14 +1,14 @@
 function Test-DscResourceIsValid {
-	[cmdletbinding()]
+	[cmdletbinding(SupportsShouldProcess=$true)]
 	param ()
 
-	$ProgramFilesModules = join-path $env:ProgramFiles 'WindowsPowerShell\Modules'
-    if ($script:DscBuildParameters.SkipResourceCheck) {
-        Write-Verbose "Skipping Dsc Resource Validation."
-    }
-    else {        
-    	dir $ProgramFilesModules | 
-            Where-DscResource -IsValid | 
-            Out-Null        
+	
+    if ( Test-BuildResource ) {
+        if ($pscmdlet.shouldprocess("modules from $($script:DscBuildParameters.ProgramFilesModuleDirectory)")) {
+        	dir $script:DscBuildParameters.ProgramFilesModuleDirectory | 
+                Where-DscResource -IsValid | 
+                Out-Null        
+        }
     }
 }
+

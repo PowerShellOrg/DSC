@@ -1,10 +1,24 @@
 function Copy-CurrentDscResource {
-    [cmdletbinding()]
+    [cmdletbinding(SupportsShouldProcess=$true)]
     param ()
+    
+    Write-Verbose ''
+    Write-Verbose "Pushing new configuration modules from $($script:DscBuildParameters.SourceResourceDirectory) to $($script:DscBuildParameters.ProgramFilesModuleDirectory)."
 
-    $ProgramFilesModules = join-path $env:ProgramFiles 'WindowsPowerShell\Modules'
-    Write-Verbose "Pushing new configuration modules to $ProgramFilesModules."
-    dir $script:DscBuildParameters.SourceModuleRoot | 
-        Where-Object {$script:DscBuildParameters.ExcludedModules -notcontains $_.name} |
-        Copy-Item -Destination $ProgramFilesModules  -Recurse -Force
+    if ($pscmdlet.shouldprocess("$($script:DscBuildParameters.SourceResourceDirectory) to $($script:DscBuildParameters.ProgramFilesModuleDirectory)")) {                
+        dir $script:DscBuildParameters.SourceResourceDirectory -exclude '.g*', '.hg'  |             
+            Where-Object {$script:DscBuildParameters.ExcludedModules -notcontains $_.name} |
+            Test-ModuleVersion -Destination $script:DscBuildParameters.ProgramFilesModuleDirectory |            
+            Copy-Item -Destination $script:DscBuildParameters.ProgramFilesModuleDirectory -Recurse -Force
+    }
+    
+    Write-Verbose ''
+    Write-Verbose "Pushing new tools modules from $($script:DscBuildParameters.SourceToolDirectory) to $($script:DscBuildParameters.CurrentToolsDirectory)."
+
+    if ($pscmdlet.shouldprocess("$($script:DscBuildParameters.SourceToolDirectory) to $($script:DscBuildParameters.CurrentToolsDirectory)")) {                
+        dir $script:DscBuildParameters.SourceToolDirectory -exclude '.g*', '.hg' |            
+            Test-ModuleVersion -Destination $script:DscBuildParameters.CurrentToolsDirectory |   
+            Copy-Item -Destination $script:DscBuildParameters.CurrentToolsDirectory -Recurse -Force
+    }
+    Write-Verbose ''
 }

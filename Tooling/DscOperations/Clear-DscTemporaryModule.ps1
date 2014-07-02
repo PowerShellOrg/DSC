@@ -27,3 +27,4 @@ function Clear-DscTemporaryModule {
         }
     }
 }
+

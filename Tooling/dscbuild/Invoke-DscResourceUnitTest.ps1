@@ -1,12 +1,13 @@
 function Invoke-DscResourceUnitTest {
-    [cmdletbinding()]
+    [cmdletbinding(SupportsShouldProcess=$true)]
     param ()
     
-    if ($script:DscBuildParameters.SkipResourceCheck) {
-        Write-Verbose "Skipping unit tests of the resources."
-    }
-    else {        
-        Write-Verbose 'Running Resource Unit Tests.'
-        Invoke-Pester -relative_path $script:DscBuildParameters.SourceModuleRoot           
+    if ( Test-BuildResource ) {     
+        if ($pscmdlet.shouldprocess($script:DscBuildParameters.SourceResourceDirectory)) {
+            Write-Verbose 'Running Resource Unit Tests.'
+            Invoke-Pester -relative_path $script:DscBuildParameters.SourceResourceDirectory
+        }           
     }    
 }
+
+

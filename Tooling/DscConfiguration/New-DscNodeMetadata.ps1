@@ -26,16 +26,14 @@ function New-DscNodeMetadata
             Mandatory,
             ValueFromPipelineByPropertyName,
             Position = 1
-        )]      
-        [ValidateSet('NY','OR')]  
+        )]              
         [string]
         $Location,       
 
-        #Type of server
+        #Type of server (physical or virtual)
         [parameter(
             Mandatory,
-            ValueFromPipelineByPropertyName,
-            Position = 1
+            ValueFromPipelineByPropertyName        
         )]      
         [ValidateSet('Physical','VM')]  
         [string]
@@ -55,33 +53,108 @@ function New-DscNodeMetadata
         [parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ConfigurationPath = (join-path (split-path (split-path $psscriptroot)) Configuration/AllNodes)
-        
+        $Path
     )
     begin
-    {
-        $StartingBlock = "@{`n"
-        $EndingBlock = "`n}"
-        $commonParameters = [System.Management.Automation.Internal.CommonParameters].GetProperties().Name
-        $CommonParameters += 'NodeName'
-        $ofs = "', '"
+    {        
+        if ($psboundparameters.containskey('path')) {
+                    $psboundparameters.Remove('path') | out-null            
+        }
+        Resolve-ConfigurationDataPath -Path $Path
+        
+        $AllNodesConfigurationPath = (join-path $script:ConfigurationDataPath 'AllNodes')  
     }
     process
     {
-        $configuration = $StartingBlock
-        foreach ($key in $psboundparameters.keys) {
-            if ($commonParameters -notcontains $key )
-            {
-                $Configuration += "`n$key = '$($psboundparameters[$key])'"
-            }
-        }
-        
         if (-not $psboundparameters.containskey('NodeName')){
-            $Configuration += "`nNodeName = '$([guid]::NewGuid().Guid)'"
+            $psboundparameters.Add('NodeName', [guid]::NewGuid().Guid)
         }
-        
-        $Configuration += $EndingBlock
-        $configuration | out-file (join-path $ConfigurationPath "$($Name.toupper()).psd1") -Encoding Ascii
+        Out-ConfigurationDataFile -Parameters $psboundparameters -ConfigurationDataPath $AllNodesConfigurationPath
     }
     
 }
+
+function New-DscServiceMetadata {
+    [cmdletbinding()]
+    param (
+        [parameter(
+            Mandatory,
+            ValueFromPipelineByPropertyName
+        )]
+        [string]
+        $Name,
+        [string[]]
+        $Nodes,
+        [string[]]
+        $Roles,
+        [string]
+        $Path
+    )
+
+    begin {
+        if ($psboundparameters.containskey('path')) {
+                    $psboundparameters.Remove('path') | out-null            
+        }
+        Resolve-ConfigurationDataPath -Path $Path
+        
+        $ServicesConfigurationPath = (join-path $script:ConfigurationDataPath 'Services') 
+    }
+    process {
+        $OutConfigurationDataFileParams = @{
+            Parameters = $psboundparameters 
+            ConfigurationDataPath = $ServicesConfigurationPath
+            DoNotIncludeName = $true
+        }
+        Out-ConfigurationDataFile @OutConfigurationDataFileParams
+    }
+}
+
+function New-DscSiteMetadata {
+    [cmdletbinding()]
+    param (
+        [string]
+        $Name,
+        [string]
+        $Path
+    )
+
+    begin {
+        if ($psboundparameters.containskey('path')) {
+                    $psboundparameters.Remove('path') | out-null            
+        }
+        Resolve-ConfigurationDataPath -Path $Path
+        
+        $SiteDataConfigurationPath = (join-path $script:ConfigurationDataPath 'SiteData')         
+    }
+    process {
+        Out-ConfigurationDataFile -Parameters $psboundparameters -ConfigurationDataPath $ServicesConfigurationPath
+    }
+}
+
+
+function Out-ConfigurationDataFile {
+    [cmdletbinding()]
+    param($Parameters, $ConfigurationDataPath, [switch]$DoNotIncludeName)
+
+    $StartingBlock = "@{`r`n"
+    $EndingBlock = "`r`n}"
+    $ExcludedParameters = [System.Management.Automation.Internal.CommonParameters].GetProperties().Name    
+    if ($DoNotIncludeName) {
+        $ExcludedParameters += 'Name'
+    }
+    $ofs = "', '"
+
+    $configuration = $StartingBlock
+    foreach ($key in $Parameters.keys) {
+        if ($ExcludedParameters -notcontains $key )
+        {
+            $Configuration += "`r`n`t$key = '$($Parameters[$key])'"
+        }
+    }
+    
+    $Configuration += $EndingBlock
+    
+    $configuration | out-file (join-path $ConfigurationDataPath "$($Parameters['Name'].toupper()).psd1") -Encoding Ascii
+
+}
+
