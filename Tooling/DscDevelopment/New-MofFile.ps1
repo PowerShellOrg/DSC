@@ -95,7 +95,7 @@ class $ResourceName : OMI_BaseResource
                 $ParameterName = "$ParameterName[]"
             }
                 
-            $Template += $PropertyString + "$ParameterName;`n"                 
+            $Template += $PropertyString + "$ParameterName;`r`n"                 
             
         
         }
@@ -121,3 +121,5 @@ class $ResourceName : OMI_BaseResource
         throw $_
     }
 }
+
+

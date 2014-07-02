@@ -1,4 +1,4 @@
-﻿<#
+<#
  #  This script enables a user to diagnose errors caused by a DSC operation. In short, the following commands would help you diagnose errors
  #  To get the last 10 operations in DSC that show their Result status (failure,success)         : Get-cDscOperation
  #  To get a list of last n (say, 13) DSC operations                                             : Get-cDscOperation -Newest 13
@@ -785,3 +785,4 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
  
 
 Export-ModuleMember -Function Trace-cDscOperation, Get-cDscOperation
+

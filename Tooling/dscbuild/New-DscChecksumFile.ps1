@@ -20,3 +20,5 @@ function New-DscChecksumFile
         Write-Verbose "Wrote hash for $($InputObject.FullName) to $checksumfile"
     }            
 }
+
+

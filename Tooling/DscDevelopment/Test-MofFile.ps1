@@ -14,3 +14,5 @@ function Test-MofFile {
 		Import-CimInstances -MofInstanceFilePath (join-path $ConfigurationPath "$NodeId.mof")
 	} | receive-job -wait
 }
+
+

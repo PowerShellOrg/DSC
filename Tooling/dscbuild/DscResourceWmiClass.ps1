@@ -1,6 +1,18 @@
 function Get-DscResourceWmiClass {
+    <#
+        .Synopsis
+            Retrieves WMI class instances from the DSC namespace.
+        .Description
+            Retrieves WMI class instances from the DSC namespace.
+        .Example
+            Get-DscResourceWmiClass -Class tmp*
+        .Example
+            Get-DscResourceWmiClass -Class 'MSFT_UserResource'
+    #>
     param (
+        #The WMI Class name search for.  Supports wildcards.
         [parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Alias('Name')]
         [string]
         $Class
     )
@@ -13,7 +25,19 @@ function Get-DscResourceWmiClass {
 }
 
 function Remove-DscResourceWmiClass {
+    <#
+        .Synopsis
+            Removes a WMI instance from the DSC namespace.
+        .Description
+            Removes a WMI instance from the DSC namespace.
+        .Example
+            Get-DscResourceWmiClass -Class tmp* | Remove-DscResourceWmiClass
+        .Example
+            Remove-DscResourceWmiClass -Class 'tmpD460'
+            
+    #>
     param (
+        #The WMI Class name to remove.  Supports wildcards.
         [parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [alias('Name')]
         [string]
@@ -22,7 +46,9 @@ function Remove-DscResourceWmiClass {
     begin {
         $DscNamespace = "root/Microsoft/Windows/DesiredStateConfiguration"        
     }
-    process {        
+    process { 
+        #Have to use WMI here because I can't find how to delete a WMI instance via the CIM cmdlets.       
         (Get-wmiobject -Namespace $DscNamespace -list -Class $ResourceType).psbase.delete()
     }
 }
+

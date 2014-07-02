@@ -2220,7 +2220,7 @@ function Test-MockSchema
 
     $tempFolderPath = [IO.Path]::GetDirectoryName($tempFilePath)
 
-    # Extracts the ????.tmp name
+    # Extracts the .tmp name
     $newSchemaName = [IO.Path]::GetFileNameWithoutExtension($tempFilePath)
 
     # We can now use the temp file name to create a new unique file
@@ -3351,6 +3351,8 @@ function Import-cDscSchema
                 "DscResourceProperties"=$properties;
             }
 }
+
+
 
 
 

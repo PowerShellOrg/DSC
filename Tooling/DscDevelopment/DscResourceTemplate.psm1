@@ -66,3 +66,4 @@ function Test-TargetResource
     #Needs to return a boolean  
     return $true
 }
+

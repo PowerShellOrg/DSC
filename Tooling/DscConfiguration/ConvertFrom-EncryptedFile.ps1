@@ -130,7 +130,7 @@ Function ConvertFrom-EncryptedFile
             }
             Catch 
             { 
-                Write-Error "Unable to open output file for writing.`n$($_.Message)"
+                Write-Error "Unable to open output file for writing.`r`n$($_.Message)"
                 $FileStreamReader.Close()
                 Return
             }
@@ -161,3 +161,5 @@ Function ConvertFrom-EncryptedFile
         Get-Item "$($path -replace '\.encrypted')"
     }
 }
+
+

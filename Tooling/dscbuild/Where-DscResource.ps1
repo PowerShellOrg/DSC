@@ -8,9 +8,6 @@ function Where-DscResource
         [string]
         $Destination, 
         [switch]
-        [alias('Changed')]
-        $CheckIfChanged,
-        [switch]
         [alias('IsValid')]
         $CheckIfIsValid
     )
@@ -20,63 +17,18 @@ function Where-DscResource
         {
             $AllResources = Get-DscResource | 
                 Where-Object {$_.implementedas -like 'PowerShell'}
+
+            Add-DscBuildParameter -Name TestedModules -value @()
         }
     }
     process
     {
         Write-Verbose "Checking $($inputobject.Name)."
-        if ( ($CheckIfChanged -and (Test-ZippedModuleChanged @psboundparameters)) -or
-               ($CheckIfIsValid -and (Test-DscModuleResourceIsValid @psboundparameters))  )
+        if ( $CheckIfIsValid -and (Test-DscModuleResourceIsValid @psboundparameters)  )
         {
              $InputObject
         }
     }
-}
-
-
-function Test-ZippedModuleChanged
-{    
-    [cmdletbinding()]    
-    param (
-        [parameter(ValueFromPipeline)]
-        [IO.FileSystemInfo]
-        $InputObject,    
-        [parameter()]
-        [string]
-        $Destination, 
-        [switch]
-        [alias('Changed')]
-        $CheckIfChanged,
-        [switch]
-        [alias('IsValid')]
-        $CheckIfIsValid
-    )
-    Write-Verbose "Attempting to check if $($InputObject.Name) resource has changed." 
-
-    $DestModule = join-path $Destination $inputobject.name
-    Write-Verbose "Checking if $DestModule is present"
-    if (Test-path $DestModule)
-    {            
-        Write-Verbose "There was an existing version of $($inputobject.Name)."
-        $newhash = (Get-FileHash -path $inputobject.fullname).hash 
-        $oldhash = (Get-FileHash -path $DestModule).hash 
-        if ($newhash -ne $oldhash)
-        {
-            Write-Verbose "Existing version of $($inputobject.Name) was different."
-            return $true
-        }
-        else
-        {
-            Write-Verbose "Existing version of $($inputobject.Name) matches the current."
-            return $false
-        }                            
-    }    
-    else
-    {
-        Write-Verbose "No previous version of $($InputObject.Name)."
-        return $true
-    }
-    
 }
 
 function Test-DscModuleResourceIsValid
@@ -95,13 +47,10 @@ function Test-DscModuleResourceIsValid
         [switch]
         [alias('IsValid')]
         $CheckIfIsValid
-    )   
-    
-    Write-Verbose "Retrieving all resources and filtering for $($InputObject.Name)."
-    $AllModuleResources = Get-DscResourceForModule -Name $InputObject.Name
-    
+    )
+
     Write-Verbose "Testing for valid resources."
-    $FailedDscResources = Get-FailedDscResource
+    $FailedDscResources = Get-FailedDscResource -AllModuleResources (Get-DscResourceForModule -InputObject $InputObject)
 
     if ($FailedDscResources)
     {
@@ -112,15 +61,18 @@ function Test-DscModuleResourceIsValid
         }
         throw "Fix invalid resources in $($InputObject.Name)."
     }
+
     return $true
 }
 
 function Get-DscResourceForModule
 {
     [cmdletbinding()]
-    param ([string]$Name)
+    param ($InputObject)
 
-    Write-Verbose "Checking Resources in $Name."
+    $Name = $inputobject.Name
+    Write-Verbose "Retrieving all resources and filtering for $Name."
+
     $ResourcesInModule = $AllResources | 
         Where-Object { 
             Write-Verbose "`tChecking for $($_.name) in $name."
@@ -134,13 +86,16 @@ function Get-DscResourceForModule
     {
         Write-Warning "$Name does not contain any resources."
     }
+    else {
+        $script:DscBuildParameters.TestedModules += $InputObject.FullName
+    }
     $ResourcesInModule
 }
 
 function Get-FailedDscResource
 {
     [cmdletbinding()]
-    param ()
+    param ($AllModuleResources)
 
     foreach ($resource in $AllModuleResources)
     {
@@ -151,3 +106,4 @@ function Get-FailedDscResource
         }
     }
 }
+

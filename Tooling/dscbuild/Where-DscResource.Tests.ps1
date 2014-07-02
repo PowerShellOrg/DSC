@@ -4,6 +4,7 @@ $pathtosut = join-path $here $sut
 
 iex ( gc $pathtosut -Raw )
 
+<#
 Describe 'how Test-ZippedModuleChanged reponds' {       
     $Setup = {
         mkdir testdrive:\Source -erroraction silentlycontinue | out-null
@@ -58,8 +59,9 @@ Describe 'how Test-ZippedModuleChanged reponds' {
         }
     }
 }
+#>
 
-Describe 'how Test-DscModuleResourceIsValid' {    
+Describe 'how Test-DscModuleResourceIsValid behaves' {    
 
     context 'when there are failed DSC resources' {  
         mock Get-DscResourceForModule -mockwith {}              
@@ -69,7 +71,7 @@ Describe 'how Test-DscModuleResourceIsValid' {
         }
 
         it 'should throw an exception' {
-            { Test-DscModuleResourceIsValid } | 
+            { Test-DscModuleResourceIsValid} | 
                 should throw
         }
     }   
@@ -99,5 +101,7 @@ Describe 'how Test-DscModuleResourceIsValid' {
         }
     }
 }
+
+
 
 
