@@ -12,6 +12,13 @@ function Copy-CurrentDscResource {
             Copy-Item -Destination $script:DscBuildParameters.ProgramFilesModuleDirectory -Recurse -Force
     }
     
+    
+}
+
+function Copy-CurrentDscTools {
+    [cmdletbinding(SupportsShouldProcess=$true)]
+    param ()
+    
     Write-Verbose ''
     Write-Verbose "Pushing new tools modules from $($script:DscBuildParameters.SourceToolDirectory) to $($script:DscBuildParameters.CurrentToolsDirectory)."
 

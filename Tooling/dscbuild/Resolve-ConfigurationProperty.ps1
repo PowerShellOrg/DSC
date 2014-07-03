@@ -1,7 +1,7 @@
-function Resolve-ConfigurationProperty {
+function Resolve-DscConfigurationProperty {
 	<#
 		.Synopsis
-			Short description of the command
+			Searches DSC metadata 
 		.Description
 			Longer description of the command 
 		.Example
@@ -20,55 +20,83 @@ function Resolve-ConfigurationProperty {
 		[string[]]
 		$ServiceName,
 
-		#The 
+		#The application metadata that will be checked for.
 		[parameter()]
 		[ValidateNotNullOrEmpty()]
 		[string]
 		$Application,
 
-		#
+		#The property that will be checked for.
 		[parameter()]
 		[ValidateNotNullOrEmpty()]
 		[string]
 		$PropertyName,
 
-		#
+		#By default, all results must return just one entry.  If multiple results are allowed, this flag must be enabled.
 		[parameter()]
 		[switch]
-		$AllowMultipleResults
+		$AllowMultipleResults,
+
+		#If you want to override the default behavior of checking up-scope for configuration data, it can be supplied here.
+		[parameter()]
+		[System.Collections.Hashtable]
+		$ConfigurationData
 	)
+
+	Write-Verbose ""
+	if (-not $PSBoundParameters.ContainsKey('ConfigurationData')) {
+		Write-Verbose ""
+		Write-Verbose "Resolving ConfigurationData"
+		$ScopeToCheck = 1
+		do {
+			try {
+				$ConfigurationData = Get-Variable -scope $ScopeToCheck -Name 'ConfigurationData' -ValueOnly -ErrorAction Stop
+			}
+			catch {
+				Write-Verbose "`t`tNothing in scope $ScopeToCheck for ConfigurationData"
+			}
+			$ScopeToCheck++
+		} while (($ConfigurationData.Keys.Count -eq 0) -or ($ScopeToCheck -eq 6))
+
+		if ($ConfigurationData.Keys.Count -eq 0) {
+			throw 'Failed to resolve ConfigurationData.  Please confirm that $ConfigurationData is property set in a scope above this Resolve-DscConfigurationProperty or passed to Resolve-DscConfigurationProperty via the ConfigurationData parameter.'
+		}
+		else {
+			$PSBoundParameters.Add('ConfigurationData', $ConfigurationData)
+		}
+	}
 	Write-Verbose "Starting to evaluate $($Node.Name) for PropertyName: $PropertyName Application: $Application From Services: $ServiceName"
 
 	$Value = @()
 	if (($Node -ne $null)) {
-		$Value = Assert-NodeOverride @psboundparameters
+		$Value = Assert-NodeOverride @PSBoundParameters
 		Write-Verbose "Value after checking the node is $Value"
 	}	
-	if (-not $psboundparameters.ContainsKey('Application')) {
+	if (-not $PSBoundParameters.ContainsKey('Application')) {
 		$Value = ($Value | where-object {-not [string]::IsNullOrEmpty($_)})
 	}
 
 	if ($Value.count -eq 0) {
-		$Value += Assert-SiteOverride @psboundparameters
+		$Value += Assert-SiteOverride @PSBoundParameters
 		Write-Verbose "Value after checking the site is $Value"
 	}
-	if (-not $psboundparameters.ContainsKey('Application')) {
+	if (-not $PSBoundParameters.ContainsKey('Application')) {
 		$Value = ($Value | where-object {-not [string]::IsNullOrEmpty($_)})
 	}
 
 	if ($Value.count -eq 0) {
-		$Value += Assert-GlobalSetting @psboundparameters
+		$Value += Assert-GlobalSetting @PSBoundParameters
 		Write-Verbose "Value after checking the global is $Value"
 	}
-	if (-not $psboundparameters.ContainsKey('Application')) {
+	if (-not $PSBoundParameters.ContainsKey('Application')) {
 		$Value = ($Value | where-object {-not [string]::IsNullOrEmpty($_)})
 	}
 	
-	if (-not $psboundparameters.ContainsKey('Application')) {
+	if (-not $PSBoundParameters.ContainsKey('Application')) {
 		if (($Value.count -eq 0) -and ($ServiceName.Count -gt 0))
 		{
-			$psboundparameters.Remove('ServiceName') | out-null
-			$Value = Resolve-ConfigurationProperty @psboundparameters
+			$PSBoundParameters.Remove('ServiceName') | out-null
+			$Value = Resolve-DscConfigurationProperty @PSBoundParameters
 		}
 
 		if ($Value.count -eq 0)
@@ -88,8 +116,8 @@ function Resolve-ConfigurationProperty {
 	}
 	else {
 		if ($value -eq $null) {
-			$psboundparameters.Remove('ServiceName') | out-null
-			$Value = Resolve-ConfigurationProperty @psboundparameters
+			$PSBoundParameters.Remove('ServiceName') | out-null
+			$Value = Resolve-DscConfigurationProperty @PSBoundParameters
 		}
 		if ($value -is [System.Collections.Hashtable]) {
 			return $value
@@ -99,6 +127,8 @@ function Resolve-ConfigurationProperty {
 		}
 	}
 }
+
+Set-Alias -Name 'Resolve-ConfigurationProperty' -Value 'Resolve-DscConfigurationProperty'
 
 function Test-HashtableKey {
 	[cmdletbinding()]
@@ -201,7 +231,9 @@ function Assert-NodeOverride {
 		[string]
 		$PropertyName,
 		[switch]
-		$AllowMultipleResults
+		$AllowMultipleResults,
+		[System.Collections.Hashtable]
+		$ConfigurationData
 	)
 	$Value = @()	
 	Write-Verbose "`tChecking Node: $($Node.Name)"		
@@ -251,7 +283,9 @@ function Assert-SiteOverride {
 		[string]
 		$PropertyName,
 		[switch]
-		$AllowMultipleResults
+		$AllowMultipleResults,
+		[System.Collections.Hashtable]
+		$ConfigurationData
 	)
 	$Value = @()	
 	$Site = $Node.Location
@@ -300,12 +334,14 @@ function Assert-GlobalSetting {
 		[string]
 		$PropertyName,
 		[switch]
-		$AllowMultipleResults
+		$AllowMultipleResults,
+		[System.Collections.Hashtable]
+		$ConfigurationData
 	)
 	$Value = @()
 	Write-Verbose "Bound parameters include:"
-	foreach ($key in $psboundparameters.keys) {
-		Write-Verbose "`t$key is $($psboundparameters[$key])"
+	foreach ($key in $PSBoundParameters.keys) {
+		Write-Verbose "`t$key is $($PSBoundParameters[$key])"
 	}
 	Write-Verbose "`tStarting to check global settings"
 	if ($ServiceName.count -eq 0) {

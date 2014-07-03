@@ -42,6 +42,7 @@ function Invoke-DscBuild
         [string]
         $DestinationToolDirectory,      
 
+        #Modules to exclude from the resource testing and deployment process.
         [parameter(mandatory)]
         [string[]]
         $ExcludedModules,
@@ -73,12 +74,12 @@ function Invoke-DscBuild
         $Configuration,
         
         #This switch is used to indicate that custom resources should be tested and deployed.
-        [parameter()]        
+        [parameter()]                
         [switch]        
         $Resource, 
 
         #This switch is used to indicate that the custom tools should be tested and deployed.
-        [parameter()]        
+        [parameter()]                      
         [switch]
         $Tools
 
@@ -108,7 +109,10 @@ function Invoke-DscBuild
     Clear-CachedDscResource @ParametersToPass
 
     Invoke-DscResourceUnitTest @ParametersToPass
+
     Copy-CurrentDscResource @ParametersToPass
+    Copy-CurrentDscTools @ParametersToPass
+    
     Test-DscResourceIsValid @ParametersToPass
     
     Assert-DestinationDirectory @ParametersToPass
