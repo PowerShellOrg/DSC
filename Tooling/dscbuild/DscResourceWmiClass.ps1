@@ -1,9 +1,9 @@
 function Get-DscResourceWmiClass {
     <#
         .Synopsis
-            Retrieves WMI class instances from the DSC namespace.
+            Retrieves WMI classes from the DSC namespace.
         .Description
-            Retrieves WMI class instances from the DSC namespace.
+            Retrieves WMI classes from the DSC namespace.
         .Example
             Get-DscResourceWmiClass -Class tmp*
         .Example
@@ -27,9 +27,9 @@ function Get-DscResourceWmiClass {
 function Remove-DscResourceWmiClass {
     <#
         .Synopsis
-            Removes a WMI instance from the DSC namespace.
+            Removes a WMI class from the DSC namespace.
         .Description
-            Removes a WMI instance from the DSC namespace.
+            Removes a WMI class from the DSC namespace.
         .Example
             Get-DscResourceWmiClass -Class tmp* | Remove-DscResourceWmiClass
         .Example

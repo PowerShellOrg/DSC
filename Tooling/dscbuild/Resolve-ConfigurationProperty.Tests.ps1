@@ -13,7 +13,7 @@ if (-not (Test-Path $pathtosut))
 
 iex ( gc $pathtosut -Raw )
 
-describe 'how Resolve-ConfigurationProperty responds' {
+describe 'how Resolve-DscConfigurationProperty responds' {
     
     $ConfigurationData = @{
         AllNodes = @(); 
@@ -29,7 +29,7 @@ describe 'how Resolve-ConfigurationProperty responds' {
             PullServerPath = 'ConfiguredByNode'
         }
 
-        $result = Resolve-ConfigurationProperty -Node $Node -PropertyName 'PullServerPath' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'PullServerPath' 
         
         it "should return the node's override" {
             $result | should be 'ConfiguredByNode'
@@ -42,7 +42,7 @@ describe 'how Resolve-ConfigurationProperty responds' {
             Location = 'NY'            
         }
 
-        $result = Resolve-ConfigurationProperty -Node $Node -PropertyName 'PullServerPath'
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'PullServerPath'
         it "should return the site's default value" {
             $result | should be 'ConfiguredBySite'
         }
@@ -59,14 +59,14 @@ describe 'how Resolve-ConfigurationProperty responds' {
             Location = 'OR'            
         }
 
-        $result = Resolve-ConfigurationProperty -Node $Node -PropertyName 'PullServerPath' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'PullServerPath' 
         it "should return the site's default value" {
             $result | should be 'ConfiguredByDefault'
         }
     }
 }
 
-describe 'how Resolve-ConfigurationProperty (services) responds' {
+describe 'how Resolve-DscConfigurationProperty (services) responds' {
     $ConfigurationData = @{AllNodes = @(); SiteData = @{} ; Services = @{}; Applications = @{}}
 
     $ConfigurationData.Services = @{
@@ -87,7 +87,7 @@ describe 'how Resolve-ConfigurationProperty (services) responds' {
             }
         }
 
-        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource
+        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource
 
         it 'should return the override from the node' {
             $result | should be 'MyCustomValue'
@@ -110,7 +110,7 @@ describe 'how Resolve-ConfigurationProperty (services) responds' {
             Location = 'NY'
         }
 
-        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource 
+        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource 
 
         it 'should return the override from the site' {
             $result | should be 'MySiteValue'
@@ -140,7 +140,7 @@ describe 'how Resolve-ConfigurationProperty (services) responds' {
             Location = 'NY'
         }
 
-        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource
+        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource
 
         it 'should return the override from the site' {
             $result | should be 'FromAllSite'
@@ -167,7 +167,7 @@ describe 'how Resolve-ConfigurationProperty (services) responds' {
             Location = 'NY'
         }
 
-        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource 
+        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource 
 
         it 'should return the default value from the service' {
             $result | should be 'MyDefaultValue'
@@ -183,7 +183,7 @@ describe 'how Resolve-ConfigurationProperty (services) responds' {
             MissingFromFirstServiceConfig = 'FromNodeWithoutService'
         }
 
-        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName MissingFromFirstServiceConfig 
+        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName MissingFromFirstServiceConfig 
         it 'should fall back to checking for the parameter without the service name' {
             $result | should be 'FromNodeWithoutService'
         }
@@ -201,7 +201,7 @@ describe 'how Resolve-ConfigurationProperty (services) responds' {
             Location = 'NY'            
         }
         
-        $result = Resolve-ConfigurationProperty -Node $Node -ServiceName MyTestService, MySecondTestService -PropertyName MissingFromFirstServiceConfig 
+        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService, MySecondTestService -PropertyName MissingFromFirstServiceConfig 
         
         it 'should retrieve the parameter from the second service before falling back to the node' {
             $result | should be 'FromSecondServiceConfig'
@@ -209,7 +209,7 @@ describe 'how Resolve-ConfigurationProperty (services) responds' {
     }
 }
 
-describe 'how Resolve-ConfigurationProperty (applications) responds' {
+describe 'how Resolve-DscConfigurationProperty (applications) responds' {
     $ConfigurationData = @{AllNodes = @(); SiteData = @{} ; Services = @{}; Applications = @{}}
     $ConfigurationData.Applications = @{
         Git = @{ 
@@ -255,7 +255,7 @@ describe 'how Resolve-ConfigurationProperty (applications) responds' {
     }
     context 'When there is a base setting for an application' { 
 
-        $result = Resolve-ConfigurationProperty -Node $Node -Application 'Git'
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Git'
 
         it 'should return the application level configuration' {
             $result.SourcePath | should be 'c:\global\git\setup.exe' 
@@ -264,7 +264,7 @@ describe 'how Resolve-ConfigurationProperty (applications) responds' {
 
     context 'When there is a site level override for the base setting for an application' {
         
-        $result = Resolve-ConfigurationProperty -Node $Node -Application 'Mercurial' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Mercurial' 
 
         it 'should return the site application level configuration' {
             $result.SourcePath | should be 'c:\site\Mercurial\setup.exe' 
@@ -273,7 +273,7 @@ describe 'how Resolve-ConfigurationProperty (applications) responds' {
 
     context 'When there is a node level override for the base setting for an application' {
 
-        $result = Resolve-ConfigurationProperty -Node $Node -Application 'WinMerge' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'WinMerge' 
 
         it 'should return the node application level configuration' {
             $result.SourcePath | should be 'c:\node\winmerge\setup.exe' 
@@ -281,7 +281,7 @@ describe 'how Resolve-ConfigurationProperty (applications) responds' {
     }
 }
 #<#
-describe 'how Resolve-ConfigurationProperty (applications/services) responds' {
+describe 'how Resolve-DscConfigurationProperty (applications/services) responds' {
     $ConfigurationData = @{AllNodes = @(); SiteData = @{} ; Services = @{}; Applications = @{}}
     $ConfigurationData.Applications.Sublime = @{
         LocalPath = 'c:\installs\Sublime\'
@@ -344,7 +344,7 @@ describe 'how Resolve-ConfigurationProperty (applications/services) responds' {
     }
     context 'When there is a base setting for an application' { 
 
-        $result = Resolve-ConfigurationProperty -Node $Node -Application 'Git' -ServiceName 'BuildAgent' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Git' -ServiceName 'BuildAgent' 
 
         it 'should return the application level configuration' {
             $result.SourcePath | should be 'c:\global\git\setup.exe' 
@@ -353,7 +353,7 @@ describe 'how Resolve-ConfigurationProperty (applications/services) responds' {
 
     context 'When there is a site level override for the base setting for an application' {
         
-        $result = Resolve-ConfigurationProperty -Node $Node -Application 'Mercurial' -ServiceName 'BuildAgent' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Mercurial' -ServiceName 'BuildAgent' 
 
         it 'should return the site application level configuration' {
             $result.SourcePath | should be 'c:\site\Mercurial\setup.exe' 
@@ -362,7 +362,7 @@ describe 'how Resolve-ConfigurationProperty (applications/services) responds' {
 
     context 'When there is a node level override for the base setting for an application' {
 
-        $result = Resolve-ConfigurationProperty -Node $Node -Application 'WinMerge' -ServiceName 'BuildAgent' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'WinMerge' -ServiceName 'BuildAgent' 
 
         it 'should return the node application level configuration' {
             $result.SourcePath | should be 'c:\node\winmerge\setup.exe' 
@@ -371,7 +371,7 @@ describe 'how Resolve-ConfigurationProperty (applications/services) responds' {
 
     context 'When there is no service level setting for an application, but there is a default config' {
 
-        $result = Resolve-ConfigurationProperty -Node $Node -Application 'Sublime' -ServiceName 'BuildAgent' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Sublime' -ServiceName 'BuildAgent' 
 
         it 'should return the node application level configuration' {
             $result.SourcePath | should be 'c:\default\Sublime\setup.exe' 

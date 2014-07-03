@@ -12,7 +12,7 @@
 RootModule = 'DscBuild.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.6.5.0'
+ModuleVersion = '1.6.5.2'
 
 # ID used to uniquely identify this module
 GUID = '23ccd4bf-0a52-4077-986f-c153893e5a6a'
@@ -69,8 +69,7 @@ RequiredModules = @('Pester', 'cDscResourceDesigner')
 FunctionsToExport = 'Invoke-DscBuild', 
     'Get-DscResourceWmiClass', 
     'Remove-DscResourceWmiClass', 
-    'Resolve-ConfigurationProperty', 
-    'New-ModulePackage'
+    'Resolve-DscConfigurationProperty'
 
 # Cmdlets to export from this module
 #CmdletsToExport = '*'
@@ -79,7 +78,7 @@ FunctionsToExport = 'Invoke-DscBuild',
 #VariablesToExport = '*'
 
 # Aliases to export from this module
-#AliasesToExport = 'Get-DscResourceVersion'
+AliasesToExport = 'Resolve-ConfigurationProperty'
 
 # List of all modules packaged with this module
 # ModuleList = @()
