@@ -1,0 +1,7 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("cRDPEnabled")]
+class PSHOrg_cRDPEnabled : OMI_BaseResource
+{
+	[Key, Description("Set to indicate is RDP should be enabled or not")] Boolean Enabled;
+};
+
