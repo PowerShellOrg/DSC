@@ -13,8 +13,6 @@ Check out my blog series on DSC at PowerShell.org:
 - Advanced Client Targeting
 
 
-
-
 ToDo
 =====
 - [x] Initial upload
@@ -23,6 +21,11 @@ ToDo
 - [ ] Add samples of complete configurations
 - [ ] Add samples of composite configurations
 - [ ] MORE Modules!
+
+###Required Modules
+In order to run some of the code in this pack some outside resources are needed. Make sure the following are installed on the dev system.
+
+* Pester (<https://github.com/pester/Pester>)
 
 
 Getting Started With DSC Modules
@@ -43,7 +46,6 @@ When you run the configuration function, a MOF file for each node is generated. 
 For each resource defined, the DSC engine uses the classes defined in the MOF to marshal parameters to call the PowerShell DSC resource (which is basically a PowerShell module).  
 
 The DSC engine calls Test-TargetResource with the parameters defined in the MOF file (as mapped in the schema MOF). If Test-TargetResource returns $false, then Set-TargetResource is called with the same parameter set.
-  
 
 ###DSC Resources
 
