@@ -67,7 +67,6 @@ ClassNameSchemaNameDifferentError=The Class name {0} does not match the Schema n
 UnsupportedMofTypeError=In property {0}, the mof type {1} is not supported.
 ValueMapValuesPairError=In property {0}, the qualifiers "ValueMap" and "Values" must be used together and specify identical values.
 NoKeyTestError=At least one property must have the qualifier "Key".
-InvalidEmbeddedInstance=In property {0}, only MSFT_Credential and MSFT_KeyValuePair are allowed as EmbeddedInstances.
 EmbeddedInstanceCimTypeError=In property {0}, all EmbeddedInstances must be encoded as Strings.
 GetTargetResourceOutWarning=Get-TargetResource should return a [Hashtable] mapping all schema properties to their values. Prepend the param block with [OutputType([Hashtable])].
 GetTargetResourceOutError=Get-TargetResource should return a [Hashtable] mapping all schema properties to their values. Prepend the param block with [OutputType([Hashtable])].
@@ -95,11 +94,11 @@ SetTestTakeReadError=The functions Set-TargetResource and Test-TargetResource ca
 
 #Import-LocalizedData LocalizedData -FileName xDscResourceDesigner.strings.psd1
 
- $ValidEmbeddedResource = 'MSFT_Credential', 'MSFT_KeyValuePair'
-
 Add-Type -ErrorAction Stop -TypeDefinition @" 
         namespace Microsoft.PowerShell.xDesiredStateConfiguration
         {
+            using System;
+
             public enum DscResourcePropertyAttribute
             {
                 Key = 0,
@@ -181,6 +180,21 @@ Add-Type -ErrorAction Stop -TypeDefinition @"
                     set
                     {
                         description = value;
+                    }
+                }
+
+                private bool containsEmbeddedInstance;
+
+                public bool ContainsEmbeddedInstance
+                {
+                    get
+                    {
+                        return containsEmbeddedInstance;
+                    }
+
+                    set
+                    {
+                        containsEmbeddedInstance = value;
                     }
                 }
             }
@@ -318,7 +332,10 @@ function New-cDscResourceProperty
         $ValidateSet,
 
         [System.String]
-        $Description
+        $Description,
+
+        [bool]
+        $ContainsEmbeddedInstance = $false
     )
     
     if ((Test-TypeIsArray $Type) -and [DscResourcePropertyAttribute]::Key -eq $Attribute)
@@ -355,6 +372,7 @@ function New-cDscResourceProperty
         Attribute=$Attribute
         ValidateSet=$ValidateSet
         Description=$Description
+        ContainsEmbeddedInstance = $ContainsEmbeddedInstance
     }
 
     $Property = New-Object "DscResourceProperty" -Property $hash
@@ -1634,7 +1652,7 @@ function Test-ResourcePath
     }
     else # We assume its the name of a module in $env:PSModulePath
     {
-        $module = Get-DsCResource -Name $ModuleName
+        $module = Get-DscResource -Name $ModuleName
 
         if (-not $module)
         {
@@ -1684,9 +1702,8 @@ Determines if the given resource will work with the Dsc Engine.
 .DESCRIPTION
 Finds and reports all errors in a given resource.
 
-.PARAMETER ResourceModule
-Either, a path to a directory containing a .psm1 and .schema.mof file,
-or the name of a module that includes a .psm1 and .schema.mof file. 
+.PARAMETER Name
+The path to a folder containing a psm1 and schema.mof file, or the name of a DSC resource to be tested (as found by Get-DscResource.)
 
 .OUTPUTS
 System.Boolean. True if no errors were found, false otherwise.
@@ -1706,16 +1723,9 @@ function Test-cDscResource
             Position = 0,
             ValueFromPipelineByPropertyName=$True)]
         [System.String]
-        $Name,
-        [string[]]
-        $AdditionalValidEmbeddedResource = ''
+        $Name
     )
-    begin {
-        if ($PSBoundParameters.ContainsKey('AdditionalValidEmbeddedResource'))
-        {
-            $Script:ValidEmbeddedResource = $script:ValidEmbeddedResource + $AdditionalValidEmbeddedResource
-        }
-    }
+
     process
     {
         $null = Test-AdministratorPrivileges
@@ -1994,7 +2004,8 @@ function Test-ParameterMetaDataIsDscResourceProperty
         return $false
     }
 
-    if ($TypeMap[$property.Type].FullName -ne $parameter.ParameterType.FullName)
+    if ($TypeMap[$property.Type].FullName -ne $parameter.ParameterType.FullName -and
+        -not $property.ContainsEmbeddedInstance)
     {
         $errorId = "SchemaModuleTypeError"
         Write-Error ($localizedData[$errorId] -f $property.Name) `
@@ -2169,15 +2180,6 @@ function Test-SchemaProperty
                 -ErrorId $errorId -ErrorAction Continue
             $ErrorIdsRef.Value +=  $errorId 
         }
-    }
-
-    if ($CimProperty.Qualifiers["EmbeddedInstance"] -and
-        ($ValidEmbeddedResource -notcontains $CimProperty.Qualifiers["EmbeddedInstance"].Value))
-    {
-        $errorId = "InvalidEmbeddedInstance"
-        Write-Warning ($localizedData[$errorId] -f $CimProperty.Name,$CimProperty.Qualifiers["EmbeddedInstance"].Value) 
-            #-ErrorId $errorId -ErrorAction Continue
-        #$ErrorIdsRef.Value += $errorId
     }
 
     if ($CimProperty.Qualifiers["EmbeddedInstance"] `
@@ -3212,7 +3214,8 @@ function Convert-SchemaToResourceProperty
                             -Type (Convert-CimType $cimProperty) `
                             -Attribute (Convert-CimAttribute $cimProperty) `
                             -ValidateSet $cimProperty.Qualifiers["Values"].Value `
-                            -Description $CimProperty.Qualifiers["Description"].Value
+                            -Description $CimProperty.Qualifiers["Description"].Value `
+                            -ContainsEmbeddedInstance ($null -ne $cimProperty.Qualifiers['EmbeddedInstance'])
     }
 
     return $properties
@@ -3275,8 +3278,13 @@ function Convert-CimType
 
     $reverseEmbeddedInstance = @{
         "MSFT_KeyValuePair" = "Hashtable";
-        "MSFT_Credential" = "PSCredential";
-        "MSFT_xFileDirectory" = "Microsoft.Management.Infrastructure.CimInstance"
+        "MSFT_Credential" = "PSCredential"
+    }
+
+    $typeName = $reverseEmbeddedInstance[$CimProperty.Qualifiers["EmbeddedInstance"].Value]
+    if (-not $typeName)
+    {
+        $typeName = "Microsoft.Management.Infrastructure.CimInstance"
     }
 
     $arrayAddOn = ""
@@ -3286,7 +3294,7 @@ function Convert-CimType
         $arrayAddOn = "[]"
     }
 
-    return $reverseEmbeddedInstance[$CimProperty.Qualifiers["EmbeddedInstance"].Value]+$arrayAddOn
+    return $typeName + $arrayAddOn
 
 }
 
