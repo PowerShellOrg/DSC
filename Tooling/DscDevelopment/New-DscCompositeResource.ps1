@@ -1,5 +1,17 @@
-Function New-cDscCompositeResource
+Function New-DscCompositeResource
 {
+    <#
+        .Synopsis
+            Short description of the command
+        .Description
+            Longer description of the command 
+        .EXAMPLE
+            New-DscCompositeResource -Path "C:\TestModules" -ModuleName "Wakka" -ResourceName "Foo"
+        .EXAMPLE
+            New-DscCompositeResource -ModuleName "Wakka" -ResourceName "Foo"
+        .EXAMPLE
+            "Foo","Bar","Baz" | New-DscCompositeResource -ModuleName "Wakka"
+    #>
     [CmdletBinding(SupportsShouldProcess=$true)]
     param(
         [Parameter()]
@@ -82,13 +94,6 @@ Function New-cDscCompositeResource
         }
         
     }
-<#
-.EXAMPLE
-New-cDscCompositeResource -Path "C:\TestModules" -ModuleName "Wakka" -ResourceName "Foo"
-.EXAMPLE
-New-cDscCompositeResource -ModuleName "Wakka" -ResourceName "Foo"
-.EXAMPLE
-"Foo","Bar","Baz" | New-cDscCompositeResource -ModuleName "Wakka"
-#>
+
 }
 

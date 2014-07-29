@@ -149,9 +149,9 @@ function Get-CachedCimClass
    But before a MOF file defining CIM instances can be read, the classes
    must be loaded into the class cache or an error will occur
 .EXAMPLE
-   Import-CimInstances ./myInstanceDoc.mof
+   Import-CimInstance ./myInstanceDoc.mof
 #>
-function Import-CimInstances
+function Import-CimInstance
 {
     param (
         [parameter(ValueFromPipelineByPropertyName)]

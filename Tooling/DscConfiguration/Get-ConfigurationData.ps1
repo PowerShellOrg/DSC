@@ -1,4 +1,4 @@
-function Get-ConfigurationData
+function Get-DscConfigurationData
 {
     [cmdletbinding(DefaultParameterSetName='NoFilter')]
     param (
@@ -79,5 +79,5 @@ function Get-ConfigurationData
     
 }
 
-
+Set-Alias -Name 'Get-ConfigurationData' -Value 'Get-DscConfigurationData'
 

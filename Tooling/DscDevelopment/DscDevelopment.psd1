@@ -48,7 +48,7 @@ Copyright = '(c) 2014 Steven Murawski. All rights reserved.'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-# RequiredModules = @()
+RequiredModules = @('DscBuild', 'DscConfiguration')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -66,16 +66,26 @@ Copyright = '(c) 2014 Steven Murawski. All rights reserved.'
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = '*'
+FunctionsToExport = 'Add-CachedCimClass',
+    'Get-CachedCimClass',
+    'Get-Hashtable',
+    'Import-CimInstance',
+    'New-cDscCompositeResource',
+    'New-DscResourceFromModule',
+    'New-DscResourceShell',
+    'New-MofFile',
+    'Reset-CimClassCache',
+    'Test-DscBuild',
+    'Test-MofFile'
 
 # Cmdlets to export from this module
-CmdletsToExport = '*'
+# CmdletsToExport = '*'
 
 # Variables to export from this module
-VariablesToExport = '*'
+# VariablesToExport = '*'
 
 # Aliases to export from this module
-AliasesToExport = '*'
+# AliasesToExport = '*'
 
 # List of all modules packaged with this module
 # ModuleList = @()

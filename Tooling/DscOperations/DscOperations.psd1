@@ -12,7 +12,7 @@
 RootModule = 'DscOperations.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.5.0'
+ModuleVersion = '1.5.4.0'
 
 # ID used to uniquely identify this module
 GUID = 'c5e2c892-c16d-4649-9d65-dc14c0bddcb9'
@@ -48,7 +48,7 @@ Description = 'Commands for operating a DSC Pull Server environment.'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @('DscConfiguration')
+RequiredModules = @('DscConfiguration', 'DscBuild')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
