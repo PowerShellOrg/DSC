@@ -1,4 +1,4 @@
-function Get-EncryptedPassword
+function Get-DscEncryptedPassword
 {
     [cmdletbinding(DefaultParameterSetName='ByStoreName')]
     param (
@@ -60,6 +60,4 @@ function Get-EncryptedPassword
         }
     }
 }
-
-
 

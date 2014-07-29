@@ -1,4 +1,4 @@
-function Add-EncryptedPassword
+function Add-DscEncryptedPassword
 {
     param (                
         [parameter(mandatory)]
@@ -21,7 +21,7 @@ function Add-EncryptedPassword
     $Credentials = @{}
     if (Test-Path $EncryptedFilePath)
     {
-        $Credentials += Get-EncryptedPassword -StoreName $StoreName -Path $Path
+        $Credentials += Get-DscEncryptedPassword -StoreName $StoreName -Path $Path
         Remove-Item $EncryptedFilePath
         foreach ($key in $Credentials.Keys)
         {
@@ -50,4 +50,5 @@ function Add-EncryptedPassword
     Remove-PlainTextPassword $FilePath
 }
 
+Set-Alias -Name 'Add-EncryptedPassword' -value 'Add-DscEncryptedPassword'
 

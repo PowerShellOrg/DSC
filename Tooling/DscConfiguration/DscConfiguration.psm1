@@ -33,7 +33,7 @@ $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services
 . $psscriptroot\Remove-PlainTextPassword.ps1
 
 
-function Set-ConfigurationDataPath {
+function Set-DscConfigurationDataPath {
     param (
         [parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
@@ -43,13 +43,15 @@ function Set-ConfigurationDataPath {
 
     $script:ConfigurationDataPath = (Resolve-path $Path).Path
 }
+Set-Alias -Name 'Set-ConfigurationDataPath' -Value 'Set-DscConfigurationDataPath'
 
-function Get-ConfigurationDataPath {    
+function Get-DscConfigurationDataPath {    
 
     $script:ConfigurationDataPath
 }
+Set-Alias -Name 'Get-ConfigurationDataPath' -Value 'Get-DscConfigurationDataPath'
 
-function Resolve-ConfigurationDataPath {
+function Resolve-DscConfigurationDataPath {
     param (
         [parameter()]
         [string]
@@ -68,7 +70,8 @@ function Resolve-ConfigurationDataPath {
     }
 
     if ( -not ([string]::isnullorempty($path)) ) {
-        Set-ConfigurationDataPath -path $path
+        Set-DscConfigurationDataPath -path $path
     } 
    
 }
+Set-Alias -Name 'Resolve-ConfigurationDataPath' -Value 'Resolve-DscConfigurationDataPath'

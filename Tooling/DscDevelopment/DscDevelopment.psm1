@@ -27,4 +27,3 @@ function Get-Hashtable
         invoke-expression "DATA { $(get-content -raw -path $path) }"
     }    
 }
-
