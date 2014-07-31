@@ -85,7 +85,8 @@ function Set-TargetResource
         Write-Verbose ($localizedData.CurrentPowerPlan -f $Name)
         switch ($Name)
         {
-            'Balanced' { Set-CimPowerPlan -name 'High Performance' }            
+            'High Performance' { Set-CimPowerPlan -name 'High Performance' }
+            'Power Saver' { Set-CimPowerPlan -name 'Power Saver' }
             default { Set-CimPowerPlan -name 'Balanced' }
         }
     }
