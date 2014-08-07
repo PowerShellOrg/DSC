@@ -127,7 +127,7 @@ function New-DscSiteMetadata {
         $SiteDataConfigurationPath = (join-path $script:ConfigurationDataPath 'SiteData')         
     }
     process {
-        Out-ConfigurationDataFile -Parameters $psboundparameters -ConfigurationDataPath $ServicesConfigurationPath
+        Out-ConfigurationDataFile -Parameters $psboundparameters -ConfigurationDataPath $SiteDataConfigurationPath
     }
 }
 
