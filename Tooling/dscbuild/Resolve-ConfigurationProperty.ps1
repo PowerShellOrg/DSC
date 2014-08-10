@@ -56,9 +56,9 @@ function Resolve-DscConfigurationProperty {
 				Write-Verbose "`t`tNothing in scope $ScopeToCheck for ConfigurationData"
 			}
 			$ScopeToCheck++
-		} while (($ConfigurationData.Keys.Count -eq 0) -or ($ScopeToCheck -eq 6))
+		} until ($ScopeToCheck -gt 5 -or ($ConfigurationData -is [hashtable] -and $ConfigurationData.Keys.Count -gt 0))
 
-		if ($ConfigurationData.Keys.Count -eq 0) {
+		if ($ConfigurationData -isnot [hashtable] -or $ConfigurationData.Keys.Count -eq 0) {
 			throw 'Failed to resolve ConfigurationData.  Please confirm that $ConfigurationData is property set in a scope above this Resolve-DscConfigurationProperty or passed to Resolve-DscConfigurationProperty via the ConfigurationData parameter.'
 		}
 		else {
