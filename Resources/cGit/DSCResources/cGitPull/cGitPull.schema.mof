@@ -1,0 +1,8 @@
+[ClassVersion("1.0.0"), FriendlyName("cGitPull")] 
+class cGitPull : OMI_BaseResource
+{
+  [Key] String Name;
+  [write] string RepositoryLocal;
+  [write] string RepositoryRemote;
+  [write] string LocationOfGitExe;
+};
