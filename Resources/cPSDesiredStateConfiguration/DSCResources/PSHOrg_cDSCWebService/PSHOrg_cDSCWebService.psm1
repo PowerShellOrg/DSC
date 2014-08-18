@@ -133,7 +133,7 @@ function Set-TargetResource
     }
                 
     Write-Verbose "Create the IIS endpoint"    
-    xPSDesiredStateConfiguration\New-PSWSEndpoint -site $EndpointName `
+    cPSDesiredStateConfiguration\New-PSWSEndpoint -site $EndpointName `
                      -path $PhysicalPath `
                      -cfgfile $webConfigFileName `
                      -port $Port `
