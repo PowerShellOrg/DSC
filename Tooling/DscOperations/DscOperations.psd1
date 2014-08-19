@@ -12,7 +12,7 @@
 RootModule = 'DscOperations.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.5.4.0'
+ModuleVersion = '1.5.5.0'
 
 # ID used to uniquely identify this module
 GUID = 'c5e2c892-c16d-4649-9d65-dc14c0bddcb9'
@@ -66,7 +66,7 @@ RequiredModules = @('DscConfiguration', 'DscBuild')
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = 'Clear-DscEventLog', 'Clear-DscTemporaryModule', 'Invoke-DscPull', 'Set-DscClient'
+FunctionsToExport = 'Clear-DscEventLog', 'Clear-DscTemporaryModule', 'Invoke-DscPull', 'Set-DscClient', 'Invoke-DscApply'
 
 # Cmdlets to export from this module
 #CmdletsToExport = '*'
