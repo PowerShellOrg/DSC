@@ -79,10 +79,10 @@ function Get-TargetResource
                                         userName = $PoolConfig.add.processModel.userName;
                                         password = $AppPoolCred
                                         loadUserProfile = $PoolConfig.add.processModel.loadUserProfile;
-					Enabled32Bit = $PoolConfig.Add.Enable32BitAppOnWin64;
+					                    Enabled32Bit = $PoolConfig.Add.Enable32BitAppOnWin64;
                                     }
         
-        return $getTargetResourceResult;
+        Write-Output $getTargetResourceResult;
 }
 
 
@@ -132,7 +132,7 @@ function Set-TargetResource
     if($Ensure -eq "Present")
     {
         #Remove Ensure from parameters as it is not needed to create new AppPool
-        $Result = $psboundparameters.Remove("Ensure");
+        $Result = $PSBoundParameters.Remove("Ensure");
 
 
         # Check if WebAdministration module is present for IIS cmdlets
@@ -176,7 +176,7 @@ function Set-TargetResource
             
             #only update identity Type if it is provided
             #update identityType if required
-            if(!([string]::IsNullOrEmpty($identityType)) -and $PoolConfig.add.processModel.identityType -ne $identityType){
+            if($PSBoundParameters.ContainsKey("identityType") -and $PoolConfig.add.processModel.identityType -ne $identityType){
                 #update the Identity Type
                 $UpdateNotRequired = $false
                 & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.identityType:$identityType
@@ -193,7 +193,7 @@ function Set-TargetResource
                 }
 
                 #update password if it is required
-                if($Password){
+                if($PSBoundParameters.ContainsKey("Password")){
                     $clearTextPassword = $Password.GetNetworkCredential().Password
                     if($clearTextPassword -cne $PoolConfig.add.processModel.password){
                         $UpdateNotRequired = $false
@@ -241,21 +241,23 @@ function Set-TargetResource
                 & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /startMode:$startMode
                 
                 #only update the Identity Type if it is provided
-                if([string]::IsNullOrEmpty($identityType)){
+                if($PSBoundParameters.ContainsKey("identityType")){
                     & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.identityType:$identityType    
-                }           
                 
-                #set the username and password if the identity type is set to specific user
-                if($identityType -eq "SpecificUser"){
+                    #set the username and password if the identity type is set to specific user
+                    if($identityType -eq "SpecificUser"){
                     
-                    Write-Verbose "Identity Type Set to Specific User"
-                    Write-Verbose "Updating username to $username"
-                    & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.userName:$userName
+                        Write-Verbose "Identity Type Set to Specific User"
+                        Write-Verbose "Updating username to $username"
+                        & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.userName:$userName
                     
-                    Write-Verbose "Updating password"
-                    $clearTextPassword = $Password.GetNetworkCredential().Password
-                    & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.password:$clearTextPassword
-                }
+                        Write-Verbose "Updating password"
+                        $clearTextPassword = $Password.GetNetworkCredential().Password
+                        & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.password:$clearTextPassword
+                    }
+                }          
+                
+                
 
                 & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.loadUserProfile:$loadUserProfile
             
@@ -405,7 +407,7 @@ function Test-TargetResource
                 break
             }
             #Check identityType - should match if it isn't null or empty
-            if(!([string]::IsNullOrEmpty($identityType)) -and $PoolConfig.add.processModel.identityType -ne $identityType){
+            if($PSBoundParameters.ContainsKey("identityType") -and $PoolConfig.add.processModel.identityType -ne $identityType){
                 $DesiredConfigurationMatch = $false
                 Write-Verbose "identityType of AppPool $Name does not match the desired state."
                 break
@@ -423,10 +425,8 @@ function Test-TargetResource
                 }
                 
                 #Check password 
-                if($Password){
+                if($PSBoundParameters.ContainsKey("Password")){
                     $clearTextPassword = $Password.GetNetworkCredential().Password
-                    Write-Verbose "Password should be set to $clearTextPassword"
-                    Write-Verbose "Password is set to $($PoolConfig.add.processModel.password)"
                     if($clearTextPassword -cne $PoolConfig.add.processModel.password){
                         $DesiredConfigurationMatch = $false
                         Write-Verbose "Password of AppPool $Name does not match the desired state."
@@ -458,3 +458,4 @@ function Test-TargetResource
 
     return $DesiredConfigurationMatch
 }
+
