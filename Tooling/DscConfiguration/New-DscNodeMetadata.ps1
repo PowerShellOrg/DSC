@@ -145,6 +145,6 @@ function Out-ConfigurationDataFile {
         $EndingBlock
     )
     
-    $configuration | Out-File (Join-Path $ConfigurationDataPath "$($Parameters['Name'].toupper()).psd1") -Encoding Ascii
+    $configuration | Out-File (Join-Path $ConfigurationDataPath "$($Parameters['Name']).psd1") -Encoding Ascii
 }
 
