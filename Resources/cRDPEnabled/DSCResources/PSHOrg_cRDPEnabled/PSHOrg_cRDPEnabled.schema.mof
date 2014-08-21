@@ -2,6 +2,8 @@
 [ClassVersion("1.0.0.0"), FriendlyName("cRDPEnabled")]
 class PSHOrg_cRDPEnabled : OMI_BaseResource
 {
-	[Key, Description("Set to indicate is RDP should be enabled or not")] Boolean Enabled;
+	[Key, Description("Set to indicate if RDP for remote administration should be enabled or not")] Boolean Enabled;
+	[Write, Description("Require Network Level Authentication. Default value is true")] Boolean NLARequired;
+	[Write, Description("Enables the default Remote Desktop firewall rules in Windows Firewall. If set to false, the firewall rules will be left as is, no changes will be made. Default value is true")] Boolean EnableDefaultFirewallRule;
 };
 
