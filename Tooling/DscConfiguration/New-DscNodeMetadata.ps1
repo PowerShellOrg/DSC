@@ -136,25 +136,25 @@ function Out-ConfigurationDataFile {
     [cmdletbinding()]
     param($Parameters, $ConfigurationDataPath, [switch]$DoNotIncludeName)
 
-    $StartingBlock = "@{`r`n"
-    $EndingBlock = "`r`n}"
+    $StartingBlock = "@{"
+    $EndingBlock = "}"
     $ExcludedParameters = [System.Management.Automation.Internal.CommonParameters].GetProperties().Name    
     if ($DoNotIncludeName) {
         $ExcludedParameters += 'Name'
     }
     $ofs = "', '"
 
-    $configuration = $StartingBlock
-    foreach ($key in $Parameters.keys) {
-        if ($ExcludedParameters -notcontains $key )
-        {
-            $Configuration += "`r`n`t$key = '$($Parameters[$key])'"
+    $configuration = @(
+        $StartingBlock
+        foreach ($key in $Parameters.keys) {
+            if ($ExcludedParameters -notcontains $key )
+            {
+                "    $key = '$($Parameters[$key])'"
+            }
         }
-    }
+        $EndingBlock
+    )
     
-    $Configuration += $EndingBlock
-    
-    $configuration | out-file (join-path $ConfigurationDataPath "$($Parameters['Name'].toupper()).psd1") -Encoding Ascii
-
+    $configuration | Out-File (Join-Path $ConfigurationDataPath "$($Parameters['Name'].toupper()).psd1") -Encoding Ascii
 }
 
