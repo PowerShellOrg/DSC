@@ -12,13 +12,13 @@
 # RootModule = ''
 
 # Version number of this module.
-ModuleVersion = '1.0'
+ModuleVersion = '1.1.2'
 
 # ID used to uniquely identify this module
 GUID = 'c099d5e8-d953-44b7-8f84-ccde92926be7'
 
 # Author of this module
-Author = 'jmorg_000'
+Author = 'jmorg_000. Modified by Dennis Rye (llstrk)'
 
 # Company or vendor of this module
 CompanyName = 'Unknown'
