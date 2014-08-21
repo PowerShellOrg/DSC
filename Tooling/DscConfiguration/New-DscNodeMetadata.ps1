@@ -25,20 +25,10 @@ function New-DscNodeMetadata
         [parameter(
             Mandatory,
             ValueFromPipelineByPropertyName,
-            Position = 1
+            Position = 2
         )]              
         [string]
         $Location,       
-
-        #Type of server (physical or virtual)
-        [parameter(
-            Mandatory,
-            ValueFromPipelineByPropertyName        
-        )]      
-        [ValidateSet('Physical','VM')]  
-        [string]
-        $ServerType,  
-
 
         #Unique identifier for this node.  Will automatically generate one if not supplied.
         [parameter(
