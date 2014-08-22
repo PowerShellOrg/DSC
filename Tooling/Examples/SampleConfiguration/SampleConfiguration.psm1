@@ -1,3 +1,6 @@
+# DscConfiguration module required for the Resolve-DscConfigurationProperty and Test-NodeHasRole functions.
+Import-Module DscConfiguration -ErrorAction Stop
+
 configuration SampleConfiguration
 {
     Import-DscResource -ModuleName StackExchangeResources
@@ -150,14 +153,4 @@ configuration SampleConfiguration
                   Select-Object -First 1
 #>
     }
-}
-
-function Test-NodeHasRole
-{
-    param (
-        [hashtable] $Node,
-        [string] $Role
-    )
-
-    return $null -ne $Node -and $Node.Roles -is [hashtable] -and $Node.Roles.ContainsKey($Role)
 }

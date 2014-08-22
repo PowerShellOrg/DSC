@@ -75,7 +75,8 @@ FunctionsToExport = 'Get-DscConfigurationData',
                     'Set-DscConfigurationDataPath', 
                     'Get-DscConfigurationDataPath',
                     'New-DscConfigurationDataStore',
-                    'Resolve-DscConfigurationProperty'
+                    'Resolve-DscConfigurationProperty',
+                    'Test-NodeHasRole'
 
 # Cmdlets to export from this module
 #CmdletsToExport = '*'
