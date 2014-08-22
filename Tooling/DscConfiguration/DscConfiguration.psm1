@@ -3,9 +3,17 @@ param
     [string]
     $ConfigurationDataPath,
     [string]
-    $LocalCertificateThumbprint = "$((Get-DscLocalConfigurationManager).CertificateId)"
+    $LocalCertificateThumbprint = $null
 )
 
+if ($null -eq $LocalCertificateThumbprint)
+{
+    try
+    {
+        $LocalCertificateThumbprint = "$((Get-DscLocalConfigurationManager).CertificateId)"
+    }
+    catch { }
+}
 
 $LocalCertificatePath = "cert:\LocalMachine\My\$LocalCertificateThumbprint"
 $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services=@{}; SiteData =@{}}
@@ -24,6 +32,7 @@ $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services
 . $psscriptroot\Get-ServiceConfigurationData.ps1
 . $psscriptroot\Get-SiteDataConfigurationData.ps1
 . $psscriptroot\Get-EncryptedPassword.ps1
+. $psscriptroot\Resolve-ConfigurationProperty.ps1
 
 . $psscriptroot\Add-EncryptedPassword.ps1
 . $psscriptroot\ConvertFrom-EncryptedFile.ps1
@@ -31,7 +40,6 @@ $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services
 . $psscriptroot\ConvertTo-EncryptedFile.ps1
 . $psscriptroot\New-Credential.ps1
 . $psscriptroot\Remove-PlainTextPassword.ps1
-
 
 function Set-DscConfigurationDataPath {
     param (
