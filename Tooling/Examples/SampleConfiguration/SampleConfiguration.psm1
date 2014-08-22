@@ -90,6 +90,18 @@ configuration SampleConfiguration
             }
         }
 
+        if ($Node.Name -eq 'FileServer01')
+        {
+            # This is just to demonstrate how node identical properties defined at the Node level override
+            # those defined at the site level, if present.
+
+            $property1 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty1
+            $property2 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty2
+
+            Write-Verbose -Verbose "ExampleProperty1: $property1"
+            Write-Verbose -Verbose "ExampleProperty2: $property2"
+        }
+
 <#
     Here's the deal with Resolve-DscConfigurationProperty, Nodes, Sites, Services and Roles, as it
     can be a little confusing to see how these all fit together.
