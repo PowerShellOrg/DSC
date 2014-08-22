@@ -4,27 +4,20 @@ function Get-DscConfigurationData
     param (
         [parameter()]
         [ValidateNotNullOrEmpty()]
-        [string]
-        $Path,
-        [parameter(
-            ParameterSetName = 'NameFilter'
-        )]
-        [string]
-        $Name,
-        [parameter(
-            ParameterSetName = 'NodeNameFilter'  
-        )]
-        [string]
-        $NodeName,
-        [parameter(
-            ParameterSetName = 'RoleFilter'  
-        )]
-        [string]
-        $Role, 
+        [string] $Path,
+
+        [parameter(ParameterSetName = 'NameFilter')]
+        [string] $Name,
+
+        [parameter(ParameterSetName = 'NodeNameFilter')]
+        [string] $NodeName,
+
+        [parameter(ParameterSetName = 'RoleFilter')]
+        [string] $Role,
+
         [parameter()]
-        [switch]
-        $Force
-    )             
+        [switch] $Force
+    )
 
     begin {
 
@@ -37,47 +30,42 @@ function Get-DscConfigurationData
             $ResolveConfigurationDataPathParams.Path = $path
         }
         Resolve-ConfigurationDataPath @ResolveConfigurationDataPathParams
-        
+
     }
-    end { 
+    end {
 
         Get-AllNodesConfigurationData
 
-        $ofs = ', '
-        $FilteredResults = $true
         Write-Verbose 'Checking for filters of AllNodes.'
         switch ($PSCmdlet.ParameterSetName)
         {
-            'Name'  {            
+            'NameFilter' {
                 Write-Verbose "Filtering for nodes with the Name $Name"
                 $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({$_.Name -like $Name})
             }
-            'NodeName' {            
+            'NodeNameFilter' {
                 Write-Verbose "Filtering for nodes with the GUID of $NodeName"
                 $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({$_.NodeName -like $NodeName})
             }
-            'Role'  {
+            'RoleFilter' {
                 Write-Verbose "Filtering for nodes with the Role of $Role"
                 $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({ $_.roles -contains $Role})
             }
             default {
                 Write-Verbose 'Loading Site Data'
-                Get-SiteDataConfigurationData 
+                Get-SiteDataConfigurationData
                 Write-Verbose 'Loading Services Data'
-                Get-ServiceConfigurationData 
+                Get-ServiceConfigurationData
                 Write-Verbose 'Loading Credential Data'
-                Get-CredentialConfigurationData 
+                Get-CredentialConfigurationData
                 Write-Verbose 'Loading Application Data'
-                Get-ApplicationConfigurationData 
+                Get-ApplicationConfigurationData
             }
         }
 
         Add-NodeRoleFromServiceConfigurationData
         return $script:ConfigurationData
     }
-
-    
 }
 
 Set-Alias -Name 'Get-ConfigurationData' -Value 'Get-DscConfigurationData'
-
