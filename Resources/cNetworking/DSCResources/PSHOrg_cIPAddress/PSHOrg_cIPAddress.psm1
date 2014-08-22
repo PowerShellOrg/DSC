@@ -139,9 +139,9 @@ function ValidateProperties
         $currentIP = Get-NetIPAddress -InterfaceAlias $InterfaceAlias -AddressFamily $AddressFamily -ErrorAction Stop
 
         #Test if the IP Address passed is equal to the current ip address
-        if(!$currentIP.IPAddress.Contains($IPAddress))
+        if(!$currentIP.IPAddress.Contains($IPAddress) -or $currentIP.PrefixOrigin -eq 'dhcp')
         {
-            Write-Verbose -Message "IPAddress not correct. Expected $IPAddress, actual $($currentIP.IPAddress)"
+            Write-Verbose -Message "IP configuration not correct. Expected $IPAddress set to manual, actual $($currentIP.IPAddress) set to $($currentIP.PrefixOrigin)"
             $Parameters = @{}
 
             #Apply is true in the case of set - target resource - in which case, it will set the new IP Address
@@ -153,6 +153,12 @@ function ValidateProperties
                 $Parameters["InterfaceAlias"] = $currentIP[0].InterfaceAlias
 
                 if($DefaultGateway){ $Parameters["DefaultGateWay"] = $DefaultGateway }
+
+                if($currentIP.PrefixOrigin -eq 'dhcp') {
+                    Write-Verbose -Message "IPAddress is $($currentIP.IPAddress) via DHCP. Disabling DHCP"
+                    $null = Set-NetIPInterface -InterfaceAlias $InterfaceAlias -Dhcp Disabled
+                }
+
                 $null = New-NetIPAddress @Parameters -ErrorAction Stop
 
                 # Make the connection profile private
