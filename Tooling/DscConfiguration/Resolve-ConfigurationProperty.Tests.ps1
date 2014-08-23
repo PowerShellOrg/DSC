@@ -63,10 +63,18 @@ describe 'how Resolve-DscConfigurationProperty responds' {
                 SiteLevel1 = @{
                     Property = 'Global Value'
                 }
+
+                NodeLevel1 = @{
+                    Property = 'Global Value'
+                }
             }
 
             NY = @{
                 SiteLevel1 = @{
+                    Property = 'Site Value'
+                }
+
+                NodeLevel1 = @{
                     Property = 'Site Value'
                 }
             }
@@ -76,29 +84,29 @@ describe 'how Resolve-DscConfigurationProperty responds' {
             Name = 'TestNode'
             Location = 'NY'
 
-            Level1 = @{
-                Level2 = 'Property Value'
+            NodeLevel1 = @{
+                Property = 'Node Value'
             }
 
             Services = @{
                 TestService = @{
-                    Level1 = @{
-                        Level2 = 'Property Value from Service'
+                    NodeLevel1 = @{
+                        Property = 'Service Value'
                     }
                 }
             }
         }
 
         It 'Returns the correct value on the node' {
-            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'Level1\Level2' }
+            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Property' }
             $scriptBlock | Should Not Throw
-            & $scriptBlock | Should Be 'Property Value'
+            & $scriptBlock | Should Be 'Node Value'
         }
 
         It 'Returns the correct value on the service' {
-            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'Level1\Level2' -ServiceName TestService }
+            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Property' -ServiceName TestService }
             $scriptBlock | Should Not Throw
-            & $scriptBlock | Should Be 'Property Value from Service'
+            & $scriptBlock | Should Be 'Service Value'
         }
 
         It 'Returns the correct value on the site' {
