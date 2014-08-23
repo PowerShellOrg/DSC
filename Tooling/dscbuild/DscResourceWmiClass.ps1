@@ -17,9 +17,9 @@ function Get-DscResourceWmiClass {
         $Class
     )
     begin {
-        $DscNamespace = "root/Microsoft/Windows/DesiredStateConfiguration"        
+        $DscNamespace = "root/Microsoft/Windows/DesiredStateConfiguration"
     }
-    process {        
+    process {
         Get-wmiobject -Namespace $DscNamespace -list @psboundparameters
     }
 }
@@ -34,7 +34,7 @@ function Remove-DscResourceWmiClass {
             Get-DscResourceWmiClass -Class tmp* | Remove-DscResourceWmiClass
         .Example
             Remove-DscResourceWmiClass -Class 'tmpD460'
-            
+
     #>
     param (
         #The WMI Class name to remove.  Supports wildcards.
@@ -44,11 +44,12 @@ function Remove-DscResourceWmiClass {
         $ResourceType
     )
     begin {
-        $DscNamespace = "root/Microsoft/Windows/DesiredStateConfiguration"        
+        $DscNamespace = "root/Microsoft/Windows/DesiredStateConfiguration"
     }
-    process { 
-        #Have to use WMI here because I can't find how to delete a WMI instance via the CIM cmdlets.       
+    process {
+        #Have to use WMI here because I can't find how to delete a WMI instance via the CIM cmdlets.
         (Get-wmiobject -Namespace $DscNamespace -list -Class $ResourceType).psbase.delete()
     }
 }
+
 

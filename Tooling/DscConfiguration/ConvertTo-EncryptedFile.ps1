@@ -31,7 +31,7 @@ Function ConvertTo-EncryptedFile
         )]
         [System.IO.FileInfo]
         $InputObject,
-        
+
         #Can be a path to the local cert store like Cert:\CurrentUser\My\9554F368FEA619A655A1D49408FC13C3E0D60E11
         [Parameter(
             mandatory=$true,
@@ -42,10 +42,10 @@ Function ConvertTo-EncryptedFile
             mandatory=$true,
             position = 1,
             ParameterSetName = 'LocalCertStoreAndInputObject'
-        )]        
+        )]
         [string]
         $CertificatePath,
-        
+
         #Must be a System.Security.Cryptography.X509Certificates.X509Certificate2 object
         [Parameter(
             mandatory=$true,
@@ -63,8 +63,8 @@ Function ConvertTo-EncryptedFile
         [string]
         $FileExtension = 'encrypted'
     )
-    
-    process    
+
+    process
     {
         switch ($PSCmdlet.ParameterSetName)
         {
@@ -75,7 +75,7 @@ Function ConvertTo-EncryptedFile
         }
         try
         {
-            $Path = (Resolve-Path $Path -ErrorAction Stop).ProviderPath        
+            $Path = (Resolve-Path $Path -ErrorAction Stop).ProviderPath
 
             $AesProvider                = New-Object System.Security.Cryptography.AesManaged
             $AesProvider.KeySize        = 256
@@ -90,18 +90,18 @@ Function ConvertTo-EncryptedFile
             $LenKey                     = [System.BitConverter]::GetBytes($LKey)
             [Int]$LIV                   = $AesProvider.IV.Length
             $LenIV                      = [System.BitConverter]::GetBytes($LIV)
-    
+
             $FileStreamWriter = $Null
-            Try 
-            { 
-                $FileStreamWriter = New-Object System.IO.FileStream("$Path.$FileExtension", [System.IO.FileMode]::Create) 
+            Try
+            {
+                $FileStreamWriter = New-Object System.IO.FileStream("$Path.$FileExtension", [System.IO.FileMode]::Create)
             }
-            Catch 
+            Catch
             {
                 $message = "Unable to open output file ($Path.$FileExtension) for writing."
                 throw $message
             }
-    
+
             $FileStreamWriter.Write($LenKey,         0, 4)
             $FileStreamWriter.Write($LenIV,          0, 4)
             $FileStreamWriter.Write($KeyEncrypted,   0, $LKey)
@@ -112,16 +112,16 @@ Function ConvertTo-EncryptedFile
             [Int]$Count                 = 0
             [Int]$Offset                = 0
             [Int]$BlockSizeBytes        = $AesProvider.BlockSize / 8
-    
+
             [Byte[]]$Data               = New-Object Byte[] $BlockSizeBytes
             [Int]$BytesRead             = 0
-    
-            Try 
-            { 
-                $FileStreamReader     = New-Object System.IO.FileStream("$Path", [System.IO.FileMode]::Open)    
+
+            Try
+            {
+                $FileStreamReader     = New-Object System.IO.FileStream("$Path", [System.IO.FileMode]::Open)
             }
-            Catch 
-            { 
+            Catch
+            {
                 throw "Unable to open input file ($Path) for reading."
             }
 
@@ -135,17 +135,18 @@ Function ConvertTo-EncryptedFile
 
             $CryptoStream.FlushFinalBlock()
         }
-        catch 
+        catch
         {
             throw $_
         }
         finally
-        {            
+        {
             $CryptoStream.Close()
             $FileStreamReader.Close()
             $FileStreamWriter.Close()
         }
     }
 }
+
 
 

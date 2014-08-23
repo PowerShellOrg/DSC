@@ -66,13 +66,13 @@ Copyright = '(c) 2014 Steven. All rights reserved.'
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = 'Get-DscConfigurationData', 
+FunctionsToExport = 'Get-DscConfigurationData',
                     'New-DscNodeMetadata',
                     'New-DscServiceMetadata',
                     'New-DscSiteMetadata',
-                    'Add-DscEncryptedPassword', 
+                    'Add-DscEncryptedPassword',
                     'Get-DscEncryptedPassword',
-                    'Set-DscConfigurationDataPath', 
+                    'Set-DscConfigurationDataPath',
                     'Get-DscConfigurationDataPath',
                     'New-DscConfigurationDataStore',
                     'Resolve-DscConfigurationProperty',
@@ -85,8 +85,8 @@ FunctionsToExport = 'Get-DscConfigurationData',
 #VariablesToExport = '*'
 
 # Aliases to export from this module
-AliasesToExport =   'Add-EncryptedPassword',                     
-                    'Set-ConfigurationDataPath', 
+AliasesToExport =   'Add-EncryptedPassword',
+                    'Set-ConfigurationDataPath',
                     'Get-ConfigurationDataPath'
 
 # List of all modules packaged with this module
@@ -105,5 +105,6 @@ AliasesToExport =   'Add-EncryptedPassword',
 # DefaultCommandPrefix = ''
 
 }
+
 
 

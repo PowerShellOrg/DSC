@@ -20,10 +20,11 @@ function Get-Hashtable
         [Alias('FullName')]
         [string]
         $Path
-    ) 
-    process 
+    )
+    process
     {
         Write-Verbose "Loading data from $Path."
         invoke-expression "DATA { $(get-content -raw -path $path) }"
-    }    
+    }
 }
+

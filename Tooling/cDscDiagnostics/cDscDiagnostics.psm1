@@ -5,7 +5,7 @@
  #  To see details of the last operation                                                         : Trace-cDscOperation
  #  TO view trace details of the third last operation run                                        : Trace-cDscOperation 3
  #  To view trace details of an operation with Job ID $jID                                       : Trace-cDscOperation -JobID $jID
- #  To View trace details of multiple computers                                                  : Trace-cDscOperation -ComputerName @("PN25113D0891","PN25113D0890") 
+ #  To View trace details of multiple computers                                                  : Trace-cDscOperation -ComputerName @("PN25113D0891","PN25113D0890")
  #
  #>
 
@@ -33,11 +33,11 @@
 #region Exported Functions
 
  <#
-.SYNOPSIS 
+.SYNOPSIS
 Traces through any DSC operation selected from among all operations using its unique sequence ID (obtained from Get-cDscOperation), or from its unique Job ID
 
 .DESCRIPTION
-This function, when called, will look through all the event logs for DSC, and output the results in the form of an object, that contains the event type, event message, time created, computer name, job id, sequence number, and the event information. 
+This function, when called, will look through all the event logs for DSC, and output the results in the form of an object, that contains the event type, event message, time created, computer name, job id, sequence number, and the event information.
 
 
 .PARAMETER SequenceId
@@ -56,22 +56,22 @@ The names of computers in which you would like to trace the past DSC operations
 The credential needed to access the computers specified inside ComputerName parameters
 
 .EXAMPLE
-To Obtain the diagnostic information for the latest operation                : 
-Trace-cDscOperation 
+To Obtain the diagnostic information for the latest operation                :
+Trace-cDscOperation
 .EXAMPLE
-To obtain the diagnostic information for the third latest operation          : 
+To obtain the diagnostic information for the third latest operation          :
 Trace-cDscOperation -sequenceId 3
 .EXAMPLE
-To diagnose an operation with job Id 11112222-1111-1122-1122-111122221111    : 
+To diagnose an operation with job Id 11112222-1111-1122-1122-111122221111    :
 Trace-cDscOperation -JobId 11112222-1111-1122-1122-111122221111
 .EXAMPLE
-To Get Logs from a remote computer                                           : 
+To Get Logs from a remote computer                                           :
 Trace-cDscOperation -ComputerName XYZ -sequenceID 2
 
-To Get logs from a remote computer with credentials                          : 
+To Get logs from a remote computer with credentials                          :
 Trace-cDscOperation -Computername XYZ -Credential $mycredential -sequenceID 2
 
-To get logs from multiple remote computers                                   : 
+To get logs from multiple remote computers                                   :
 Trace-cDscOperation -ComputerName @("PN25113D0891","PN25113D0890")
 Please note that to perform actions on the remote computer, have the firewall for remote configuration enabled. This can be done with the following command:
 C:> netsh firewall set service remoteadmin enable
@@ -79,7 +79,7 @@ C:> netsh firewall set service remoteadmin enable
 #>
 function Trace-cDscOperation
 {
-    
+
     [cmdletBinding()]
     param(
         [UInt32]$SequenceID=1, #latest is by default
@@ -89,32 +89,32 @@ function Trace-cDscOperation
     Add-ClassTypes
     if($ComputerName)
     {
-        $Script:UsingComputerName=$true  
+        $Script:UsingComputerName=$true
         $args=$PSBoundParameters
         $null=$args.Remove("ComputerName")
         $null=$args.Remove("Credential")
-            
+
        foreach($thisComputerName in $ComputerName)
        {
             Log -Verbose "Gathering logs for Computer $thisComputerName ..."
             $Script:ThisComputerName=$thisComputerName
             $Script:ThisCredential=$Credential
             Trace-DscOperationInternal  @PSBoundParameters
-            
+
        }
     }
     else
     {
         $Script:ThisComputerName=$env:COMPUTERNAME
         Trace-DscOperationInternal @PSBoundParameters
-         $Script:UsingComputerName=$false  
+         $Script:UsingComputerName=$false
     }
 }
- 
+
   <#
-.SYNOPSIS 
+.SYNOPSIS
 Gives a list of all DSC operations that were executed . Each DSC operation has sequence Id information , and job id information
-It returns a list of objects, each of which contain information on a distinct DSC operation . Here a DSC operation is referred to any single DSC execution, such as start-dscconfiguration, test-dscconfiguration etc. These will log events with a unique jobID (guid) identifying the DSC operation. 
+It returns a list of objects, each of which contain information on a distinct DSC operation . Here a DSC operation is referred to any single DSC execution, such as start-dscconfiguration, test-dscconfiguration etc. These will log events with a unique jobID (guid) identifying the DSC operation.
 
 When you run Get-cDscOperation, you will see a list of past DSC operations , and you could use the following details from the output to trace any of them individually.
 - Job ID : By using this GUID, you can search for the events in Event viewer, or run Trace-cDscOperation -jobID <required Jobid> to obtain all event details of that operation
@@ -122,7 +122,7 @@ When you run Get-cDscOperation, you will see a list of past DSC operations , and
 
 
 .DESCRIPTION
-This will list all the DSC operations that were run in the past in the computer. By Default, it will list last 10 operations. 
+This will list all the DSC operations that were run in the past in the computer. By Default, it will list last 10 operations.
 
 .PARAMETER Newest
 By default 10 last DSC operations are pulled out from the event logs. To have more, you could use enter another number with this parameter.a PS Object with all the information output to the screen can be navigated by the user as required.
@@ -137,31 +137,31 @@ function Get-cDscOperation
 {
     [cmdletBinding()]
     param(
-        [UInt32]$Newest=10, 
+        [UInt32]$Newest=10,
         [String[]]$ComputerName,
         [pscredential]$Credential)
     Add-ClassTypes
     if($ComputerName)
     {
-        $Script:UsingComputerName=$true  
+        $Script:UsingComputerName=$true
         $args=$PSBoundParameters
         $null=$args.Remove("ComputerName")
         $null=$args.Remove("Credential")
-            
+
        foreach($thisComputerName in $ComputerName)
        {
             Log -Verbose "Gathering logs for Computer $thisComputerName"
             $Script:ThisComputerName=$thisComputerName
             $Script:ThisCredential=$Credential
             Get-DscOperationInternal  @PSBoundParameters
-            
+
        }
     }
     else
     {
         $Script:ThisComputerName=$env:COMPUTERNAME
         Get-DscOperationInternal @PSBoundParameters
-         $Script:UsingComputerName=$false  
+         $Script:UsingComputerName=$false
     }
 
 }
@@ -174,7 +174,7 @@ function Log
     param($text,[Switch]$Error,[Switch]$Verbose)
     if($Error)
     {
-        Write-Error  $text 
+        Write-Error  $text
     }
     elseif($Verbose)
     {
@@ -235,13 +235,13 @@ function Add-ClassTypes
                         public System.Diagnostics.Eventing.Reader.EventRecord Event;
                    }
                }
-              
+
 "@
         Add-Type -Language CSharp -TypeDefinition $ClassdefinitionGroupedEvents
         Add-Type -Language CSharp -TypeDefinition $ClassdefinitionTraceOutput
-        #Update-TypeData -TypeName TraceOutput -DefaultDisplayPropertySet EventType, TimeCreated, Message 
-        Update-FormatData  -PrependPath $pathToFormattingFile 
-        
+        #Update-TypeData -TypeName TraceOutput -DefaultDisplayPropertySet EventType, TimeCreated, Message
+        Update-FormatData  -PrependPath $pathToFormattingFile
+
         $Script:RunFirstTime = $false; #So it doesnt do it the second time.
     }
 }
@@ -251,7 +251,7 @@ function Get-AllGroupedDscEvents
     $groupedEvents=$null
     $latestJobId=Get-DscLatestJobId
     Log -Verbose "Collecting all events from the DSC logs"
-        
+
     if(($Script:MostRecentJobId[$Script:ThisComputerName] -eq $latestJobId )  -and $Script:LatestGroupedEvents[$Script:ThisComputerName])
     {
         # this means no new events were generated and you can use the event cache.
@@ -259,7 +259,7 @@ function Get-AllGroupedDscEvents
     }
     else
     {
-        
+
         #Save it to cache
         $allEvents=Get-AllDscEvents
         if(!$allEvents)
@@ -267,8 +267,8 @@ function Get-AllGroupedDscEvents
             Log -Error "Error : Could not find any events. Either a DSC operation has not been run, or the event logs are turned off . Please ensure the event logs are turned on in DSC. To set an event log, run the command wevtutil Set-Log <channelName> /e:true, example: wevtutil set-log 'Microsoft-Windows-Dsc/Operational' /e:true /q:true"
             return
         }
-        $groupedEvents= $allEvents | Group {$_.Properties[0].Value} 
-    
+        $groupedEvents= $allEvents | Group {$_.Properties[0].Value}
+
         $Script:MostRecentJobId[$Script:ThisComputerName]=$latestJobId
         $Script:LatestGroupedEvents[$Script:ThisComputerName] =$groupedEvents
     }
@@ -285,7 +285,7 @@ function Get-AllGroupedDscEvents
     {
          if($Script:UsingComputerName)
         {
-        
+
             if($Script:ThisCredential)
             {
                 $resultArray=Microsoft.PowerShell.Diagnostics\Get-WinEvent @args -ComputerName $Script:ThisComputerName -Credential $Script:ThisCredential
@@ -295,7 +295,7 @@ function Get-AllGroupedDscEvents
                 $resultArray= Microsoft.PowerShell.Diagnostics\Get-WinEvent @args -ComputerName $Script:ThisComputerName
             }
         }
-    
+
         else
         {
            $resultArray= Microsoft.PowerShell.Diagnostics\Get-WinEvent @args
@@ -312,9 +312,9 @@ function Get-AllGroupedDscEvents
  #Gets the JOB ID of the most recently executed script.
  function Get-DscLatestJobId
  {
-    
+
     #Collect operational events , they're ordered from newest to oldest.
-    
+
     $allevents=get-winevent -LogName "$Script:DscLogName/operational" -MaxEvents 2 -ea Ignore
     if($allevents -eq $null)
     {
@@ -325,50 +325,50 @@ function Get-AllGroupedDscEvents
     #Extract just the jobId from the string like : Job : {<jobid>}
     #$jobInfo=(((($latestEvent.Message -split (":",2))[0] -split "job {")[1]) -split "}")[0]
     $jobInfo=$latestEvent.Properties[0].value
-        
+
     return $jobInfo.ToString()
  }
 
  #Function to get all dsc events in the event log - not exposed by the module
  function Get-AllDscEvents
  {
-    #If you want a specific channel events, run it as Get-AllDscEvents 
+    #If you want a specific channel events, run it as Get-AllDscEvents
     param
-    (  
+    (
        [string[]]$ChannelType=@("Debug","Analytic","Operational") ,
        $OtherParams=@{}
-       
+
     )
-    if($ChannelType.ToLower().Contains("operational")) 
-    { 
-        
+    if($ChannelType.ToLower().Contains("operational"))
+    {
+
         $operationalEvents=get-winevent -LogName "$Script:DscLogName/operational"  @OtherParams -ea Ignore
         $allevents=$operationalEvents
-    
+
     }
     if($ChannelType.ToLower().Contains("analytic"))
     {
         $analyticEvents=get-winevent -LogName "$Script:DscLogName/analytic" -Oldest  -ea Ignore @OtherParams
-        if($analyticEvents -ne $null)    
-        { 
+        if($analyticEvents -ne $null)
+        {
 
                 #Convert to an array type before adding another type - to avoid the error "Method invocation failed with no op_addition operator"
                 $allevents = [System.Array]$allEvents + $analyticEvents
-            
+
         }
-        
+
     }
 
     if($ChannelType.ToLower().Contains("debug"))
     {
         $debugEvents=get-winevent -LogName "$Script:DscLogName/debug" -Oldest -ea Ignore @OtherParams
-        if($debugEvents -ne $null)    
-        { 
+        if($debugEvents -ne $null)
+        {
                 $allevents = [System.Array]$allEvents +$debugEvents
-                         
+
         }
     }
-    
+
     return $allevents
  }
 
@@ -396,12 +396,12 @@ function Get-AllGroupedDscEvents
 
         elseif($enableLog.ToLower() -eq "n")
         {
-            Log -Error "The $Channel events cannot be read until it has been enabled" 
+            Log -Error "The $Channel events cannot be read until it has been enabled"
             break
         }
         else
         {
-            Log -Error "Could not understand the option, please try again" 
+            Log -Error "Could not understand the option, please try again"
         }
         $numberOfTries++
     }
@@ -418,7 +418,7 @@ function Get-AllGroupedDscEvents
           [Guid]$JobId
           )
 
-    #Get all events 
+    #Get all events
     $groupedEvents=Get-AllGroupedDscEvents
     if(!$groupedEvents)
     {
@@ -432,7 +432,7 @@ function Get-AllGroupedDscEvents
         foreach($eventGroup in $groupedEvents)
         {
 
-            #Check if the Job ID is present in any 
+            #Check if the Job ID is present in any
             if($($eventGroup.Name) -match $JobId)
             {
                 break;
@@ -455,18 +455,18 @@ function Get-AllGroupedDscEvents
     }
     $errorText="[None]"
     $thisRunsOutputEvents=Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $requiredRecord -index $indexInArray
-        
+
     $thisRunsOutputEvents
 
  }
-  
+
  function Split-SingleDscGroupedRecord
  {
     param(
     $singleRecordInGroupedEvents,
     $index)
-            
-            #$singleOutputRecord=New-Object psobject 
+
+            #$singleOutputRecord=New-Object psobject
             $status=$Script:SuccessResult
             $errorEvents=@()
             $col_AllEvents=@()
@@ -484,47 +484,47 @@ function Get-AllGroupedDscEvents
                 $thisEvent=$_
                 $thisType=""
                 $timeCreatedOfEvent=$_.TimeCreated
-               
+
                 if($_.level -eq 2) #which means there's an error
                 {
                     $status="$Script:FailureResult"
                     $errorEvents += $_
                     $thisType= [Microsoft.PowerShell.cDscDiagnostics.EventType]::ERROR
-                    
+
                 }
                 elseif($_.LevelDisplayName -like "warning") { $col_warningEvents +=$_ }
-                if($_.ContainerLog.endsWith("operational")) 
-                { 
-                    $col_operationalEvents+=$_ ; 
-                    $col_nonVerboseEvents += $_ 
+                if($_.ContainerLog.endsWith("operational"))
+                {
+                    $col_operationalEvents+=$_ ;
+                    $col_nonVerboseEvents += $_
 
                     #Only if its not an error message, mark it as OPerational tag
                     if(!$thisType)
                     {$thisType=[Microsoft.PowerShell.cDscDiagnostics.EventType]::OPERATIONAL}
                 }
                 elseif($_.ContainerLog.endsWith("debug")) { $col_debugEvents+=$_ ; $thisType = [Microsoft.PowerShell.cDscDiagnostics.EventType]::DEBUG }
-                elseif($_.ContainerLog.endsWith("analytic")) 
-                { 
-                    $col_analyticEvents+=$_  
+                elseif($_.ContainerLog.endsWith("analytic"))
+                {
+                    $col_analyticEvents+=$_
                     if($_.Id -in $Script:DscVerboseEventIdsAndPropertyIndex.Keys)
                     {
                         $col_verboseEvents +=$_
                         $thisType=[Microsoft.PowerShell.cDscDiagnostics.EventType]::VERBOSE
-                    
+
                     }
                     else
                     {
                         $col_nonVerboseEvents += $_
                         $thisType=[Microsoft.PowerShell.cDscDiagnostics.EventType]::ANALYTIC
-                    
+
                     }
                 }
                 $eventMessageFromEvent=Get-MessageFromEvent $thisEvent -verboseType
-                #Add event with its tag 
+                #Add event with its tag
 
                 $thisObject= New-Object PSobject -Property @{TimeCreated=$timeCreatedOfEvent; Type=$thisType; Event=$thisEvent; Message = $eventMessageFromEvent}
                 $col_AllEvents  += $thisObject
-                
+
             }
 
             $jobIdWithoutParenthesis=($($singleRecordInGroupedEvents.Name).split('{}'))[1] #Remove paranthesis that comes in the job id
@@ -546,25 +546,25 @@ function Get-AllGroupedDscEvents
                    Result=$status;
                    NumberOfEvents=$singleRecordInGroupedEvents.Count;}
 
-            
+
             return $singleOutputRecord
  }
 
  function Get-MessageFromEvent($EventRecord,[switch]$verboseType)
  {
-    
+
     #You need to remove the job ID and send back the message
     if($EventRecord.Id -in $Script:DscVerboseEventIdsAndPropertyIndex.Keys -and $verboseType)
     {
         $requiredIndex=$Script:DscVerboseEventIdsAndPropertyIndex[$($EventRecord.Id)]
         return $EventRecord.Properties[$requiredIndex].Value
     }
-    
+
     $NonJobIdText=($EventRecord.Message -split([Environment]::NewLine,2))[1]
 
-   
+
     return $NonJobIdText
-    
+
  }
 
 
@@ -572,7 +572,7 @@ function Get-AllGroupedDscEvents
  {
     param(<#[System.Diagnostics.Eventing.Reader.EventRecord[]]#>$ErrorRecords)
     $cimErrorId=4131
-    
+
     $errorText=""
     foreach($Record in $ErrorRecords)
     {
@@ -591,9 +591,9 @@ function Get-AllGroupedDscEvents
 
 }
 
- 
+
  <#
-.SYNOPSIS 
+.SYNOPSIS
 Sets any DSC Event log (Operational, analytic, debug )
 
 .DESCRIPTION
@@ -603,7 +603,7 @@ This cmdlet will set a DSC log when run with Enable-DscEventLog <channel Name>.
 Name of the channel of the event log to be set.
 
 .EXAMPLE
-C:\PS> Enable-DscEventLog "Analytic" 
+C:\PS> Enable-DscEventLog "Analytic"
 C:\PS> Enable-DscEventLog -Channel "Debug"
 #>
  function Enable-DscEventLog
@@ -614,20 +614,20 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
 
     $LogName="Microsoft-Windows-Dsc"
 
-	$eventLogFullName="$LogName/$Channel"
+    $eventLogFullName="$LogName/$Channel"
     try
     {
         Log -Verbose "Enabling the log $eventLogFullName"
         if($Script:ThisComputerName -eq $env:COMPUTERNAME)
         {
-            wevtutil set-log $eventLogFullName /e:true /q:true    
+            wevtutil set-log $eventLogFullName /e:true /q:true
         }
         else
         {
 
-            #For any other computer, invoke command./ 
+            #For any other computer, invoke command./
             $scriptTosetChannel=[Scriptblock]::Create(" wevtutil set-log $eventLogFullName /e:true /q:true")
-            
+
             if($Script:ThisCredential)
             {
                 Invoke-Command -ScriptBlock $scriptTosetChannel -ComputerName $Script:ThisComputerName  -Credential $Script:ThisCredential
@@ -645,7 +645,7 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
     }
 
  }
- 
+
  function Get-SingleRelevantErrorMessage(<#[System.Diagnostics.Eventing.Reader.EventRecord]#>$errorEvent)
  {
     $requiredPropertyIndex=@{4116=2;
@@ -676,7 +676,7 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
         $outputErrorMessage=Get-MessageFromEvent -EventRecord $errorEvent
     }
     return $outputErrorMessage
-    
+
 }
 
  function Trace-DscOperationInternal
@@ -685,9 +685,9 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
     param(
         [UInt32]$SequenceID=1, #latest is by default
         [Guid]$JobId
-        
+
         )
-    
+
 
     #region VariableChecks
     $indexInArray= ($SequenceId-1); #Since it is indexed from 0
@@ -696,17 +696,17 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
     {
         Log -Error "Please enter a valid Sequence ID . All sequence IDs can be seen after running command Get-cDscOperation . " -ForegroundColor Red
         return
-    } 
-    $null=Test-DscEventLogStatus -Channel "Analytic" 
+    }
+    $null=Test-DscEventLogStatus -Channel "Analytic"
     $null=Test-DscEventLogStatus -Channel "Debug"
-    
+
     #endregion
 
     #First get the whole object set of that operation
     $thisRUnsOutputEvents=""
     if(!$JobId)
     {
-        $thisRunsOutputEvents=Get-SingleDscOperation -IndexInArray $indexInArray 
+        $thisRunsOutputEvents=Get-SingleDscOperation -IndexInArray $indexInArray
     }
     else
     {
@@ -721,28 +721,28 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
     $result=$thisRunsOutputEvents.Result
 
         #Parse the error events and store them in error text.
-        $errorEvents= $thisRunsOutputEvents.ErrorEvents 
-        $errorText = Get-DscErrorMessage -ErrorRecords  $errorEvents 
-        
-       #Now Get all logs which are non verbose 
+        $errorEvents= $thisRunsOutputEvents.ErrorEvents
+        $errorText = Get-DscErrorMessage -ErrorRecords  $errorEvents
+
+       #Now Get all logs which are non verbose
         $nonVerboseMessages=@()
-       
+
         $AllEventMessageObject=@()
         $thisRunsOutputEvents.AllEvents | %{
                                 $ThisEvent=  $_.Event
                                 $ThisMessage= $_.Message
                                 $ThisType=  $_.Type
                                 $ThisTimeCreated= $_.TimeCreated
-                                #Save a hashtable as a message value 
+                                #Save a hashtable as a message value
                                 if(!$thisRunsOutputEvents.JobId) {$thisJobId=$null}
                                 else {$thisJobId=$thisRunsOutputEvents.JobId}
                                 $AllEventMessageObject +=   new-object Microsoft.PowerShell.cDscDiagnostics.TraceOutput -Property @{EventType=$ThisType;TimeCreated=$ThisTimeCreated;Message=$ThisMessage;ComputerName=$Script:ThisComputerName;JobID=$thisJobId;SequenceID=$SequenceID;Event=$ThisEvent}
-                                
-                            } 
-       
-        
+
+                            }
+
+
         return $AllEventMessageObject
-        
+
 }
 
  #Internal function called by Get-cDscOperation
@@ -752,11 +752,11 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
     ([UInt32]$Newest = 10)
         #Groupo all events
         $groupedEvents=Get-AllGroupedDscEvents
-    
+
         $DiagnosedGroup =$groupedEvents
 
         #Define the type that you want the output in
-       
+
         $index=1
         foreach($singleRecordInGroupedEvents in $DiagnosedGroup)
         {
@@ -767,14 +767,14 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
                 break;
             }
             $index++
-              
+
         }
  }
- 
+
 #endregion
 
 
- 
+
  function Clear-DscDiagnosticsCache
  {
     Log -Verbose "Clearing Diagnostics Cache"
@@ -782,7 +782,8 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
     $Script:MostRecentJobId=@{}
 
  }
- 
+
 
 Export-ModuleMember -Function Trace-cDscOperation, Get-cDscOperation
+
 

@@ -10,3 +10,4 @@ function Test-NodeHasRole
 
     return $Node.Roles -is [hashtable] -and $Node.Roles.ContainsKey($Role)
 }
+

@@ -1,20 +1,20 @@
 function Add-DscEncryptedPassword
 {
-    param (                
+    param (
         [parameter(mandatory)]
         [string]
         $StoreName,
         [parameter()]
         [string]
-        $Path = (Join-path $script:ConfigurationDataPath 'Credentials'), 
+        $Path = (Join-path $script:ConfigurationDataPath 'Credentials'),
         [parameter()]
         [string]
-        $UserName, 
+        $UserName,
         [parameter()]
         [string]
         $Password
     )
-    
+
     $EncryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
     $FilePath = Join-Path $Path "$StoreName.psd1"
 
@@ -28,16 +28,16 @@ function Add-DscEncryptedPassword
             Write-Verbose "Found credentials for $username."
         }
     }
-        
+
     $Credentials.Add($UserName, $Password)
     Write-Verbose "Adding credentials for $Username. ($($credentials.keys.count) total.)"
 
     if (Test-Path $FilePath)
     {
         Remove-Item $FilePath -Confirm:$false
-    }    
-    
-    '@{' | Out-File $FilePath 
+    }
+
+    '@{' | Out-File $FilePath
     foreach ($key in $Credentials.Keys)
     {
         Write-Verbose "Persisting credentials for $key to disk."
@@ -51,4 +51,5 @@ function Add-DscEncryptedPassword
 }
 
 Set-Alias -Name 'Add-EncryptedPassword' -value 'Add-DscEncryptedPassword'
+
 

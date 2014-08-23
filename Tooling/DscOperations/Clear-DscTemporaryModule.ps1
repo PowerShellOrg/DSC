@@ -8,32 +8,33 @@ function Clear-DscTemporaryModule {
         .Example
             Clear-DscTemporaryModule -ComputerName OR-WEB01
     #>
-	param (
-		#Name of the computer(s) to target.
-		[Parameter(
-			ValueFromPipeline=$true,
-			ValueFromPipelineByPropertyName=$true,
-			Position='0'
-		)]
-		[ValidateNotNullOrEmpty()]            
+    param (
+        #Name of the computer(s) to target.
+        [Parameter(
+            ValueFromPipeline=$true,
+            ValueFromPipelineByPropertyName=$true,
+            Position='0'
+        )]
+        [ValidateNotNullOrEmpty()]
         [Alias('__Server', 'Name')]
-		[string[]]
-		$ComputerName = $env:COMPUTERNAME,
+        [string[]]
+        $ComputerName = $env:COMPUTERNAME,
 
         #Alternate credentials to use in connecting to the remote computer(s).
-		[Parameter(
-			Position=2
-		)]
-		[System.Management.Automation.Credential()]
-		$Credential = [System.Management.Automation.PSCredential]::Empty
-	)
+        [Parameter(
+            Position=2
+        )]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
+    )
 
-	process {
-		invoke-command @psboundparameters {
-            dir $env:ProgramFiles\windowspowershell\modules\*_tmp | 
+    process {
+        invoke-command @psboundparameters {
+            dir $env:ProgramFiles\windowspowershell\modules\*_tmp |
                 remove-item -recurse -force
-            get-process WmiPrvSE | stop-process -force 
+            get-process WmiPrvSE | stop-process -force
         }
     }
 }
+
 

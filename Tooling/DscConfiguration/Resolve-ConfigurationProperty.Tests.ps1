@@ -2,32 +2,32 @@ Remove-Module DscConfiguration -Force -ErrorAction SilentlyContinue
 Import-Module -Name $PSScriptRoot\DscConfiguration.psd1 -Force -ErrorAction Stop
 
 describe 'how Resolve-DscConfigurationProperty responds' {
-    
+
     $ConfigurationData = @{
-        AllNodes = @(); 
-        SiteData = @{}; 
-        Services = @{}; 
+        AllNodes = @();
+        SiteData = @{};
+        Services = @{};
         Applications = @{};
     }
-    $ConfigurationData.SiteData = @{ NY = @{ PullServerPath = 'ConfiguredBySite' } }  
-    context 'when a node has an override for a site property' {        
+    $ConfigurationData.SiteData = @{ NY = @{ PullServerPath = 'ConfiguredBySite' } }
+    context 'when a node has an override for a site property' {
         $Node = @{
             Name = 'TestBox'
             Location = 'NY'
             PullServerPath = 'ConfiguredByNode'
         }
 
-        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'PullServerPath' 
-        
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'PullServerPath'
+
         it "should return the node's override" {
             $result | should be 'ConfiguredByNode'
         }
     }
 
-    context 'when a node does not override the site property' {                   
+    context 'when a node does not override the site property' {
         $Node = @{
             Name = 'TestBox'
-            Location = 'NY'            
+            Location = 'NY'
         }
 
         $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'PullServerPath'
@@ -40,14 +40,14 @@ describe 'how Resolve-DscConfigurationProperty responds' {
         $ConfigurationData.SiteData = @{
             All = @{ PullServerPath = 'ConfiguredByDefault' }
             NY = @{ PullServerPath = 'ConfiguredBySite' }
-        }            
-        
-        $Node = @{
-            Name = 'TestBox'
-            Location = 'OR'            
         }
 
-        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'PullServerPath' 
+        $Node = @{
+            Name = 'TestBox'
+            Location = 'OR'
+        }
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'PullServerPath'
         it "should return the site's default value" {
             $result | should be 'ConfiguredByDefault'
         }
@@ -121,14 +121,14 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
     $ConfigurationData.Services = @{
         MyTestService = @{
             DataSource = 'MyDefaultValue'
-        }        
-    }            
-    
+        }
+    }
+
     context 'when a default value is supplied for a service and node has a property override' {
 
         $Node = @{
             Name = 'TestBox'
-            Location = 'NY'            
+            Location = 'NY'
             Services = @{
                 MyTestService = @{
                     DataSource = 'MyCustomValue'
@@ -146,12 +146,12 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
 
     context 'when a site level override is present' {
         $ConfigurationData.SiteData = @{
-            NY = @{   
+            NY = @{
                 Services = @{
                     MyTestService = @{
                         DataSource = 'MySiteValue'
-                    }                
-                }       
+                    }
+                }
             }
         }
         $Node = @{
@@ -159,7 +159,7 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
             Location = 'NY'
         }
 
-        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource 
+        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource
 
         it 'should return the override from the site' {
             $result | should be 'MySiteValue'
@@ -172,13 +172,13 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
                 Services = @{
                     MyTestService =  @{
                             DataSource = 'FromAllSite'
-                        } 
+                        }
                 }
             }
-            NY = @{   
+            NY = @{
                 Services = @{
-                    MyTestService = @{}                
-                }       
+                    MyTestService = @{}
+                }
             }
         }
         $ConfigurationData.Services = @{
@@ -205,9 +205,9 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
         }
         $ConfigurationData.SiteData = @{
             All = @{ DataSource = 'NotMyDefaultValue'}
-            NY = @{  
-                Services = @{                  
-                    MyTestService = @{}                    
+            NY = @{
+                Services = @{
+                    MyTestService = @{}
                 }
             }
         }
@@ -216,7 +216,7 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
             Location = 'NY'
         }
 
-        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource 
+        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName DataSource
 
         it 'should return the default value from the service' {
             $result | should be 'MyDefaultValue'
@@ -232,14 +232,14 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
             MissingFromFirstServiceConfig = 'FromNodeWithoutService'
         }
 
-        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName MissingFromFirstServiceConfig 
+        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService -PropertyName MissingFromFirstServiceConfig
         it 'should fall back to checking for the parameter without the service name' {
             $result | should be 'FromNodeWithoutService'
         }
     }
 
     context 'when two services are specified default is specified' {
-        $ConfigurationData.Services = @{ 
+        $ConfigurationData.Services = @{
             MyTestService = @{}
             MySecondTestService = @{
                 MissingFromFirstServiceConfig = 'FromSecondServiceConfig'
@@ -247,11 +247,11 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
         }
         $Node = @{
             Name = 'TestBox'
-            Location = 'NY'            
+            Location = 'NY'
         }
-        
-        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService, MySecondTestService -PropertyName MissingFromFirstServiceConfig 
-        
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -ServiceName MyTestService, MySecondTestService -PropertyName MissingFromFirstServiceConfig
+
         it 'should retrieve the parameter from the second service before falling back to the node' {
             $result | should be 'FromSecondServiceConfig'
         }
@@ -261,71 +261,71 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
 describe 'how Resolve-DscConfigurationProperty (applications) responds' {
     $ConfigurationData = @{AllNodes = @(); SiteData = @{} ; Services = @{}; Applications = @{}}
     $ConfigurationData.Applications = @{
-        Git = @{ 
+        Git = @{
             LocalPath = 'c:\installs\Git\'
             InstallerName = 'setup.exe'
-            SourcePath = 'c:\global\git\setup.exe' 
+            SourcePath = 'c:\global\git\setup.exe'
         }
         Mercurial = @{
-            LocalPath = 'c:\installs\Mercurial\' 
-            SourcePath = 'c:\global\Mercurial\setup.exe' 
+            LocalPath = 'c:\installs\Mercurial\'
+            SourcePath = 'c:\global\Mercurial\setup.exe'
             InstallerName = 'Setup.exe'
-        } 
-        WinMerge = @{ 
+        }
+        WinMerge = @{
             LocalPath = 'c:\installs\winmerge\'
             InstallerName = 'setup.exe'
-            SourcePath = 'c:\global\winmerge\setup.exe' 
-        } 
+            SourcePath = 'c:\global\winmerge\setup.exe'
+        }
     }
     $ConfigurationData.SiteData.NY = @{
-        Applications = @{ 
+        Applications = @{
             Mercurial = @{
-                LocalPath = 'c:\installs\Mercurial\' 
-                SourcePath = 'c:\site\Mercurial\setup.exe' 
+                LocalPath = 'c:\installs\Mercurial\'
+                SourcePath = 'c:\site\Mercurial\setup.exe'
                 InstallerName = 'Setup.exe'
-            } 
-            WinMerge = @{ 
+            }
+            WinMerge = @{
                 LocalPath = 'c:\installs\winmerge\'
                 InstallerName = 'setup.exe'
-                SourcePath = 'c:\site\winmerge\setup.exe' 
-            }  
+                SourcePath = 'c:\site\winmerge\setup.exe'
+            }
         }
     }
     $Node = @{
         Name = 'TestBox'
-        Location = 'NY' 
-        Applications = @{ 
-            WinMerge = @{ 
+        Location = 'NY'
+        Applications = @{
+            WinMerge = @{
                 LocalPath = 'c:\installs\winmerge\'
                 InstallerName = 'setup.exe'
-                SourcePath = 'c:\node\winmerge\setup.exe' 
-            } 
+                SourcePath = 'c:\node\winmerge\setup.exe'
+            }
         }
     }
-    context 'When there is a base setting for an application' { 
+    context 'When there is a base setting for an application' {
 
         $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Git'
 
         it 'should return the application level configuration' {
-            $result.SourcePath | should be 'c:\global\git\setup.exe' 
+            $result.SourcePath | should be 'c:\global\git\setup.exe'
         }
     }
 
     context 'When there is a site level override for the base setting for an application' {
-        
-        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Mercurial' 
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Mercurial'
 
         it 'should return the site application level configuration' {
-            $result.SourcePath | should be 'c:\site\Mercurial\setup.exe' 
+            $result.SourcePath | should be 'c:\site\Mercurial\setup.exe'
         }
     }
 
     context 'When there is a node level override for the base setting for an application' {
 
-        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'WinMerge' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'WinMerge'
 
         it 'should return the node application level configuration' {
-            $result.SourcePath | should be 'c:\node\winmerge\setup.exe' 
+            $result.SourcePath | should be 'c:\node\winmerge\setup.exe'
         }
     }
 }
@@ -335,96 +335,97 @@ describe 'how Resolve-DscConfigurationProperty (applications/services) responds'
     $ConfigurationData.Applications.Sublime = @{
         LocalPath = 'c:\installs\Sublime\'
         InstallerName = 'setup.exe'
-        SourcePath = 'c:\default\Sublime\setup.exe' 
+        SourcePath = 'c:\default\Sublime\setup.exe'
     }
-    $ConfigurationData.Services = @{ 
-        BuildAgent = @{ 
-            Applications = @{ 
-                Git = @{ 
+    $ConfigurationData.Services = @{
+        BuildAgent = @{
+            Applications = @{
+                Git = @{
                     LocalPath = 'c:\installs\Git\'
                     InstallerName = 'setup.exe'
-                    SourcePath = 'c:\global\git\setup.exe' 
+                    SourcePath = 'c:\global\git\setup.exe'
                 }
                 Mercurial = @{
-                    LocalPath = 'c:\installs\Mercurial\' 
-                    SourcePath = 'c:\global\Mercurial\setup.exe' 
+                    LocalPath = 'c:\installs\Mercurial\'
+                    SourcePath = 'c:\global\Mercurial\setup.exe'
                     InstallerName = 'Setup.exe'
-                } 
-                WinMerge = @{ 
+                }
+                WinMerge = @{
                     LocalPath = 'c:\installs\winmerge\'
                     InstallerName = 'setup.exe'
-                    SourcePath = 'c:\global\winmerge\setup.exe' 
-                } 
+                    SourcePath = 'c:\global\winmerge\setup.exe'
+                }
             }
         }
     }
-    $ConfigurationData.SiteData.NY = @{ 
+    $ConfigurationData.SiteData.NY = @{
         Services = @{
             BuildAgent =  @{
-                Applications = @{ 
+                Applications = @{
                     Mercurial = @{
-                        LocalPath = 'c:\installs\Mercurial\' 
-                        SourcePath = 'c:\site\Mercurial\setup.exe' 
+                        LocalPath = 'c:\installs\Mercurial\'
+                        SourcePath = 'c:\site\Mercurial\setup.exe'
                         InstallerName = 'Setup.exe'
-                    } 
-                    WinMerge = @{ 
+                    }
+                    WinMerge = @{
                         LocalPath = 'c:\installs\winmerge\'
                         InstallerName = 'setup.exe'
-                        SourcePath = 'c:\site\winmerge\setup.exe' 
-                    }  
+                        SourcePath = 'c:\site\winmerge\setup.exe'
+                    }
                 }
-            }  
+            }
         }
     }
     $Node = @{
         Name = 'TestBox'
-        Location = 'NY' 
+        Location = 'NY'
         Services = @{
             BuildAgent = @{
-                Applications = @{ 
-                    WinMerge = @{ 
+                Applications = @{
+                    WinMerge = @{
                         LocalPath = 'c:\installs\winmerge\'
                         InstallerName = 'setup.exe'
-                        SourcePath = 'c:\node\winmerge\setup.exe' 
-                    } 
+                        SourcePath = 'c:\node\winmerge\setup.exe'
+                    }
                 }
             }
         }
     }
-    context 'When there is a base setting for an application' { 
+    context 'When there is a base setting for an application' {
 
-        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Git' -ServiceName 'BuildAgent' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Git' -ServiceName 'BuildAgent'
 
         it 'should return the application level configuration' {
-            $result.SourcePath | should be 'c:\global\git\setup.exe' 
+            $result.SourcePath | should be 'c:\global\git\setup.exe'
         }
     }
 
     context 'When there is a site level override for the base setting for an application' {
-        
-        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Mercurial' -ServiceName 'BuildAgent' 
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Mercurial' -ServiceName 'BuildAgent'
 
         it 'should return the site application level configuration' {
-            $result.SourcePath | should be 'c:\site\Mercurial\setup.exe' 
+            $result.SourcePath | should be 'c:\site\Mercurial\setup.exe'
         }
     }
 
     context 'When there is a node level override for the base setting for an application' {
 
-        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'WinMerge' -ServiceName 'BuildAgent' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'WinMerge' -ServiceName 'BuildAgent'
 
         it 'should return the node application level configuration' {
-            $result.SourcePath | should be 'c:\node\winmerge\setup.exe' 
+            $result.SourcePath | should be 'c:\node\winmerge\setup.exe'
         }
     }
 
     context 'When there is no service level setting for an application, but there is a default config' {
 
-        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Sublime' -ServiceName 'BuildAgent' 
+        $result = Resolve-DscConfigurationProperty -Node $Node -Application 'Sublime' -ServiceName 'BuildAgent'
 
         it 'should return the node application level configuration' {
-            $result.SourcePath | should be 'c:\default\Sublime\setup.exe' 
+            $result.SourcePath | should be 'c:\default\Sublime\setup.exe'
         }
     }
 }
 #>
+

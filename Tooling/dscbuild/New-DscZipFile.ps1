@@ -17,7 +17,7 @@ function New-DscZipFile
         [Switch] $Force
     )
 
-    
+
     begin
     {
         [Byte[]] $zipHeader = 0x50,0x4B,0x05,0x06,0x00,0x00,0x00,0x00,
@@ -29,7 +29,7 @@ function New-DscZipFile
         ## Create the Zip File
         $Version = Get-DscResourceVersion $path
         $folderName = $ZipFile + "_"+ $Version
-                
+
         $ZipName = $executionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("$folderName.zip")
         Write-Verbose "Packing $path to to $ZipName."
 
@@ -65,7 +65,7 @@ function New-DscZipFile
             Start-Sleep -Seconds 5
         }
         finally
-        {            
+        {
             ## Release the shell object
             $shellObject = $null
             $ZipFileObject = $null
@@ -73,5 +73,6 @@ function New-DscZipFile
         get-item $ZipName
     }
 }
+
 
 

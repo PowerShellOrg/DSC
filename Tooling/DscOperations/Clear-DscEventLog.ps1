@@ -1,12 +1,12 @@
 function Clear-DSCEventLog
-{  
-    param ($session) 
+{
+    param ($session)
     icm $session {
         function Clear-WinEvent
         {
             [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='High',DefaultParameterSetName="LogName")]
-    
-            param(        
+
+            param(
                 [Parameter(
                     Position=0,
                     Mandatory=$true,
@@ -14,8 +14,8 @@ function Clear-DSCEventLog
                     ValueFromPipeline=$true,
                     ValueFromPipelineByPropertyName=$true
                 )]
-                [String[]]$LogName,        
-    
+                [String[]]$LogName,
+
                 [Parameter(
                     Position=0,
                     Mandatory=$true,
@@ -23,47 +23,48 @@ function Clear-DSCEventLog
                     ValueFromPipeline=$true
                 )]
                 [System.Diagnostics.Eventing.Reader.EventLogConfiguration[]]$EventLog,
-        
-                [switch]$Force
-        
-            )    
 
-    
+                [switch]$Force
+
+            )
+
+
             process
             {
                 switch($PSCmdlet.ParameterSetName)
                 {
-                    'LogName' 
+                    'LogName'
                     {
                         Write-Verbose "ParameterSetName=LogName"
                         foreach($l in $LogName)
-                        {            
+                        {
                             if($Force -or $PSCmdlet.ShouldProcess($env:COMPUTERNAME,"Clear Event log '$l'"))
                             {
                                 [System.Diagnostics.Eventing.Reader.EventLogSession]::GlobalSession.ClearLog($l)
-                            }                    
+                            }
                         }
                     }
-            
+
                     'EventLogConfiguration'
-                    {                
+                    {
                         Write-Verbose "ParameterSetName=EventLogConfiguration"
                         foreach($l in $EventLog)
-                        {            
+                        {
                             if($Force -or $PSCmdlet.ShouldProcess($env:COMPUTERNAME,"Clear Event log '$($l.LogName)'"))
                             {
                                 [System.Diagnostics.Eventing.Reader.EventLogSession]::GlobalSession.ClearLog($l.LogName)
-                            }                    
-                        }                 
-                
+                            }
+                        }
+
                     }
                 }
             }
         }
-        Get-WinEvent -ListLog Microsoft-Windows-DSC/Operational  -Force | 
+        Get-WinEvent -ListLog Microsoft-Windows-DSC/Operational  -Force |
             clear-winevent -force
 
-    }    
+    }
 }
+
 
 

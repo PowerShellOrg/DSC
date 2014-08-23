@@ -11,10 +11,10 @@ function Get-DscEncryptedPassword
         [string]
         $StoreName,
         [parameter(
-            ParameterSetName = 'ByStoreName'         
-        )]        
+            ParameterSetName = 'ByStoreName'
+        )]
         [string]
-        $Path = (Join-path $script:ConfigurationDataPath 'Credentials'), 
+        $Path = (Join-path $script:ConfigurationDataPath 'Credentials'),
         [parameter(
             ParameterSetName = 'ByPipeline',
             ValueFromPipelineByPropertyName,
@@ -38,12 +38,12 @@ function Get-DscEncryptedPassword
 
             Write-Verbose "Decrypting $EncryptedFilePath."
             $DecryptedDataFile = ConvertFrom-EncryptedFile -path $EncryptedFilePath -CertificatePath $LocalCertificatePath
-            
+
             Write-Verbose "Loading $($DecryptedDataFile.BaseName) into Credentials."
             $Credentials = (Get-Hashtable $DecryptedDataFile.FullName)
 
             Remove-PlainTextPassword $DecryptedDataFile.FullName
-            
+
             if ($PSBoundParameters.ContainsKey('UserName'))
             {
                 $CredentialsToReturn = @{}
@@ -60,4 +60,5 @@ function Get-DscEncryptedPassword
         }
     }
 }
+
 

@@ -66,8 +66,8 @@ RequiredModules = @('Pester', 'cDscResourceDesigner')
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = 'Invoke-DscBuild', 
-    'Get-DscResourceWmiClass', 
+FunctionsToExport = 'Invoke-DscBuild',
+    'Get-DscResourceWmiClass',
     'Remove-DscResourceWmiClass'
 
 # Cmdlets to export from this module
@@ -95,5 +95,6 @@ FunctionsToExport = 'Invoke-DscBuild',
 # DefaultCommandPrefix = ''
 
 }
+
 
 

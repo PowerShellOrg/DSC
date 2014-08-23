@@ -1,4 +1,4 @@
-param 
+param
 (
     [string]
     $ConfigurationDataPath,
@@ -54,7 +54,7 @@ function Set-DscConfigurationDataPath {
 }
 Set-Alias -Name 'Set-ConfigurationDataPath' -Value 'Set-DscConfigurationDataPath'
 
-function Get-DscConfigurationDataPath {    
+function Get-DscConfigurationDataPath {
 
     $script:ConfigurationDataPath
 }
@@ -70,17 +70,17 @@ function Resolve-DscConfigurationDataPath {
     if ( -not ($psboundparameters.containskey('Path')) ) {
         if ([string]::isnullorempty($script:ConfigurationDataPath)) {
             if (test-path $env:ConfigurationDataPath) {
-                $path = $env:ConfigurationDataPath    
-            }            
+                $path = $env:ConfigurationDataPath
+            }
         }
         else {
             $path = $script:ConfigurationDataPath
-        }        
+        }
     }
 
     if ( -not ([string]::isnullorempty($path)) ) {
         Set-DscConfigurationDataPath -path $path
-    } 
-   
+    }
+
 }
 Set-Alias -Name 'Resolve-ConfigurationDataPath' -Value 'Resolve-DscConfigurationDataPath'

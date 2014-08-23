@@ -3,10 +3,10 @@ function Where-DscResource
     param (
         [parameter(ValueFromPipeline)]
         [IO.FileSystemInfo]
-        $InputObject,    
+        $InputObject,
         [parameter()]
         [string]
-        $Destination, 
+        $Destination,
         [switch]
         [alias('IsValid')]
         $CheckIfIsValid
@@ -15,7 +15,7 @@ function Where-DscResource
     {
         if ($CheckIfIsValid)
         {
-            $AllResources = Get-DscResource | 
+            $AllResources = Get-DscResource |
                 Where-Object {$_.implementedas -like 'PowerShell'}
 
             Add-DscBuildParameter -Name TestedModules -value @()
@@ -37,10 +37,10 @@ function Test-DscModuleResourceIsValid
     param (
         [parameter(ValueFromPipeline)]
         [IO.FileSystemInfo]
-        $InputObject,    
+        $InputObject,
         [parameter()]
         [string]
-        $Destination, 
+        $Destination,
         [switch]
         [alias('Changed')]
         $CheckIfChanged,
@@ -73,15 +73,15 @@ function Get-DscResourceForModule
     $Name = $inputobject.Name
     Write-Verbose "Retrieving all resources and filtering for $Name."
 
-    $ResourcesInModule = $AllResources | 
-        Where-Object { 
+    $ResourcesInModule = $AllResources |
+        Where-Object {
             Write-Verbose "`tChecking for $($_.name) in $name."
-            $_.module -like $name 
+            $_.module -like $name
         } |
-        ForEach-Object { 
-            Write-Verbose "`t$Name contains $($_.Name)."                 
-            $_ 
-        } 
+        ForEach-Object {
+            Write-Verbose "`t$Name contains $($_.Name)."
+            $_
+        }
     if ($ResourcesInModule.count -eq 0)
     {
         Write-Warning "$Name does not contain any resources."
@@ -99,11 +99,12 @@ function Get-FailedDscResource
 
     foreach ($resource in $AllModuleResources)
     {
-        if (-not (Test-cDscResource -Name $Resource.Name))        
-        {            
-            Write-Warning "`tResources $($_.name) is invalid."  
+        if (-not (Test-cDscResource -Name $Resource.Name))
+        {
+            Write-Warning "`tResources $($_.name) is invalid."
             $resource
         }
     }
 }
+
 

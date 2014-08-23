@@ -6,11 +6,11 @@ function Add-NodeRoleFromServiceConfigurationData {
     $UpdatedNodes = $script:ConfigurationData.AllNodes
     foreach ($Service in $script:ConfigurationData.Services.Keys) {
 
-        $UpdatedNodes = $UpdatedNodes | 
-          Add-ServiceConfigurationData -ServiceName $Service  
+        $UpdatedNodes = $UpdatedNodes |
+          Add-ServiceConfigurationData -ServiceName $Service
 
     }
-    $script:ConfigurationData.AllNodes = $UpdatedNodes    
+    $script:ConfigurationData.AllNodes = $UpdatedNodes
 }
 
 function Add-ServiceConfigurationData {
@@ -21,12 +21,12 @@ function Add-ServiceConfigurationData {
     [parameter(ValueFromPipeline)]
     [System.Collections.Hashtable]
     $InputObject
-  )  
+  )
   process {
     Write-Verbose "`tProcessing $($InputObject.Name) for Service $ServiceName"
 
     if ($script:ConfigurationData.Services[$ServiceName].Nodes -contains $InputObject.Name) {
-      $InputObject = $InputObject | Assert-RolesConfigurationData -ServiceName $ServiceName       
+      $InputObject = $InputObject | Assert-RolesConfigurationData -ServiceName $ServiceName
     }
 
     Write-Verbose "`t`tRoles on $($InputObject.Name) are: $($InputObject.Roles.Keys)"
@@ -38,13 +38,13 @@ function Add-ServiceConfigurationData {
 
 function Assert-RolesConfigurationData {
   [cmdletbinding()]
-  param (   
+  param (
     [string]
     $ServiceName,
     [parameter(ValueFromPipeline)]
     [System.Collections.Hashtable]
     $InputObject
-  ) 
+  )
 
   process {
     if (-not ($InputObject.ContainsKey('Roles'))) {
@@ -62,6 +62,7 @@ function Assert-RolesConfigurationData {
     $InputObject
   }
 }
+
 
 
 

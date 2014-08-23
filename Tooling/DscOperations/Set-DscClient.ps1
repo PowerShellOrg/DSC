@@ -19,7 +19,7 @@ function Set-DscClient
         [ValidateNotNullOrEmpty()]
         [alias('ComputerName', 'PSComputerName', '__Server')]
         [string]
-        $Name, 
+        $Name,
 
         #NodeName is what will be set for the ConfigurationID on the LCM.
         [parameter(
@@ -29,7 +29,7 @@ function Set-DscClient
             ParameterSetName = 'FromCommandLine'
         )]
         [string]
-        $NodeName, 
+        $NodeName,
 
         #The url for the Pull Server to contact for configurations.
         [parameter(
@@ -56,7 +56,7 @@ function Set-DscClient
             ParameterSetName = 'ClearConfigOnly'
         )]
         [switch]
-        $ClearConfigurationOnly, 
+        $ClearConfigurationOnly,
 
         #The ConfigurationData hashtable (from Get-DscConfigurationData in the DscConfiguration module).
         [parameter(
@@ -67,28 +67,28 @@ function Set-DscClient
         [System.Collections.Hashtable]
         $ConfigurationData
     )
-    
+
     process {
-        
+
         if ($PSCmdlet.ParameterSetName -eq 'FromConfigurationData') {
-            $Node = ($ConfigurationData.AllNodes | 
+            $Node = ($ConfigurationData.AllNodes |
                 Where-Object { $_.Name -like $Name })
             $NodeName =  $Node.NodeName
             $CertificateThumbprint = $ConfigurationData['AllNodes'].where({$_.NodeName -eq '*'}).CertificateID
             $PullServerUrl = Resolve-DscConfigurationProperty -ConfigurationData $ConfigurationData -Node $Node -PropertyName 'PullServer'
-        }       
+        }
 
-        $ICMParams = @{ 
-            Session = New-PSSession -ComputerName $Name 
+        $ICMParams = @{
+            Session = New-PSSession -ComputerName $Name
         }
 
         Write-Verbose 'Clearing out pending and current MOFs and existing LCM configuration.'
         icm @ICMParams -ScriptBlock {
             dir 'c:\windows\System32\configuration\*.mof*' | Remove-Item
-            Get-Process -Name WmiPrvSE -ErrorAction SilentlyContinue | 
-                Stop-Process -Force     
+            Get-Process -Name WmiPrvSE -ErrorAction SilentlyContinue |
+                Stop-Process -Force
         }
-        
+
         if (-not $ClearConfigurationOnly)
         {
             Write-Verbose ""
@@ -97,12 +97,12 @@ function Set-DscClient
             Write-Verbose "`tConfigurationID = $ConfigurationID"
             Write-Verbose "`tPullServerUrl = $PullServerUrl"
             Write-Verbose "`tCertificateID = $CertificateThumbprint"
-            
-                    
+
+
             configuration PullClientConfig
             {
-                param ($NodeName, $ConfigurationID, $PullServer, $LocalCertificateThumbprint)    
-                
+                param ($NodeName, $ConfigurationID, $PullServer, $LocalCertificateThumbprint)
+
                 Node $NodeName
                 {
                     LocalConfigurationManager
@@ -110,10 +110,10 @@ function Set-DscClient
                         AllowModuleOverwrite = 'True'
                         CertificateID = $LocalCertificateThumbprint
                         ConfigurationID = $ConfigurationID
-                        ConfigurationModeFrequencyMins = 60 
+                        ConfigurationModeFrequencyMins = 60
                         ConfigurationMode = 'ApplyAndAutoCorrect'
                         RebootNodeIfNeeded = 'True'
-                        RefreshMode = 'PULL' 
+                        RefreshMode = 'PULL'
                         DownloadManagerName = 'WebDownloadManager'
                         DownloadManagerCustomData = (@{ServerUrl = "http://$PullServer/psdscpullserver.svc";AllowUnsecureConnection = 'True'})
                     }
@@ -122,9 +122,9 @@ function Set-DscClient
 
             if (-not [string]::IsNullOrEmpty($NodeName))
             {
-                Write-Verbose "Generating Pull Client Configuration for $Name."                
+                Write-Verbose "Generating Pull Client Configuration for $Name."
                 PullClientConfig -NodeName $Name -ConfigurationID $NodeName -PullServer $PullServerUrl -LocalCertificateThumbprint $CertificateThumbprint
-                
+
                 Write-Verbose "Applying Pull Client Configuration for $Name"
                 Set-DSCLocalConfigurationManager -Path .\PullClientConfig -ComputerName $Name -Verbose
                 Remove-Item ./pullclientconfig -Recurse -Force
@@ -133,9 +133,10 @@ function Set-DscClient
             {
                 Write-Verbose "No matching NodeName for $Name."
             }
-            
-        }        
+
+        }
     }
 }
+
 
 
