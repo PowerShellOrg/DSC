@@ -313,34 +313,67 @@ function Assert-SiteOverride {
 		[System.Collections.Hashtable]
 		$ConfigurationData
 	)
+
+    return Resolve-SiteProperty @PSBoundParameters -Site $Node.Location
+}
+
+function Resolve-SiteProperty
+{
+	[cmdletbinding()]
+	param (
+		[System.Collections.Hashtable]
+		$Node,
+		[string[]]
+		$ServiceName,
+		[string]
+		$Application,
+		[string]
+		$PropertyName,
+		[switch]
+		$AllowMultipleResults,
+		[System.Collections.Hashtable]
+		$ConfigurationData,
+        [string]
+        $Site
+	)
+
 	$Value = @()	
-	$Site = $Node.Location
+    $resolved = $null
+    $siteNode = $null
+
 	Write-Verbose "`tStarting to check Site $Site"
-	if ((Test-HashtableKey $ConfigurationData 'SiteData' -NumberOfTabs 2) -and 
-			 (Test-HashtableKey $ConfigurationData.SiteData $Site -NumberOfTabs 2)
-	 	) {
+    if (Resolve-NewHashtableProperty -Hashtable $ConfigurationData -PropertyName "SiteData\$Site" -Value ([ref] $siteNode))
+    {
 		if ( ($ServiceName.count -eq 0) -and 
 				(-not [string]::IsNullOrEmpty($Application)) -and 
-				(Test-ApplicationKey -Hashtable $ConfigurationData.SiteData[$Site] -Application $Application )) {
-			$Value += Resolve-HashtableProperty $ConfigurationData.SiteData[$Site]['Applications']	$Application
+				(Test-ApplicationKey -Hashtable $siteNode -Application $Application )) {
+			$Value += Resolve-HashtableProperty $siteNode['Applications']	$Application
 			
 		}
 		elseif ( ($ServiceName.count -eq 0) -and 
-					(Test-HashtableKey $ConfigurationData.SiteData[$Site] $PropertyName ) ){			
-				$Value += Resolve-HashtableProperty $ConfigurationData.SiteData[$Site] $PropertyName
+					(Resolve-NewHashtableProperty -Hashtable $siteNode -PropertyName $PropertyName -Value ([ref] $resolved)) ){			
+				$Value += $resolved
 		}
 		else {
 			foreach ($Service in $ServiceName) {
-				if (Test-HashtableKey $ConfigurationData.SiteData[$Site] 'Services' -NumberOfTabs 2) {
-					if (Test-HashtableKey $ConfigurationData.SiteData[$Site]['Services'] $Service -NumberOfTabs 3)  {
-						if (Test-ApplicationKey -Hashtable $ConfigurationData.SiteData[$Site]['Services'][$Service] -Application $Application)  {
-							$Value += Resolve-HashtableProperty $ConfigurationData.SiteData[$Site]['Services'][$Service]['Applications'] $Application
-						}
-						elseif ( Test-ServiceKey -Hashtable $ConfigurationData.SiteData[$Site] -Service $Service -PropertyName $PropertyName ) {
-							$Value += Resolve-HashtableProperty $ConfigurationData.SiteData[$Site]['Services'][$Service] $PropertyName
-						}
-					}					
-				}
+                if ($PropertyName)
+                {
+                    if (Resolve-NewHashtableProperty -Hashtable $siteNode -PropertyName "Services\$Service\$PropertyName" -Value ([ref] $resolved))
+                    {
+                        $Value += $resolved
+                    }
+                }
+                else
+                {
+				    if (Test-HashtableKey $siteNode 'Services' -NumberOfTabs 2) {
+					    if (Test-HashtableKey $siteNode['Services'] $Service -NumberOfTabs 3)  {
+					        if (Test-ApplicationKey -Hashtable $siteNode['Services'][$Service] -Application $Application)  {
+						        $Value += Resolve-HashtableProperty $siteNode['Services'][$Service]['Applications'] $Application
+					        }
+
+					    }					
+				    }
+                }
 			}
 		}
 	}	
@@ -364,6 +397,12 @@ function Assert-GlobalSetting {
 		[System.Collections.Hashtable]
 		$ConfigurationData
 	)
+    
+    if ($PropertyName -and -not $ServiceName)
+    {
+        return Resolve-SiteProperty @PSBoundParameters -Site All
+    }
+
 	$Value = @()
 	Write-Verbose "Bound parameters include:"
 	foreach ($key in $PSBoundParameters.keys) {

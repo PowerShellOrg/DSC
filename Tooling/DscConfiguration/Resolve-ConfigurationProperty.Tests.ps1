@@ -108,7 +108,7 @@ describe 'how Resolve-DscConfigurationProperty responds' {
         }
 
         It 'Returns the correct global value' {
-            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'GlobalLevel1'}
+            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'GlobalLevel1\Property'}
             $scriptBlock | Should Not Throw
             & $scriptBlock | Should Be 'Global Value'
         }
