@@ -252,7 +252,10 @@ function Assert-NodeOverride {
 		[System.Collections.Hashtable]
 		$ConfigurationData
 	)
-	$Value = @()	
+	$Value = @()
+
+    $resolved = $null
+
 	Write-Verbose "`tChecking Node: $($Node.Name)"		
 	if (( $ServiceName.count -eq 0 ) -and 
 		( -not [string]::IsNullOrEmpty($Application) ) -and 
@@ -262,22 +265,28 @@ function Assert-NodeOverride {
 		
 	}
 	elseif (($ServiceName.count -eq 0) -and 
-			( Test-HashtableKey $Node $PropertyName -NumberOfTabs 2)) {			
-		$Value += Resolve-HashtableProperty $Node $PropertyName		
+			( Resolve-NewHashtableProperty -Hashtable $Node -PropertyName $PropertyName -Value ([ref] $resolved))) {			
+		$Value += $resolved
 	}
 	else {			
 		foreach ($Service in $ServiceName) {	
-			if ( Test-HashtableKey $Node 'Services' -NumberOfTabs 2) {
-				if (Test-HashtableKey $Node['Services'] $Service -NumberOfTabs 3) {
-
-					if ( Test-ServiceKey -Hashtable $Node -Service $Service -PropertyName $PropertyName ) {
-						$Value += Resolve-HashtableProperty $Node['Services'][$Service] $PropertyName
-					}
-					elseif (Test-ApplicationKey -Hashtable $Node['Services'][$Service] -Application $Application)  {
-						$Value += Resolve-HashtableProperty $Node['Services'][$Service]['Applications'] $Application
-					}
-				}
-			}
+            if ($PropertyName)
+            {
+                if (Resolve-NewHashtableProperty -Hashtable $Node -PropertyName "Services\$Service\$PropertyName" -Value ([ref] $resolved))
+                {
+                    $Value += $resolved
+                }
+            }
+            else
+            {
+			    if (Test-HashtableKey $Node 'Services' -NumberOfTabs 2) {
+				    if (Test-HashtableKey $Node['Services'] $Service -NumberOfTabs 3) {
+					    if (Test-ApplicationKey -Hashtable $Node['Services'][$Service] -Application $Application)  {
+						    $Value += Resolve-HashtableProperty $Node['Services'][$Service]['Applications'] $Application
+					    }
+				    }
+			    }
+            }
 		}
 	}
 

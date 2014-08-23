@@ -58,13 +58,26 @@ describe 'how Resolve-DscConfigurationProperty responds' {
             Level1 = @{
                 Level2 = 'Property Value'
             }
+
+            Services = @{
+                TestService = @{
+                    Level1 = @{
+                        Level2 = 'Property Value from Service'
+                    }
+                }
+            }
         }
 
-        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'Level1\Level2' }
-
-        it 'Returns the correct value' {
+        It 'Returns the correct value on the node' {
+            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'Level1\Level2' }
             $scriptBlock | Should Not Throw
             & $scriptBlock | Should Be 'Property Value'
+        }
+
+        It 'Returns the correct value on the service' {
+            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'Level1\Level2' -ServiceName TestService }
+            $scriptBlock | Should Not Throw
+            & $scriptBlock | Should Be 'Property Value from Service'
         }
     }
 }
