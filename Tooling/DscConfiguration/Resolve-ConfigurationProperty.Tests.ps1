@@ -54,7 +54,28 @@ describe 'how Resolve-DscConfigurationProperty responds' {
     }
 
     Context 'Resolving nested properties' {
+        $ConfigurationData.SiteData = @{
+            All = @{
+                GlobalLevel1 = @{
+                    Property = 'Global Value'
+                }
+
+                SiteLevel1 = @{
+                    Property = 'Global Value'
+                }
+            }
+
+            NY = @{
+                SiteLevel1 = @{
+                    Property = 'Site Value'
+                }
+            }
+        }
+
         $Node = @{
+            Name = 'TestNode'
+            Location = 'NY'
+
             Level1 = @{
                 Level2 = 'Property Value'
             }
@@ -78,6 +99,18 @@ describe 'how Resolve-DscConfigurationProperty responds' {
             $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'Level1\Level2' -ServiceName TestService }
             $scriptBlock | Should Not Throw
             & $scriptBlock | Should Be 'Property Value from Service'
+        }
+
+        It 'Returns the correct value on the site' {
+            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'SiteLevel1\Property' }
+            $scriptBlock | Should Not Throw
+            & $scriptBlock | Should Be 'Site Value'
+        }
+
+        It 'Returns the correct global value' {
+            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'GlobalLevel1'}
+            $scriptBlock | Should Not Throw
+            & $scriptBlock | Should Be 'Global Value'
         }
     }
 }
