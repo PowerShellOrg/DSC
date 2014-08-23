@@ -52,6 +52,21 @@ describe 'how Resolve-DscConfigurationProperty responds' {
             $result | should be 'ConfiguredByDefault'
         }
     }
+
+    Context 'Resolving nested properties' {
+        $Node = @{
+            Level1 = @{
+                Level2 = 'Property Value'
+            }
+        }
+
+        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'Level1\Level2' }
+
+        it 'Returns the correct value' {
+            $scriptBlock | Should Not Throw
+            & $scriptBlock | Should Be 'Property Value'
+        }
+    }
 }
 
 describe 'how Resolve-DscConfigurationProperty (services) responds' {
