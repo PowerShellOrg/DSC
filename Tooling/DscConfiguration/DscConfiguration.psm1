@@ -33,7 +33,7 @@ $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services
 . $psscriptroot\Get-SiteDataConfigurationData.ps1
 . $psscriptroot\Get-EncryptedPassword.ps1
 . $psscriptroot\Resolve-ConfigurationProperty.ps1
-. $psscriptroot\Test-NodeHasRole.ps1
+. $psscriptroot\Test-ConfigurationPropertyExists.ps1
 
 . $psscriptroot\Add-EncryptedPassword.ps1
 . $psscriptroot\ConvertFrom-EncryptedFile.ps1

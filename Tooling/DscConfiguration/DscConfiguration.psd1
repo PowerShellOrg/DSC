@@ -76,7 +76,7 @@ FunctionsToExport = 'Get-DscConfigurationData',
                     'Get-DscConfigurationDataPath',
                     'New-DscConfigurationDataStore',
                     'Resolve-DscConfigurationProperty',
-                    'Test-NodeHasRole'
+                    'Test-DscConfigurationPropertyExists'
 
 # Cmdlets to export from this module
 #CmdletsToExport = '*'
@@ -85,9 +85,7 @@ FunctionsToExport = 'Get-DscConfigurationData',
 #VariablesToExport = '*'
 
 # Aliases to export from this module
-AliasesToExport =   'Add-EncryptedPassword',
-                    'Set-ConfigurationDataPath',
-                    'Get-ConfigurationDataPath'
+AliasesToExport =   '*'
 
 # List of all modules packaged with this module
 # ModuleList = @()

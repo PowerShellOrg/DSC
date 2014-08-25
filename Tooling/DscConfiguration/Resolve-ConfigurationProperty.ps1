@@ -8,26 +8,25 @@ function Resolve-DscConfigurationProperty
     [cmdletbinding()]
     param (
         #The current node being evaluated for the specified property.
-        [System.Collections.Hashtable]
-        $Node,
+        [System.Collections.Hashtable] $Node,
 
         #By default, all services associated with a Node are checked for the specified Property.  If you want to filter this down to specific service(s), pass one or more strings to this parameter.  Wildcards are allowed.
         [ValidateNotNullOrEmpty()]
-        [string[]]
-        $ServiceName = '*',
+        [string[]] $ServiceName = '*',
 
         #The property that will be checked for.
         [parameter(Mandatory)]
-        [string]
-        $PropertyName,
+        [string] $PropertyName,
 
         #By default, all results must return just one entry.  If you want to fetch values from multiple services or from all scopes, set this parameter to 'MultipleValuesFromServiceOnly' or 'AllValues', respectively.
         [ValidateSet('SingleValueOnly', 'MultipleValuesFromServiceOnly', 'AllValues')]
         [string] $MultipleResultBehavior = 'SingleValueOnly',
 
         #If you want to override the default behavior of checking up-scope for configuration data, it can be supplied here.
-        [System.Collections.Hashtable]
-        $ConfigurationData
+        [System.Collections.Hashtable] $ConfigurationData,
+
+        # By default,if no matching value is found in the configuration data, an exception is thrown.  If this parameter is used, the function will instead return the default value.
+        [object] $DefaultValue
     )
 
     Write-Verbose ""
@@ -71,7 +70,14 @@ function Resolve-DscConfigurationProperty
 
     if ($Value.count -eq 0)
     {
-        throw "Failed to resolve $PropertyName for $($Node.Name).  Please update your node, service, site, or all sites with a default value."
+        if ($PSBoundParameters.ContainsKey('DefaultValue'))
+        {
+            return $DefaultValue
+        }
+        else
+        {
+            throw "Failed to resolve $PropertyName for $($Node.Name).  Please update your node, service, site, or all sites with a default value."
+        }
     }
 
     if (($MultipleResultBehavior -eq 'SingleValueOnly') -and ($Value.count -gt 1))
@@ -158,7 +164,7 @@ function ShouldProcessService
         [string] $NodeName
     )
 
-    if (-not [string]::IsNullOrEmpty($NodeName) -and -not $Service['Nodes'] -contains $NodeName)
+    if ($NodeName -and ($Service['Nodes'] -notcontains $NodeName))
     {
         return $false
     }
