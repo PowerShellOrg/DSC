@@ -99,7 +99,16 @@ function Get-FailedDscResource
 
     foreach ($resource in $AllModuleResources)
     {
-        if (-not (Test-cDscResource -Name $Resource.Name))
+        if ($resource.Path)
+        {
+            $resourceNameOrPath = Split-Path $resource.Path -Parent
+        }
+        else
+        {
+            $resourceNameOrPath = $resource.Name
+        }
+
+        if (-not (Test-cDscResource -Name $resourceNameOrPath))
         {
             Write-Warning "`tResources $($_.name) is invalid."
             $resource
