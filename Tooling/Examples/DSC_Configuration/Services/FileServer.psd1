@@ -15,5 +15,9 @@
             }
         )
     }
+
+    ExampleProperty1 = 'From Service'
+    ExampleProperty2 = 'From Service'
+    ExampleProperty3 = 'From Service'
 }
 

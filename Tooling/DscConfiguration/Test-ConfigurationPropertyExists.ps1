@@ -25,10 +25,15 @@ function Test-DscConfigurationPropertyExists
         }
     }
 
-    $notFound = New-Object object
-    $resolved = Resolve-DscConfigurationProperty -Node $Node -PropertyName $PropertyName -MultipleResultBehavior AllValues -ConfigurationData $ConfigurationData -DefaultValue $notFound
-
-    return $notFound -ne $resolved
+    try
+    {
+        $null = Resolve-DscConfigurationProperty -Node $Node -PropertyName $PropertyName -MultipleResultBehavior AllValues -ConfigurationData $ConfigurationData
+        return $true
+    }
+    catch
+    {
+        return $false
+    }
 }
 
 Set-Alias -Name Test-ConfigurationPropertyExists -Value Test-DscConfigurationPropertyExists

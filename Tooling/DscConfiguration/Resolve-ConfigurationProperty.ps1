@@ -23,10 +23,7 @@ function Resolve-DscConfigurationProperty
         [string] $MultipleResultBehavior = 'SingleValueOnly',
 
         #If you want to override the default behavior of checking up-scope for configuration data, it can be supplied here.
-        [System.Collections.Hashtable] $ConfigurationData,
-
-        # By default,if no matching value is found in the configuration data, an exception is thrown.  If this parameter is used, the function will instead return the default value.
-        [object] $DefaultValue
+        [System.Collections.Hashtable] $ConfigurationData
     )
 
     Write-Verbose ""
@@ -52,14 +49,14 @@ function Resolve-DscConfigurationProperty
 
     if ($doGetAllResults -or $Value.count -eq 0)
     {
-        $Value += @(Get-ServiceValue -Node $Node -ConfigurationData $ConfigurationData -PropertyName $PropertyName -ServiceName $ServiceName)
-        Write-Verbose "Value after checking services is $Value"
+        $Value += @(Get-SiteValue -Node $Node -ConfigurationData $ConfigurationData -PropertyName $PropertyName)
+        Write-Verbose "Value after checking the site is $Value"
     }
 
     if ($doGetAllResults -or $Value.count -eq 0)
     {
-        $Value += @(Get-SiteValue -Node $Node -ConfigurationData $ConfigurationData -PropertyName $PropertyName)
-        Write-Verbose "Value after checking the site is $Value"
+        $Value += @(Get-ServiceValue -Node $Node -ConfigurationData $ConfigurationData -PropertyName $PropertyName -ServiceName $ServiceName)
+        Write-Verbose "Value after checking services is $Value"
     }
 
     if ($doGetAllResults -or $Value.count -eq 0)
@@ -70,14 +67,7 @@ function Resolve-DscConfigurationProperty
 
     if ($Value.count -eq 0)
     {
-        if ($PSBoundParameters.ContainsKey('DefaultValue'))
-        {
-            return $DefaultValue
-        }
-        else
-        {
-            throw "Failed to resolve $PropertyName for $($Node.Name).  Please update your node, service, site, or all sites with a default value."
-        }
+        throw "Failed to resolve $PropertyName for $($Node.Name).  Please update your node, service, site, or all sites with a default value."
     }
 
     if (($MultipleResultBehavior -eq 'SingleValueOnly') -and ($Value.count -gt 1))

@@ -15,6 +15,10 @@ Describe 'Resolve-DscConfigurationProperty' {
                     Property = 'Service Value'
                 }
 
+                SiteLevel1 = @{
+                    Property = 'Service Value'
+                }
+
                 Nodes = @(
                     'TestNode'
                 )
@@ -54,10 +58,6 @@ Describe 'Resolve-DscConfigurationProperty' {
                 }
 
                 NodeLevel1 = @{
-                    Property = 'Site Value'
-                }
-
-                ServiceLevel1 = @{
                     Property = 'Site Value'
                 }
             }
@@ -132,28 +132,7 @@ Describe 'Resolve-DscConfigurationProperty' {
             $scriptBlock | Should Not Throw
 
             $result = (& $scriptBlock) -join ', '
-            $result | Should Be 'Node Value, Service Value, Service Value, Site Value, Global Value'
-        }
-    }
-
-    Context 'Default Values' {
-        $defaultValue = New-Object psobject -Property @{ Property = 'Default Value' }
-
-        It 'Throws an error if the property does not resolve and no default was specified' {
-            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Bogus' }
-            $scriptBlock | Should Throw 'Failed to resolve'
-        }
-
-        It 'Behaves properly if the user specifies a default value and the property exists in Configuration Data' {
-            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Property' -DefaultValue $defaultValue }
-            $scriptBlock | Should Not Throw
-            & $scriptBlock | Should Not Be $defaultValue
-        }
-
-        It 'Behaves properly if the user specifies a default value and the property does not exist in Configuration Data' {
-            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Bogus' -DefaultValue $defaultValue }
-            $scriptBlock | Should Not Throw
-            & $scriptBlock | Should Be $defaultValue
+            $result | Should Be 'Node Value, Site Value, Service Value, Service Value, Global Value'
         }
     }
 }

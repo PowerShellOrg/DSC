@@ -13,7 +13,7 @@ configuration SampleConfiguration
         # you can deal with potential conflicts betwee your services when they contribute a setting to the same role, and in
         # this case, 'High Performance' is "greater than" 'Balanced'.
 
-        $PowerPlan = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'BaseServerSettings\PowerPlan' -MultipleResultBehavior AllValues -DefaultValue 'Balanced' |
+        $PowerPlan = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'BaseServerSettings\PowerPlan' -MultipleResultBehavior AllValues |
                      Sort-Object -Descending |
                      Select-Object -First 1
 
@@ -31,7 +31,7 @@ configuration SampleConfiguration
             }
 
             $shares = @(
-                Resolve-DscConfigurationProperty -Node $Node -PropertyName FileServerSettings\Shares -MultipleResultBehavior AllValues -DefaultValue @()
+                Resolve-DscConfigurationProperty -Node $Node -PropertyName FileServerSettings\Shares -MultipleResultBehavior AllValues
             )
 
             foreach ($share in $shares)
@@ -56,7 +56,7 @@ configuration SampleConfiguration
             }
 
             $websites = @(
-                Resolve-DscConfigurationProperty -Node $Node -PropertyName WebServerSettings\Websites -MultipleResultBehavior AllValues -DefaultValue @()
+                Resolve-DscConfigurationProperty -Node $Node -PropertyName WebServerSettings\Websites -MultipleResultBehavior AllValues
             )
 
             foreach ($website in $websites)
@@ -84,13 +84,12 @@ configuration SampleConfiguration
 
         if ($Node.Name -eq 'FileServer01')
         {
-            # This is just to demonstrate how node identical properties defined at the Node level override
-            # those defined at the site level, if present.
+            # This is just to demonstrate the hierarchy of Node -> Site -> Service -> Global property resolution.
 
-            $property1 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty1 -DefaultValue 'Default'
-            $property2 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty2 -DefaultValue 'Default'
-            $property3 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty3 -DefaultValue 'Default'
-            $property4 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty4 -DefaultValue 'Default'
+            $property1 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty1
+            $property2 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty2
+            $property3 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty3
+            $property4 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty4
 
             Write-Verbose -Verbose "ExampleProperty1: $property1"
             Write-Verbose -Verbose "ExampleProperty2: $property2"
