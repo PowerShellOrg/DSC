@@ -43,9 +43,9 @@ function Invoke-DscBuild
         $DestinationToolDirectory,
 
         #Modules to exclude from the resource testing and deployment process.
-        [parameter(mandatory)]
+        [ValidateNotNullOrEmpty()]
         [string[]]
-        $ExcludedModules,
+        $ExcludedModules = @(),
 
         #The configuration data hashtable for the configuration to apply against.
         [parameter(mandatory)]

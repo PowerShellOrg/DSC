@@ -5,7 +5,13 @@ function Invoke-DscResourceUnitTest {
     if ( Test-BuildResource ) {
         if ($pscmdlet.shouldprocess($script:DscBuildParameters.SourceResourceDirectory)) {
             Write-Verbose 'Running Resource Unit Tests.'
-            Invoke-Pester -relative_path $script:DscBuildParameters.SourceResourceDirectory
+            $result = Invoke-Pester -Path $script:DscBuildParameters.SourceResourceDirectory -PassThru
+            $failCount = $result.FailedCount
+
+            if ($failCount -gt 0)
+            {
+                throw "$failCount Resource Unit Tests were failed."
+            }
         }
     }
 }
