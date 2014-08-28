@@ -256,7 +256,11 @@ $EmbeddedInstances = @{
 $NameRegex = "^[a-zA-Z][\w_]*$"
 $NameMaxLength = 255 #This number is hardcoded into the localization text as 255
 
-$commonParameters = [System.Management.Automation.Internal.CommonParameters].GetProperties() | % Name
+$commonParameters = @(
+    [System.Management.Automation.Internal.CommonParameters].GetProperties().Name
+    'WhatIf'
+    'Confirm'
+)
 
 <#
 .SYNOPSIS
@@ -3077,8 +3081,10 @@ function Test-SetTestIdentical
 
     $errorId = "NoError"
 
+    $setParametersToTest  = $setCommand.Parameters.Values.Where({ -not $commonParameters.Contains($_.Name) })
+    $testParametersToTest = $testCommand.Parameters.Values.Where({ -not $commonParameters.Contains($_.Name) })
 
-    if ($setCommand.Parameters.Count -eq 0 -and $testCommand.Parameters.Count -eq 0)
+    if ($setParametersToTest -eq 0 -and $testParametersToTest -eq 0)
     {
         #This will already have been reported by Test-BasicDscFunction
         $errorId = "NoKeyPropertyError"
@@ -3103,13 +3109,15 @@ function Test-SetTestIdentical
 
     $commandWithFewerParameters = $testCommand
     $commandWithMoreParameters = $setCommand
+    $moreParametersList = $setParametersToTest
     $commandNameWithFewerParameters = "Test-TargetResource"
     $commandNameWithMoreParameters = "Set-TargetResource"
 
-    if ($setCommand.Parameters.Values.Count -lt $testCommand.Parameters.Values.Count)
+    if ($setParametersToTest.Count -lt $testParametersToTest.Count)
     {
         $commandWithFewerParameters = $setCommand
         $commandWithMoreParameters = $testCommand
+        $moreParametersList = $testParametersToTest
         $commandNameWithFewerParameters = "Set-TargetResource"
         $commandNameWithMoreParameters = "Test-TargetResource"
     }
@@ -3118,17 +3126,8 @@ function Test-SetTestIdentical
     $errorReported = $false
 
     # Loop over the longer list, if we find errors, report them then stop
-    foreach($parameter in $commandWithMoreParameters.Parameters.Values)
+    foreach($parameter in $moreParametersList)
     {
-
-        # Powershell automatically adds common parameters to functions (Verbose/Debug/ErrorAction/etc)
-        #   Displaying an error regarding these auto populated parameters is not useful
-
-        if ($commonParameters.Contains($parameter.Name))
-        {
-            continue;
-        }
-
         if (-not $commandWithFewerParameters.Parameters[$parameter.Name])
         {
             $errorId = "SetTestMissingParameterError"
@@ -3150,8 +3149,7 @@ function Test-SetTestIdentical
     }
 
 
-    if ($setCommand.Parameters.Values.Count -ne $testCommand.Parameters.Values.Count `
-        -and -not $errorReported)
+    if ($setParametersToTest.Count -ne $testParametersToTest.Count -and -not $errorReported)
     {
         # if the counts are different but we didnt get an error, something is wrong...
         $errorId = "SetTestNotIdenticalError"
