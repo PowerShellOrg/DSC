@@ -170,12 +170,12 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
     }
 }
 
-Describe 'Resolving multiple properties' {
+Describe 'Resolving multiple values' {
     $ConfigurationData = @{
         AllNodes = @();
 
         Services = @{
-            TestService = @{
+            TestService1 = @{
                 ServiceLevel1 = @{
                     Property = 'Service Value'
                 }
@@ -184,7 +184,17 @@ Describe 'Resolving multiple properties' {
                     Property = 'Service Value'
                 }
 
-                SiteLevel1 = @{
+                Nodes = @(
+                    'TestNode'
+                )
+            }
+
+            TestService2 = @{
+                ServiceLevel1 = @{
+                    Property = 'Service Value'
+                }
+
+                NodeLevel1 = @{
                     Property = 'Service Value'
                 }
 
@@ -204,28 +214,12 @@ Describe 'Resolving multiple properties' {
 
         SiteData = @{
             All = @{
-                GlobalLevel1 = @{
-                    Property = 'Global Value'
-                }
-
-                SiteLevel1 = @{
-                    Property = 'Global Value'
-                }
-
                 NodeLevel1 = @{
-                    Property = 'Global Value'
-                }
-
-                ServiceLevel1 = @{
                     Property = 'Global Value'
                 }
             }
 
             NY = @{
-                SiteLevel1 = @{
-                    Property = 'Site Value'
-                }
-
                 NodeLevel1 = @{
                     Property = 'Site Value'
                 }
@@ -242,40 +236,24 @@ Describe 'Resolving multiple properties' {
         }
     }
 
-    Context 'Multiple Values' {
-        $ConfigurationData['Services']['NewService'] = @{
-            Nodes = @(
-                'TestNode'
-            )
+    It 'Throws an error if multiple services return a value and command is using default behavior' {
+        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'ServiceLevel1\Property' }
+        $scriptBlock | Should Throw 'More than one result was returned'
+    }
 
-            ServiceLevel1 = @{
-                Property = 'Service Value'
-            }
+    It 'Returns the proper results for multiple services' {
+        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'ServiceLevel1\Property' -MultipleResultBehavior AllowMultipleResultsFromSingleScope }
+        $scriptBlock | Should Not Throw
 
-            NodeLevel1 = @{
-                Property = 'Service Value'
-            }
-        }
+        $result = (& $scriptBlock) -join ', '
+        $result | Should Be 'Service Value, Service Value'
+    }
 
-        It 'Throws an error if multiple services return a value and command is using default behavior' {
-            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'ServiceLevel1\Property' }
-            $scriptBlock | Should Throw 'More than one result was returned'
-        }
+    It 'Returns the property results for all scopes' {
+        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Property' -MultipleResultBehavior AllValues }
+        $scriptBlock | Should Not Throw
 
-        It 'Returns the proper results for multiple services' {
-            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'ServiceLevel1\Property' -MultipleResultBehavior MultipleValuesFromServiceOnly }
-            $scriptBlock | Should Not Throw
-
-            $result = (& $scriptBlock) -join ', '
-            $result | Should Be 'Service Value, Service Value'
-        }
-
-        It 'Returns the property results for all scopes' {
-            $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Property' -MultipleResultBehavior AllValues }
-            $scriptBlock | Should Not Throw
-
-            $result = (& $scriptBlock) -join ', '
-            $result | Should Be 'Service Value, Service Value, Node Value, Site Value, Global Value'
-        }
+        $result = (& $scriptBlock) -join ', '
+        $result | Should Be 'Service Value, Service Value, Node Value, Site Value, Global Value'
     }
 }

@@ -19,7 +19,7 @@ function Resolve-DscConfigurationProperty
         [string] $PropertyName,
 
         #By default, all results must return just one entry.  If you want to fetch values from multiple services or from all scopes, set this parameter to 'MultipleValuesFromServiceOnly' or 'AllValues', respectively.
-        [ValidateSet('SingleValueOnly', 'MultipleValuesFromServiceOnly', 'AllValues')]
+        [ValidateSet('SingleValueOnly', 'AllowMultipleResultsFromSingleScope', 'AllValues')]
         [string] $MultipleResultBehavior = 'SingleValueOnly',
 
         #If you want to override the default behavior of checking up-scope for configuration data, it can be supplied here.
@@ -44,19 +44,22 @@ function Resolve-DscConfigurationProperty
 
     Write-Verbose "Starting to evaluate $($Node.Name) for PropertyName: $PropertyName and resolution behavior: $MultipleResultBehavior"
 
-    $Value = @(Get-NodeValue -Node $Node -ConfigurationData $ConfigurationData -PropertyName $PropertyName)
-    Write-Verbose "Value after checking the node is $Value"
+    if ($doGetAllResults -or $Value.count -eq 0)
+    {
+        $Value += @(Get-ServiceValue -Node $Node -ConfigurationData $ConfigurationData -PropertyName $PropertyName -ServiceName $ServiceName -AllValues:$doGetAllResults)
+        Write-Verbose "Value after checking services is $Value"
+    }
+
+    if ($doGetAllResults -or $Value.count -eq 0)
+    {
+        $Value += @(Get-NodeValue -Node $Node -ConfigurationData $ConfigurationData -PropertyName $PropertyName)
+        Write-Verbose "Value after checking the node is $Value"
+    }
 
     if ($doGetAllResults -or $Value.count -eq 0)
     {
         $Value += @(Get-SiteValue -Node $Node -ConfigurationData $ConfigurationData -PropertyName $PropertyName)
         Write-Verbose "Value after checking the site is $Value"
-    }
-
-    if ($doGetAllResults -or $Value.count -eq 0)
-    {
-        $Value += @(Get-ServiceValue -Node $Node -ConfigurationData $ConfigurationData -PropertyName $PropertyName -ServiceName $ServiceName)
-        Write-Verbose "Value after checking services is $Value"
     }
 
     if ($doGetAllResults -or $Value.count -eq 0)
@@ -82,33 +85,6 @@ function Resolve-DscConfigurationProperty
 
 Set-Alias -Name 'Resolve-ConfigurationProperty' -Value 'Resolve-DscConfigurationProperty'
 
-function Get-NodeValue
-{
-    [cmdletbinding()]
-    param (
-        [System.Collections.Hashtable]
-        $Node,
-        [string]
-        $PropertyName,
-        [System.Collections.Hashtable]
-        $ConfigurationData
-    )
-
-    if ($null -eq $Node) { return }
-
-    $resolved = $null
-
-    Write-Verbose "    Checking Node: $($Node.Name)"
-
-    if (Resolve-HashtableProperty -Hashtable $Node -PropertyName $PropertyName -Value ([ref] $resolved))
-    {
-        Write-Verbose "        Found Node Value: $resolved"
-        $resolved
-    }
-
-    Write-Verbose "    Finished checking Node $($Node.Name)"
-}
-
 function Get-ServiceValue
 {
     [CmdletBinding()]
@@ -116,7 +92,8 @@ function Get-ServiceValue
         [hashtable] $Node,
         [string] $PropertyName,
         [hashtable] $ConfigurationData,
-        [string[]] $ServiceName
+        [string[]] $ServiceName,
+        [switch] $AllValues
     )
 
     if ($null -eq $Node) { return }
@@ -130,18 +107,51 @@ function Get-ServiceValue
         $name = $keyValuePair.Key
         $serviceValue = $keyValuePair.Value
 
-        if ($serviceValue -is [hashtable] -and (ShouldProcessService -Name $name -Service $serviceValue -Filter $ServiceName -NodeName $node.Name))
+        if (-not (ShouldProcessService -Name $name -Service $serviceValue -Filter $ServiceName -NodeName $node.Name))
         {
-            Write-Verbose "    Checking Service $name"
+            continue
+        }
 
+        Write-Verbose "    Checking Service $name"
+
+        $value = @()
+
+        if ($value.Count -eq 0 -or $AllValues)
+        {
+            Write-Verbose "        Checking Node override for Service $name"
+            if (Resolve-HashtableProperty -Hashtable $Node -PropertyName "Services\$name\$PropertyName" -Value ([ref] $resolved))
+            {
+                $value += $resolved
+            }
+        }
+
+        if ($value.Count -eq 0 -or $AllValues)
+        {
+            Write-Verbose "        Checking Site override for Service $name"
+
+            $siteName = $Node.Location
+            if (Resolve-HashtableProperty -Hashtable $ConfigurationData -PropertyName "SiteData\$siteName\Services\$name\$PropertyName" -Value ([ref] $resolved))
+            {
+                $value += $resolved
+            }
+        }
+
+        if (($value.Count -eq 0 -or $AllValues) -and $serviceValue -is [hashtable])
+        {
+            Write-Verbose "        Checking Global value for Service $name"
             if (Resolve-HashtableProperty -Hashtable $serviceValue -PropertyName $PropertyName -Value ([ref] $resolved))
             {
-                Write-Verbose "        Found Service Value: $resolved"
-                $resolved
+                $value += $resolved
             }
-
-            Write-Verbose "    Finished checking Service $name"
         }
+
+        if ($value.Count -gt 0)
+        {
+            Write-Verbose "        Found Service Value: $resolved"
+        }
+
+        Write-Verbose "    Finished checking Service $name"
+        $value
     }
 }
 
@@ -170,6 +180,33 @@ function ShouldProcessService
     }
 
     return $foundMatchingFilter
+}
+
+function Get-NodeValue
+{
+    [cmdletbinding()]
+    param (
+        [System.Collections.Hashtable]
+        $Node,
+        [string]
+        $PropertyName,
+        [System.Collections.Hashtable]
+        $ConfigurationData
+    )
+
+    if ($null -eq $Node) { return }
+
+    $resolved = $null
+
+    Write-Verbose "    Checking Node: $($Node.Name)"
+
+    if (Resolve-HashtableProperty -Hashtable $Node -PropertyName $PropertyName -Value ([ref] $resolved))
+    {
+        Write-Verbose "        Found Node Value: $resolved"
+        $resolved
+    }
+
+    Write-Verbose "    Finished checking Node $($Node.Name)"
 }
 
 function Get-SiteValue
