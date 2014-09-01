@@ -9,9 +9,9 @@ function Test-DscResourceIsValid {
 
             Add-DscBuildParameter -Name TestedModules -value @()
 
-            Get-ChildItem $script:DscBuildParameters.ProgramFilesModuleDirectory |
-                Assert-DscModuleResourceIsValid
-
+            Get-ChildItem -Path $script:DscBuildParameters.ProgramFilesModuleDirectory -Directory |
+            Where Name -in $script:DscBuildParameters.CopiedResources |
+            Assert-DscModuleResourceIsValid
         }
     }
 }
