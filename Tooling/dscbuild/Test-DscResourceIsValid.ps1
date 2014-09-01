@@ -2,14 +2,104 @@ function Test-DscResourceIsValid {
     [cmdletbinding(SupportsShouldProcess=$true)]
     param ()
 
-
     if ( Test-BuildResource ) {
         if ($pscmdlet.shouldprocess("modules from $($script:DscBuildParameters.ProgramFilesModuleDirectory)")) {
-            dir $script:DscBuildParameters.ProgramFilesModuleDirectory |
-                Where-DscResource -IsValid |
-                Out-Null
+            $AllResources = Get-DscResource |
+                Where-Object {$_.implementedas -like 'PowerShell'}
+
+            Add-DscBuildParameter -Name TestedModules -value @()
+
+            Get-ChildItem $script:DscBuildParameters.ProgramFilesModuleDirectory |
+                Assert-DscModuleResourceIsValid
+
         }
     }
 }
 
+function Assert-DscModuleResourceIsValid
+{
+    [cmdletbinding()]
+    param (
+        [parameter(ValueFromPipeline)]
+        [IO.FileSystemInfo]
+        $InputObject
+    )
 
+    begin
+    {
+        Write-Verbose "Testing for valid resources."
+        $FailedDscResources = @()
+    }
+
+    process
+    {
+        $FailedDscResources += Get-FailedDscResource -AllModuleResources (Get-DscResourceForModule -InputObject $InputObject)
+    }
+
+    end
+    {
+        if ($FailedDscResources.Count -gt 0)
+        {
+            Write-Verbose "Found failed resources."
+            foreach ($resource in $FailedDscResources)
+            {
+
+                Write-Warning "`t`tFailed Resource - $($resource.Name) ($($resource.ParentPath))"
+            }
+
+            throw "One or more resources is invalid."
+        }
+    }
+}
+
+function Get-DscResourceForModule
+{
+    [cmdletbinding()]
+    param ($InputObject)
+
+    $Name = $inputobject.Name
+    Write-Verbose "Retrieving all resources and filtering for $Name."
+
+    $ResourcesInModule = $AllResources |
+        Where-Object {
+            Write-Verbose "`tChecking for $($_.name) in $name."
+            $_.module -like $name
+        } |
+        ForEach-Object {
+            Write-Verbose "`t$Name contains $($_.Name)."
+            $_
+        }
+    if ($ResourcesInModule.count -eq 0)
+    {
+        Write-Warning "$Name does not contain any resources."
+    }
+    else {
+        $script:DscBuildParameters.TestedModules += $InputObject.FullName
+    }
+
+    $ResourcesInModule
+}
+
+function Get-FailedDscResource
+{
+    [cmdletbinding()]
+    param ($AllModuleResources)
+
+    foreach ($resource in $AllModuleResources)
+    {
+        if ($resource.Path)
+        {
+            $resourceNameOrPath = Split-Path $resource.Path -Parent
+        }
+        else
+        {
+            $resourceNameOrPath = $resource.Name
+        }
+
+        if (-not (Test-cDscResource -Name $resourceNameOrPath))
+        {
+            Write-Warning "`tResources $($_.name) is invalid."
+            $resource
+        }
+    }
+}

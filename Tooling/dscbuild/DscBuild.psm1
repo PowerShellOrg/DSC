@@ -13,7 +13,6 @@
 . $psscriptroot\Publish-DscResourceModule.ps1
 . $psscriptroot\Publish-DscToolModule.ps1
 . $psscriptroot\Test-DscResourceIsValid.ps1
-. $psscriptroot\Where-DscResource.ps1
 . $psscriptroot\Get-DscResourceVersion.ps1
 . $psscriptroot\Update-ModuleMetadataVersion.ps1
 
