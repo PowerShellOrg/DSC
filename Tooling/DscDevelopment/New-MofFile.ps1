@@ -12,11 +12,23 @@ function New-MofFile
         [parameter()]
         [string]
         $Path,        
-        $Version = '1.0'
-    )
+        $Version = '1.0' ,
+    
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $FriendlyName ,
+
+        [Switch]
+        $LoadTypes
+)
   
     $ResourceName = Split-Path $Path -Leaf
    
+    if (!$FriendlyName) {
+        $FriendlyName = $ResourceName
+    }
+
     $ResourcePath = Join-Path $Path "$ResourceName.psm1"
 
     Write-Verbose "Attempting to parse $ResourcePath."
@@ -31,8 +43,23 @@ function New-MofFile
 
         $ParametersAst = $SetTargetResourceAst.Body.ParamBlock.Parameters
            
+        # Look for type definitions and execute them in this context
+        # This could be very buggy.
+        if ($LoadTypes) {
+            Write-Warning "Types added to session with -LoadType will remain in the session until it ends."
+            $CommandAst.FindAll(
+                {$args[0] -is [System.Management.Automation.Language.CommandAst]},
+                $false
+            ) |
+                Where-Object { $_.CommandElements[0].Value -ieq 'Add-Type' } |
+                ForEach-Object {
+                    Write-Verbose "Adding type:`n`n$($_.ToString())"
+                    Invoke-Expression $_.ToString() -ErrorAction Continue
+                }
+        }
+
         $Template = @"
-[ClassVersion("$Version"), FriendlyName("$ResourceName")]
+[ClassVersion("$Version"), FriendlyName("$FriendlyName")]
 class $ResourceName : OMI_BaseResource
 {
 
@@ -87,6 +114,25 @@ class $ResourceName : OMI_BaseResource
                 {$_ -like 'long`[`]'} { $PropertyString += '] sint64 '; $IsArray = $true}
                 {$_ -like 'int'} { $PropertyString += '] sint32 '}
                 {$_ -like 'int`[`]'} { $PropertyString += '] sint32 '; $IsArray = $true}
+
+                {
+                    try {
+                        $type = [System.Type]($_.Name)
+                        $type.BaseType.Name -eq 'Enum'
+                    } catch [System.InvalidCastException] {
+                        $false
+                    }
+                } {
+                    Write-Verbose "'$_' is an Enum type. Let's convert it into a ValueMap."
+
+                    $type = [System.Type]($_.Name)
+
+                    $eNames = ($type.GetEnumNames() | ForEach-Object { "`"$_`"" }) -join ', '
+                    $eValues = ($type.GetEnumValues().value__ | ForEach-Object { "`"$_`"" }) -join ', '
+                    $eType = $type.GetEnumUnderlyingType().Name.ToLower()
+
+                    $PropertyString += ",ValueMap{$eValues},Values{$eNames}] $eType "
+                }
 
                 default { Write-Warning "Don't know what to do with $_";}
             }
