@@ -1777,7 +1777,7 @@ function Test-cDscResource
         Write-Verbose ($localizedData["TestResourceGetMandatoryVerbose"] -f (-not $getMandatoryError))
         #Check that set has all write
 
-        $setNoReadsError = -not (Test-SetHasExactlyAllNonReadProperties $SetCommandInfo.Parameters `
+        $setNoReadsError = -not (Test-SetHasExactlyAllNonReadProperties $SetCommandInfo `
                         ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}))
         Write-Verbose ($localizedData["TestResourceSetNoReadsVerbose"] -f (-not $setNoReadsError))
 
