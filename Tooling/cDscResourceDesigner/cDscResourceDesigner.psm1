@@ -2218,93 +2218,141 @@ function Test-MockSchema
         $errorIdsRef
     )
 
-    # Returns full path to a 0 byte .tmp file
-    $tempFilePath = [IO.Path]::GetTempFileName()
-
-    $tempFolderPath = [IO.Path]::GetDirectoryName($tempFilePath)
-
-    # Extracts the .tmp name
-    $newSchemaName = [IO.Path]::GetFileNameWithoutExtension($tempFilePath)
-
-    # We can now use the temp file name to create a new unique file
-    Remove-Item $tempFilePath
-
-    $newSchemaPath = "$tempFolderPath\$newSchemaName.schema.mof"
-
-    $null = New-Item $newSchemaPath -ItemType File
-
-    $null = [IO.Path]::GetFileNameWithoutExtension($Schema) -cmatch "(.+)\.schema"
-    $schemaName = $Matches[1]
-
-    # Initialize this to correct; it will be overwritten if incorrect
-    $className = $schemaName
-
-    $extendsOMI = $false
-
-    Get-Content $Schema | % {
-        $newLine = $_
-
-        # Match to grab class name without grabbing ": OMI_BaseResource"
-        # \w - is the current regex for class names
-        if ($_ -cmatch "^class\s+([\w-&\(\)\[\]]+)\s*:?")
-        {
-            $className = $Matches[1]
-        }
-
-        if ($_ -cmatch "^class\s+$className\s*:\s*OMI_BaseResource")
-        {
-            $extendsOMI = $true
-            $newLine = $_ -replace $Matches[0],"class $newSchemaName"
-        }
-
-        Add-Content $newSchemaPath $newLine
-    }
-
-    if (-not $extendsOMI -or ($schemaName -ne $className))
+    try
     {
-        $errorIds = @()
+        # Returns full path to a 0 byte .tmp file
+        $tempFilePath = [IO.Path]::GetTempFileName()
 
-        if (-not $extendsOMI)
+        $tempFolderPath = [IO.Path]::GetDirectoryName($tempFilePath)
+
+        # Extracts the .tmp name
+        $newSchemaName = [IO.Path]::GetFileNameWithoutExtension($tempFilePath)
+
+        # We can now use the temp file name to create a new unique file
+        Remove-Item $tempFilePath
+
+        $newSchemaPath = "$tempFolderPath\$newSchemaName.schema.mof"
+
+        $null = New-Item $newSchemaPath -ItemType File
+
+        $null = [IO.Path]::GetFileNameWithoutExtension($Schema) -cmatch "(.+)\.schema"
+        $schemaName = $Matches[1]
+
+        # Initialize this to correct; it will be overwritten if incorrect
+        $className = $schemaName
+
+        $extendsOMI = $false
+
+        Get-Content $Schema | % {
+            $newLine = $_
+
+            # Match to grab class name without grabbing ": OMI_BaseResource"
+            # \w - is the current regex for class names
+            if ($_ -cmatch "^class\s+([\w-&\(\)\[\]]+)\s*:?")
+            {
+                $className = $Matches[1]
+            }
+
+            if ($_ -cmatch "^class\s+$className\s*:\s*OMI_BaseResource")
+            {
+                $extendsOMI = $true
+                $newLine = $_ -replace $Matches[0],"class $newSchemaName"
+            }
+
+            Add-Content $newSchemaPath $newLine
+        }
+
+        if (-not $extendsOMI -or ($schemaName -ne $className))
         {
-            $errorId = "MissingOMI_BaseResourceError"
+            $errorIds = @()
+
+            if (-not $extendsOMI)
+            {
+                $errorId = "MissingOMI_BaseResourceError"
+                $errorIds += $errorId
+                Write-Error ($localizedData[$errorId] -f $schemaName) `
+                            -ErrorId $errorId -ErrorAction Continue
+            }
+
+            if ($schemaName -ne $className)
+            {
+                $errorId = "ClassNameSchemaNameDifferentError"
+                $errorIds += $errorId
+                Write-Error ($localizedData[$errorId] -f $className,$schemaName) `
+                            -ErrorId $errorId -ErrorAction Continue
+            }
+
+            if ($errorIdsRef)
+            {
+                $errorIdsRef.Value = $errorIds
+            }
+            return ($errorIds.Length -eq 0)
+        }
+
+        $parseResult = mofcomp.exe -N:root\microsoft\windows\DesiredStateConfiguration -class:forceupdate $newSchemaPath
+
+        # This shouldn't happen because mofcomp.exe -check is run previously
+        if ($LASTEXITCODE -ne 0)
+        {
+            $errorIds = @()
+            $errorId = "SchemaParseError"
+
+
+            $parseText = New-Object -TypeName System.Text.StringBuilder
+
+            $parseResult | % {
+                Add-StringBuilderLine $parseText $_
+            }
+
+            Write-Error ($parseText.ToString()) `
+                            -ErrorId $errorId -ErrorAction Continue
             $errorIds += $errorId
+
+            if ($errorIdsRef)
+            {
+                $errorIdsRef.Value = $errorIds
+            }
+            return ($errorIds.Length -eq 0)
+        }
+
+
+        $SchemaCimClass.Value = Get-CimClass -Namespace root\microsoft\windows\DesiredStateConfiguration -ClassName $newSchemaName -ErrorAction Continue -ErrorVariable ev
+
+        if ($ev)
+        {
+            $errorIds = @()
+            $errorId = "GetCimClass-Error"
+
+            # Let Get-CimClass display its error, then report the error
+
             Write-Error ($localizedData[$errorId] -f $schemaName) `
-                        -ErrorId $errorId -ErrorAction Continue
-        }
-
-        if ($schemaName -ne $className)
-        {
-            $errorId = "ClassNameSchemaNameDifferentError"
+               -ErrorId $errorId -ErrorAction Continue
             $errorIds += $errorId
-            Write-Error ($localizedData[$errorId] -f $className,$schemaName) `
-                        -ErrorId $errorId -ErrorAction Continue
+
+            if ($errorIdsRef)
+            {
+                $errorIdsRef.Value = $errorIds
+            }
+            return ($errorIds.Length -eq 0)
         }
 
-        if ($errorIdsRef)
-        {
-            $errorIdsRef.Value = $errorIds
-        }
-        return ($errorIds.Length -eq 0)
-    }
+        $hasKey = $false
 
-    $parseResult = mofcomp.exe -N:root\microsoft\windows\DesiredStateConfiguration -class:forceupdate $newSchemaPath
-
-    # This shouldn't happen because mofcomp.exe -check is run previously
-    if ($LASTEXITCODE -ne 0)
-    {
         $errorIds = @()
-        $errorId = "SchemaParseError"
 
+        $SchemaCimClass.Value.CimClassProperties | % {
 
-        $parseText = New-Object -TypeName System.Text.StringBuilder
+            $null = Test-SchemaProperty $_ ([ref]$hasKey) ([ref]$errorIds)
 
-        $parseResult | % {
-            Add-StringBuilderLine $parseText $_
         }
 
-        Write-Error ($parseText.ToString()) `
-                        -ErrorId $errorId -ErrorAction Continue
-        $errorIds += $errorId
+        if (-not $hasKey)
+        {
+            $errorId = "NoKeyTestError"
+            Write-Error ($localizedData[$errorId]) `
+                -ErrorId $errorId -ErrorAction Continue
+            $errorIds += $errorId
+        }
 
         if ($errorIdsRef)
         {
@@ -2312,55 +2360,8 @@ function Test-MockSchema
         }
         return ($errorIds.Length -eq 0)
     }
-
-
-    $SchemaCimClass.Value = Get-CimClass -Namespace root\microsoft\windows\DesiredStateConfiguration -ClassName $newSchemaName -ErrorAction Continue -ErrorVariable ev
-
-    if ($ev)
+    finally
     {
-        $errorIds = @()
-        $errorId = "GetCimClass-Error"
-
-        # Let Get-CimClass display its error, then report the error
-
-        Write-Error ($localizedData[$errorId] -f $schemaName) `
-           -ErrorId $errorId -ErrorAction Continue
-        $errorIds += $errorId
-
-        if ($errorIdsRef)
-        {
-            $errorIdsRef.Value = $errorIds
-        }
-        return ($errorIds.Length -eq 0)
-    }
-
-    $hasKey = $false
-
-    $errorIds = @()
-
-    $SchemaCimClass.Value.CimClassProperties | % {
-
-        $null = Test-SchemaProperty $_ ([ref]$hasKey) ([ref]$errorIds)
-
-    }
-
-    if (-not $hasKey)
-    {
-        $errorId = "NoKeyTestError"
-        Write-Error ($localizedData[$errorId]) `
-            -ErrorId $errorId -ErrorAction Continue
-        $errorIds += $errorId
-    }
-
-    if ($errorIdsRef)
-    {
-        $errorIdsRef.Value = $errorIds
-    }
-    return ($errorIds.Length -eq 0)
-
-    try{}
-    catch{}
-    finally{
        Remove-WmiObject -Class $newSchemaName -Namespace root\microsoft\windows\DesiredStateConfiguration -ErrorAction SilentlyContinue
        Remove-Item $newSchemaPath -ErrorAction SilentlyContinue
     }
@@ -2568,171 +2569,171 @@ function Test-DscResourceModule
         $errorIdsRef
     )
 
-    $ev = $null
-    $goodPath = Test-Path $Module -PathType Leaf -ErrorVariable ev -ErrorAction Continue
-
-    if ($ev -or -not $goodPath -or ([IO.Path]::GetExtension($Module) -ne ".psm1" -and [IO.Path]::GetExtension($Module) -ne ".dll"))
+    try
     {
-        $errorIds = @()
-        $errorId = "BadResourceModulePath"
+        $ev = $null
+        $goodPath = Test-Path $Module -PathType Leaf -ErrorVariable ev -ErrorAction Continue
 
-        Write-Error ($localizedData[$errorId]) `
-                        -ErrorId $errorId -ErrorAction Continue
-        $errorIds += $errorId
+        if ($ev -or -not $goodPath -or ([IO.Path]::GetExtension($Module) -ne ".psm1" -and [IO.Path]::GetExtension($Module) -ne ".dll"))
+        {
+            $errorIds = @()
+            $errorId = "BadResourceModulePath"
+
+            Write-Error ($localizedData[$errorId]) `
+                            -ErrorId $errorId -ErrorAction Continue
+            $errorIds += $errorId
+
+            if ($errorIdsRef)
+            {
+                $errorIdsRef.Value = $errorIds
+            }
+            return $false
+        }
+
+        $ModuleName = [IO.Path]::GetFileNameWithoutExtension($Module)
+
+        $Prefix = [IO.Path]::GetRandomFileName()
+
+        $ev = $null
+
+        Import-Module $Module -Prefix $Prefix -Force -NoClobber -ErrorVariable ev -ErrorAction Continue
+
+        if ($ev)
+        {
+            $errorIds = @()
+            $errorId = "ImportResourceModuleError"
+            Write-Error ($localizedData[$errorId]) `
+                            -ErrorId $errorId -ErrorAction Continue
+            $errorIds += $errorId
+
+            if ($errorIdsRef)
+            {
+                $errorIdsRef.Value = $errorIds
+            }
+            return $false
+        }
+
+
+
+        $undefinedFunctions = @()
+
+        $ev = $null
+
+        $GetCommandInfo.Value = Get-Command ("Get-" + $Prefix + "TargetResource") -Module $ModuleName -ErrorAction SilentlyContinue -ErrorVariable ev
+
+        if ($GetCommandInfo.Value -eq $null -or $ev)
+        {
+            $undefinedFunctions += "Get-TargetResource"
+        }
+
+        $ev = $null
+
+        $SetCommandInfo.Value = Get-Command ("Set-" + $Prefix + "TargetResource") -Module $ModuleName -ErrorAction SilentlyContinue -ErrorVariable ev
+
+        if ($SetCommandInfo.Value -eq $null -or $ev)
+        {
+            $undefinedFunctions += "Set-TargetResource"
+        }
+
+        $ev = $null
+
+        $TestCommandInfo.Value = Get-Command ("Test-" + $Prefix + "TargetResource") -Module $ModuleName -ErrorAction SilentlyContinue -ErrorVariable ev
+
+        if ($TestCommandInfo.Value -eq $null -or $ev)
+        {
+            $undefinedFunctions += "Test-TargetResource"
+        }
+
+        if ($undefinedFunctions.Length -gt 0)
+        {
+            $errorIds = @()
+            $errorId = "KeyFunctionsNotDefined"
+            Write-Error ($localizedData[$errorId] -f (New-DelimitedList $undefinedFunctions -Separator ", ")) `
+                            -ErrorId $errorId -ErrorAction Continue
+            $errorIds += $errorId
+
+            if ($errorIdsRef)
+            {
+                $errorIdsRef.Value = $errorIds
+            }
+            return $false
+        }
+
+        $errorIds = @()
+
+        if (-not $GetCommandInfo.Value.OutputType)
+        {
+            Write-Warning $localizedData["GetTargetResourceOutWarning"]
+        }
+
+        if ($GetCommandInfo.Value.OutputType -and $GetCommandInfo.Value.OutputType.Type -ne [Hashtable])
+        {
+            $errorId = "GetTargetResourceOutError"
+            Write-Error ($localizedData[$errorId]) `
+                            -ErrorId $errorId -ErrorAction Continue
+            $errorIds += $errorId
+        }
+
+        #Set should not have an output type
+        if ($SetCommandInfo.Value.OutputType)
+        {
+            $errorId = "SetTargetResourceOutError"
+            Write-Error ($localizedData[$errorId]) `
+                            -ErrorId $errorId -ErrorAction Continue
+            $errorIds += $errorId
+        }
+
+        if (-not $TestCommandInfo.Value.OutputType)
+        {
+            Write-Warning $localizedData["TestTargetResourceOutWarning"]
+        }
+        if ($TestCommandInfo.Value.OutputType -and $TestCommandInfo.Value.OutputType.Type -ne [Boolean])
+        {
+            $errorId = "TestTargetResourceOutError"
+            Write-Error ($localizedData[$errorId]) `
+                            -ErrorId $errorId -ErrorAction Continue
+            $errorIds += $errorId
+        }
+
+        #Make sure each has at least one mandatory property that isnt an array
+        # and that it only has parameters of valid types
+
+        $getErrors = @()
+        $setErrors = @()
+        $testErrors = @()
+
+        $null = Test-BasicDscFunction $GetCommandInfo.Value "Get-TargetResource" -errorIdsRef ([ref]$getErrors)
+        $errorIds += $getErrors
+        $null = Test-BasicDscFunction $SetCommandInfo.Value "Set-TargetResource" -errorIdsRef ([ref]$setErrors)
+        $errorIds += $setErrors
+        $null = Test-BasicDscFunction $TestCommandInfo.Value "Test-TargetResource" -errorIdsRef ([ref]$testErrors)
+        $errorIds += $testErrors
+
+
+        # Set == Test
+
+        $setTestErrors = @()
+
+        $null = Test-SetTestIdentical $SetCommandInfo.Value $TestCommandInfo.Value -errorIdsRef ([ref]$setTestErrors)
+        $errorIds += $setTestErrors
+
+
+        # Get is subset of Set/Test
+        #  Only check this if Test-SetTestIdentical succeeds, so we only need to compare against Set
+        if ($errorIds.Count -eq 0)
+        {
+            $getSubsetErrors = @()
+            $null = Test-GetSubsetSet $GetCommandInfo.Value $SetCommandInfo.Value -errorIdsRef ([ref]$getSubsetErrors)
+            $errorIds += $getSubsetErrors
+        }
 
         if ($errorIdsRef)
         {
             $errorIdsRef.Value = $errorIds
         }
-        return $false
+
+        return $errorIds.Count -eq 0
     }
-
-    $ModuleName = [IO.Path]::GetFileNameWithoutExtension($Module)
-
-    $Prefix = [IO.Path]::GetRandomFileName()
-
-    $ev = $null
-
-    Import-Module $Module -Prefix $Prefix -Force -NoClobber -ErrorVariable ev -ErrorAction Continue
-
-    if ($ev)
-    {
-        $errorIds = @()
-        $errorId = "ImportResourceModuleError"
-        Write-Error ($localizedData[$errorId]) `
-                        -ErrorId $errorId -ErrorAction Continue
-        $errorIds += $errorId
-
-        if ($errorIdsRef)
-        {
-            $errorIdsRef.Value = $errorIds
-        }
-        return $false
-    }
-
-
-
-    $undefinedFunctions = @()
-
-    $ev = $null
-
-    $GetCommandInfo.Value = Get-Command ("Get-" + $Prefix + "TargetResource") -Module $ModuleName -ErrorAction SilentlyContinue -ErrorVariable ev
-
-    if ($GetCommandInfo.Value -eq $null -or $ev)
-    {
-        $undefinedFunctions += "Get-TargetResource"
-    }
-
-    $ev = $null
-
-    $SetCommandInfo.Value = Get-Command ("Set-" + $Prefix + "TargetResource") -Module $ModuleName -ErrorAction SilentlyContinue -ErrorVariable ev
-
-    if ($SetCommandInfo.Value -eq $null -or $ev)
-    {
-        $undefinedFunctions += "Set-TargetResource"
-    }
-
-    $ev = $null
-
-    $TestCommandInfo.Value = Get-Command ("Test-" + $Prefix + "TargetResource") -Module $ModuleName -ErrorAction SilentlyContinue -ErrorVariable ev
-
-    if ($TestCommandInfo.Value -eq $null -or $ev)
-    {
-        $undefinedFunctions += "Test-TargetResource"
-    }
-
-    if ($undefinedFunctions.Length -gt 0)
-    {
-        $errorIds = @()
-        $errorId = "KeyFunctionsNotDefined"
-        Write-Error ($localizedData[$errorId] -f (New-DelimitedList $undefinedFunctions -Separator ", ")) `
-                        -ErrorId $errorId -ErrorAction Continue
-        $errorIds += $errorId
-
-        if ($errorIdsRef)
-        {
-            $errorIdsRef.Value = $errorIds
-        }
-        return $false
-    }
-
-    $errorIds = @()
-
-    if (-not $GetCommandInfo.Value.OutputType)
-    {
-        Write-Warning $localizedData["GetTargetResourceOutWarning"]
-    }
-
-    if ($GetCommandInfo.Value.OutputType -and $GetCommandInfo.Value.OutputType.Type -ne [Hashtable])
-    {
-        $errorId = "GetTargetResourceOutError"
-        Write-Error ($localizedData[$errorId]) `
-                        -ErrorId $errorId -ErrorAction Continue
-        $errorIds += $errorId
-    }
-
-    #Set should not have an output type
-    if ($SetCommandInfo.Value.OutputType)
-    {
-        $errorId = "SetTargetResourceOutError"
-        Write-Error ($localizedData[$errorId]) `
-                        -ErrorId $errorId -ErrorAction Continue
-        $errorIds += $errorId
-    }
-
-    if (-not $TestCommandInfo.Value.OutputType)
-    {
-        Write-Warning $localizedData["TestTargetResourceOutWarning"]
-    }
-    if ($TestCommandInfo.Value.OutputType -and $TestCommandInfo.Value.OutputType.Type -ne [Boolean])
-    {
-        $errorId = "TestTargetResourceOutError"
-        Write-Error ($localizedData[$errorId]) `
-                        -ErrorId $errorId -ErrorAction Continue
-        $errorIds += $errorId
-    }
-
-    #Make sure each has at least one mandatory property that isnt an array
-    # and that it only has parameters of valid types
-
-    $getErrors = @()
-    $setErrors = @()
-    $testErrors = @()
-
-    $null = Test-BasicDscFunction $GetCommandInfo.Value "Get-TargetResource" -errorIdsRef ([ref]$getErrors)
-    $errorIds += $getErrors
-    $null = Test-BasicDscFunction $SetCommandInfo.Value "Set-TargetResource" -errorIdsRef ([ref]$setErrors)
-    $errorIds += $setErrors
-    $null = Test-BasicDscFunction $TestCommandInfo.Value "Test-TargetResource" -errorIdsRef ([ref]$testErrors)
-    $errorIds += $testErrors
-
-
-    # Set == Test
-
-    $setTestErrors = @()
-
-    $null = Test-SetTestIdentical $SetCommandInfo.Value $TestCommandInfo.Value -errorIdsRef ([ref]$setTestErrors)
-    $errorIds += $setTestErrors
-
-
-    # Get is subset of Set/Test
-    #  Only check this if Test-SetTestIdentical succeeds, so we only need to compare against Set
-    if ($errorIds.Count -eq 0)
-    {
-        $getSubsetErrors = @()
-        $null = Test-GetSubsetSet $GetCommandInfo.Value $SetCommandInfo.Value -errorIdsRef ([ref]$getSubsetErrors)
-        $errorIds += $getSubsetErrors
-    }
-
-    if ($errorIdsRef)
-    {
-        $errorIdsRef.Value = $errorIds
-    }
-
-    return $errorIds.Count -eq 0
-
-    try{}
-    catch{}
     finally
     {
        Remove-Module $ModuleName -ErrorAction SilentlyContinue
