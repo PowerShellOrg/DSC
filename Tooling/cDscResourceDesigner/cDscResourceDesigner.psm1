@@ -1771,9 +1771,8 @@ function Test-cDscResource
 
         #Check get has all key and required and that they are mandatory
 
-        $getMandatoryError = -not (Test-GetKeyRequiredMandatory $GetCommandInfo.Parameters `
-                            ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Key -eq $_.Attribute) `
-                                        -or ([DscResourcePropertyAttribute]::Required -eq $_.Attribute)}))
+        $getMandatoryError = -not (Test-GetKeyMandatory $GetCommandInfo.Parameters `
+                            ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Key -eq $_.Attribute)}))
         Write-Verbose ($localizedData["TestResourceGetMandatoryVerbose"] -f (-not $getMandatoryError))
         #Check that set has all write
 
@@ -1792,7 +1791,7 @@ function Test-cDscResource
     }
 }
 
-function Test-GetKeyRequiredMandatory
+function Test-GetKeyMandatory
 {
     param
     (
@@ -1806,7 +1805,7 @@ function Test-GetKeyRequiredMandatory
             Mandatory = $true,
             Position = 2)]
         [DscResourceProperty[]]
-        $KeyRequiredDscResourceProperties,
+        $KeyDscResourceProperties,
 
         [ref]
         $errorIdsRef
@@ -1814,7 +1813,7 @@ function Test-GetKeyRequiredMandatory
 
     $errorIds = @()
 
-    foreach ($property in $KeyRequiredDscResourceProperties)
+    foreach ($property in $KeyDscResourceProperties)
     {
 
         if (-not $GetParameters[$property.Name] -or `
