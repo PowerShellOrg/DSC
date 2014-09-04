@@ -4,14 +4,16 @@ function Test-DscResourceIsValid {
 
     if ( Test-BuildResource ) {
         if ($pscmdlet.shouldprocess("modules from $($script:DscBuildParameters.ProgramFilesModuleDirectory)")) {
-            $AllResources = Get-DscResource |
-                Where-Object {$_.implementedas -like 'PowerShell'}
-
             Add-DscBuildParameter -Name TestedModules -value @()
 
-            Get-ChildItem -Path $script:DscBuildParameters.ProgramFilesModuleDirectory -Directory |
-            Where Name -in $script:DscBuildParameters.CopiedResources |
-            Assert-DscModuleResourceIsValid
+            if ($script:DscBuildParameters.ModulesToPublish.Count -gt 0)
+            {
+                $AllResources = Get-DscResource | Where-Object {$_.ImplementedAs -like 'PowerShell'}
+
+                Get-ChildItem -Path $script:DscBuildParameters.ProgramFilesModuleDirectory -Directory |
+                Where Name -in $script:DscBuildParameters.ModulesToPublish |
+                Assert-DscModuleResourceIsValid
+            }
         }
     }
 }

@@ -5,8 +5,15 @@ function Invoke-DscResourceUnitTest {
     if ( Test-BuildResource ) {
         if ($pscmdlet.shouldprocess($script:DscBuildParameters.SourceResourceDirectory)) {
             Write-Verbose 'Running Resource Unit Tests.'
-            $result = Invoke-Pester -Path $script:DscBuildParameters.SourceResourceDirectory -PassThru
-            $failCount = $result.FailedCount
+
+            $failCount = 0
+
+            foreach ($module in $script:DscBuildParameters.ModulesToPublish)
+            {
+                $modulePath = Join-Path $script:DscBuildParameters.SourceResourceDirectory $module
+                $result = Invoke-Pester -Path $modulePath -PassThru
+                $failCount += $result.FailedCount
+            }
 
             if ($failCount -gt 0)
             {

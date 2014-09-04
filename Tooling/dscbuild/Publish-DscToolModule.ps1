@@ -9,15 +9,6 @@ function Publish-DscToolModule {
                 copy-item -recurse -force -destination $script:DscBuildParameters.DestinationToolsDirectory
         }
     }
-    <#
-    if (Test-BuildResource) {
-        if ($pscmdlet.shouldprocess($script:DscBuildParameters.TestedModules)) {
-            Get-Item $script:DscBuildParameters.TestedModules |
-                Test-ModuleVersion -Destination $script:DscBuildParameters.DestinationToolsDirectory |
-                copy-item -recurse -force -destination $script:DscBuildParameters.DestinationToolsDirectory
-        }
-    }
-    #>
 }
 
 

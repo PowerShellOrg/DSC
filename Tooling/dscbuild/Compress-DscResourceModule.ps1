@@ -9,9 +9,12 @@ function Compress-DscResourceModule {
                 Write-Verbose "`t$module"
             }
 
-            Get-Item $script:DscBuildParameters.TestedModules |
-                New-DscZipFile -ZipFile { join-path $script:DscBuildParameters.ModuleOutputPath "$($_.Name)" } -Force |
-                Foreach-Object {Write-Verbose "New compressed resource module $($_.fullname)"}
+            if ($script:DscBuildParameters.TestedModules.Count -gt 0)
+            {
+                Get-Item $script:DscBuildParameters.TestedModules |
+                    New-DscZipFile -ZipFile { join-path $script:DscBuildParameters.ModuleOutputPath "$($_.Name)" } -Force |
+                    Foreach-Object {Write-Verbose "New compressed resource module $($_.fullname)"}
+            }
         }
     }
 }
