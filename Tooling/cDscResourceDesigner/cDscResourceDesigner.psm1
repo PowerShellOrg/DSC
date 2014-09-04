@@ -40,7 +40,7 @@ TestResourceGetNoReadsVerbose=Result of testing Get-TargetResource for no read p
 ResourceError=Test-cDscResource detected an error, so the generated files will be removed.
 KeyArrayError=Key Properties can not be Arrays.
 ValidateSetTypeError=ValidateSet item {0} did not match type {1}.
-InvalidValidateSetUsageError=ValidateSet can not be used for Arrays, PSCredentials, and Hashtable.
+InvalidValidateSetUsageError=ValidateSet can not be used for PSCredentials, and Hashtable.
 InvalidPropertyNameError=Property name {0} must start with a character and contain only characters, digits, and underscores.
 PropertyNameTooLongError=Property name {0} is longer than 255 characters.
 InvalidResourceNameError=Resource name {0} must start with a character and contain only characters, digits, and underscores.
@@ -340,13 +340,15 @@ function New-cDscResourceProperty
     {
         $errorId = "KeyArrayError"
         Write-Error $localizedData[$errorId] `
-            -ErrorId $errorId -ErrorAction Stop
+            -ErrorId $errorId
+        return
     }
 
-    if ($ValidateSet -and ((Test-TypeIsArray $Type) -or $EmbeddedInstances.ContainsKey($Type)))
+    if ($ValidateSet -and ($EmbeddedInstances.ContainsKey($Type)))
     {
         Write-Error ($localizedData.InvalidValidateSetUsageError) `
-                   -ErrorId "InvalidValidateSetUsageError" -ErrorAction Stop
+                   -ErrorId "InvalidValidateSetUsageError"
+        return
     }
 
     if ($ValidateSet -and (-not $ValidateSet.Length -le 0))
@@ -357,7 +359,8 @@ function New-cDscResourceProperty
                         TryConvertTo($_, $TypeMap[$Type], [ref]$null)))
             {
                 Write-Error ($localizedData.ValidateSetTypeError -f $_,$Type) `
-                        -ErrorId "ValidateSetTypeError" -ErrorAction Stop
+                        -ErrorId "ValidateSetTypeError"
+                return
             }
         }
     }
