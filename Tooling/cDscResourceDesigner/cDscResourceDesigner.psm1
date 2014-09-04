@@ -256,12 +256,6 @@ $EmbeddedInstances = @{
 $NameRegex = "^[a-zA-Z][\w_]*$"
 $NameMaxLength = 255 #This number is hardcoded into the localization text as 255
 
-$commonParameters = @(
-    [System.Management.Automation.Internal.CommonParameters].GetProperties().Name
-    'WhatIf'
-    'Confirm'
-)
-
 <#
 .SYNOPSIS
 Creates a DscResourceProperty to be used by New-cDscResource.
@@ -1848,8 +1842,8 @@ function Test-SetHasExactlyAllNonReadProperties
         [parameter(
             Mandatory = $true,
             Position = 1)]
-        [System.Collections.Generic.Dictionary`2[System.String,System.Management.Automation.ParameterMetadata]]
-        $SetParameters,
+        [System.Management.Automation.CommandInfo]
+        $Command,
 
         [parameter(
             Mandatory = $true,
@@ -1860,6 +1854,9 @@ function Test-SetHasExactlyAllNonReadProperties
         [ref]
         $errorIdsRef
     )
+
+    $SetParameters = $Command.Parameters
+    $metadata = [System.Management.Automation.CommandMetadata]$Command
 
     $propertiesHash = @{}
 
@@ -1885,7 +1882,7 @@ function Test-SetHasExactlyAllNonReadProperties
     #Make sure there are no extra properties in the function
     foreach ($parameter in $SetParameters.Values)
     {
-        if (-not $propertiesHash[$parameter.Name] -and -not $commonParameters.Contains($parameter.Name))
+        if (-not $propertiesHash[$parameter.Name] -and -not (IsCommonParameter -Name $parameter.Name -Metadata $metadata))
         {
             $errorId = "SetAndTestExtraParameterError"
             Write-Error ($localizedData[$errorId] -f $parameter.Name) `
@@ -2768,13 +2765,14 @@ function Test-GetSubsetSet
 
     $commonParameterError = $false
 
+    $getCommandMetadata = [System.Management.Automation.CommandMetadata]$getCommandInfo
+
     foreach ($parameter in $getCommandInfo.Parameters.Values)
     {
 
         if (-not $setCommandInfo.Parameters.Keys.Contains($parameter.Name))
         {
-
-            if ($commonParameters.Contains($parameter.Name))
+            if (IsCommonParameter -Name $parameter.Name -Metadata $getCommandMetadata)
             {
                 # Ignore Verbose,ErrorAction, etc
                 # We can't report that Set doesnt contain $commonParameter X
@@ -3011,12 +3009,14 @@ function Test-BasicDscFunction
 
     $errorIds = @()
 
+    $metadata = [System.Management.Automation.CommandMetadata]$command
+
     # This would be a mandatory, non-array parameter
     $hasValidKey = $false
 
     foreach ($parameter in $command.Parameters.Values)
     {
-        if ($commonParameters.Contains($parameter.Name))
+        if (IsCommonParameter -Name $parameter.Name -Metadata $metadata)
         {
             continue;
         }
@@ -3081,8 +3081,11 @@ function Test-SetTestIdentical
 
     $errorId = "NoError"
 
-    $setParametersToTest  = $setCommand.Parameters.Values.Where({ -not $commonParameters.Contains($_.Name) })
-    $testParametersToTest = $testCommand.Parameters.Values.Where({ -not $commonParameters.Contains($_.Name) })
+    $setCommandMetadata = [System.Management.Automation.CommandMetadata]$setCommand
+    $testCommandMetadata = [System.Management.Automation.CommandMetadata]$testCommand
+
+    $setParametersToTest  = $setCommand.Parameters.Values.Where({ -not (IsCommonParameter -Name $_.Name -Metadata $setCommandMetadata) })
+    $testParametersToTest = $testCommand.Parameters.Values.Where({ -not (IsCommonParameter -Name $_.Name -Metadata $testCommandMetadata) })
 
     if ($setParametersToTest -eq 0 -and $testParametersToTest -eq 0)
     {
@@ -3358,8 +3361,20 @@ function Import-cDscSchema
             }
 }
 
+function IsCommonParameter
+{
+    param (
+        [string] $Name,
+        [System.Management.Automation.CommandMetadata] $Metadata
+    )
 
+    if ($null -ne $Metadata)
+    {
+        if ([System.Management.Automation.Internal.CommonParameters].GetProperty($Name)) { return $true }
+        if ($Metadata.SupportsShouldProcess -and [System.Management.Automation.Internal.ShouldProcessParameters].GetProperty($Name)) { return $true }
+        if ($Metadata.SupportsPaging -and [System.Management.Automation.PagingParameters].GetProperty($Name)) { return $true }
+        if ($Metadata.SupportsTransactions -and [System.Management.Automation.Internal.TransactionParameters].GetProperty($Name)) { return $true }
+    }
 
-
-
-
+    return $false
+}
