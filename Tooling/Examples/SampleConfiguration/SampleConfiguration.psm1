@@ -1,4 +1,4 @@
-# DscConfiguration module required for the Resolve-DscConfigurationProperty and Test-NodeHasRole functions.
+# DscConfiguration module required for the Resolve-DscConfigurationProperty and Test-DscConfigurationPropertyExists functions.
 Import-Module DscConfiguration -ErrorAction Stop
 
 configuration SampleConfiguration
@@ -10,7 +10,7 @@ configuration SampleConfiguration
     node $AllNodes.NodeName
     {
         # This is a fairly silly example, choosing a power plan based on alphabetical order.  However, it does demonstrate how
-        # you can deal with potential conflicts betwee your services when they contribute a setting to the same role, and in
+        # you can deal with potential conflicts between your services when they contribute a setting to the same role, and in
         # this case, 'High Performance' is "greater than" 'Balanced'.
 
         $PowerPlan = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'BaseServerSettings\PowerPlan' -MultipleResultBehavior AllValues |
@@ -75,7 +75,7 @@ configuration SampleConfiguration
 
                 cWebsite "Website_$($website['Name'])"
                 {
-                    DependsOn = "[WindowsFeature]Web-Server", "[File]Website_$($website['Name'])_Files"
+                    DependsOn = '[WindowsFeature]Web-Server', "[File]Website_$($website['Name'])_Files"
                     Name = $website['Name']
                     PhysicalPath = $website['LocalPath']
                 }
@@ -84,7 +84,7 @@ configuration SampleConfiguration
 
         if ($Node.Name -eq 'FileServer01')
         {
-            # This is just to demonstrate the hierarchy of Node -> Site -> Service -> Global property resolution.
+            # This is just to demonstrate the hierarchy of Service -> Node -> Site -> Global property resolution.
 
             $property1 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty1
             $property2 = Resolve-DscConfigurationProperty -Node $Node -PropertyName ExampleProperty2
