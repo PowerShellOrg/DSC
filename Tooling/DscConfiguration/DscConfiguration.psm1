@@ -20,7 +20,6 @@ $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services
 
 . $psscriptroot\Get-Hashtable.ps1
 . $psscriptroot\Test-LocalCertificate.ps1
-. $psscriptroot\Add-NodeRoleFromServiceConfigurationData.ps1
 
 . $psscriptroot\New-ConfigurationDataStore
 . $psscriptroot\New-DscNodeMetadata.ps1
@@ -28,7 +27,6 @@ $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services
 . $psscriptroot\Get-AllNodesConfigurationData.ps1
 . $psscriptroot\Get-ConfigurationData.ps1
 . $psscriptroot\Get-CredentialConfigurationData.ps1
-. $psscriptroot\Get-ApplicationConfigurationData.ps1
 . $psscriptroot\Get-ServiceConfigurationData.ps1
 . $psscriptroot\Get-SiteDataConfigurationData.ps1
 . $psscriptroot\Get-EncryptedPassword.ps1

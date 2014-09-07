@@ -2,16 +2,23 @@ function Get-AllNodesConfigurationData
 {
     [cmdletbinding()]
     param ()
-    if (($script:ConfigurationData.AllNodes.Count -eq 0))
+
+    $nodePath = Join-Path -Path $script:ConfigurationDataPath -ChildPath 'AllNodes\*.psd1'
+
+    if (($script:ConfigurationData.AllNodes.Count -eq 0) -and
+        (Test-Path -Path $nodePath))
     {
         Write-Verbose "Processing AllNodes from $($script:ConfigurationDataPath)."
         $script:ConfigurationData.AllNodes = @()
-        dir (join-path $script:ConfigurationDataPath 'AllNodes\*.psd1') |
+
+        $script:ConfigurationData.AllNodes = @(
+            Get-ChildItem $nodePath |
             Get-Hashtable |
-            foreach-object {
-                Write-Verbose "Adding Name: $($_.Name)"
-                $script:ConfigurationData.AllNodes += $_
+            ForEach-Object {
+                Write-Verbose "Adding Node: $($_.Name)"
+                $_
             }
+        )
     }
 }
 
