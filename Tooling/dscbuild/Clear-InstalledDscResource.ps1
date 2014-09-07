@@ -13,15 +13,26 @@ function Clear-InstalledDscResource {
                 $source = $_
                 $dest = Join-Path $script:DscBuildParameters.ProgramFilesModuleDirectory $source.Name
 
+                $sourceVersion = Get-ModuleVersion -Path $source.FullName -AsVersion
+                $publishTarget = Join-Path -Path $script:DscBuildParameters.DestinationRootDirectory -ChildPath "Modules\$($source.Name)_$sourceVersion"
+
+                $shouldPublish = $true
+
                 if (Test-Path -Path $dest -PathType Container)
                 {
-                    if (Test-ModuleVersion -InputObject $source -Destination $script:DscBuildParameters.ProgramFilesModuleDirectory)
+                    if ((Test-ModuleVersion -InputObject $source -Destination $script:DscBuildParameters.ProgramFilesModuleDirectory) -or
+                        -not (Test-Path -Path "$publishTarget.zip") -or
+                        -not (Test-Path -Path "$publishTarget.zip.checksum"))
                     {
                         Remove-Item $dest -Force -Recurse
-                        $ModulesToPublish += $source.Name
+                    }
+                    else
+                    {
+                        $shouldPublish = $false
                     }
                 }
-                else
+
+                if ($shouldPublish)
                 {
                     $ModulesToPublish += $source.Name
                 }
