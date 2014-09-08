@@ -11,6 +11,7 @@
 ######################################################################################
 function Get-TargetResource
 {
+    [OutputType([hashtable])]
 	param
 	(		
 		[Parameter(Mandatory)]
@@ -21,7 +22,7 @@ function Get-TargetResource
 		[ValidateNotNullOrEmpty()]
         [String]$InterfaceAlias,
 
-        [Int]$SubnetMask = 16,
+        [byte]$SubnetMask = 16,
 
 		[ValidateNotNullOrEmpty()]
         [String]$DefaultGateway,
@@ -59,7 +60,7 @@ function Set-TargetResource
 		[ValidateNotNullOrEmpty()]
         [String]$InterfaceAlias,
 
-        [Int]$SubnetMask,
+        [byte]$SubnetMask,
 
 		[ValidateNotNullOrEmpty()]
         [String]$DefaultGateway,
@@ -78,6 +79,7 @@ function Set-TargetResource
 ######################################################################################
 function Test-TargetResource
 {
+    [OutputType([bool])]
 	param
 	(		
 		[Parameter(Mandatory)]
@@ -88,7 +90,7 @@ function Test-TargetResource
 		[ValidateNotNullOrEmpty()]
         [String]$InterfaceAlias,
 
-        [Int]$SubnetMask,
+        [byte]$SubnetMask,
 
 		[ValidateNotNullOrEmpty()]
         [String]$DefaultGateway,
@@ -120,7 +122,7 @@ function ValidateProperties
         [ValidateNotNullOrEmpty()]
         [String]$DefaultGateway,
 
-        [Int]$SubnetMask = 16,
+        [byte]$SubnetMask = 16,
 
 	[ValidateSet("IPv4", "IPv6")]
         [String]$AddressFamily = "IPv4",
