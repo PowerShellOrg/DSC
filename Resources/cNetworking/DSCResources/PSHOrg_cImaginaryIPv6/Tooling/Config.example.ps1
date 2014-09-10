@@ -7,21 +7,24 @@ Configuration ImaginaryIPv6
         [string[]]$computers = $ApertureLabs
     )
 
-    Import-DscResource -Module cImaginaryIPv6
+    Import-DscResource -Module cNetworking
 
     Node $computers
     {
-        cImaginaryIPv6 No6Imaginationland
+        cImaginaryIPv6 Imaginationland
         {
-           SixToFour = "Default"
-           Teredo = "Default"
-           ISATAP = "Default"
+           SixToFour = "Disabled"
+              Teredo = "Disabled"
+              ISATAP = "Disabled"
         }
     } #Node
 }
 
-ImaginaryIPv6 -OutputPath d:\tmp
-Start-DscConfiguration -ComputerName $ApertureLabs -Path d:\tmp -Wait -Verbose
+$MOFpath = 'c:\tmp\MOF'
+cd $MOFpath
+
+ImaginaryIPv6 -OutputPath $MOFpath
+Start-DscConfiguration -ComputerName $ApertureLabs -Path $MOFpath -Wait -Verbose
 
 Write-Host -BackgroundColor Magenta "Invoking Get-DscConfiguration on $ApertureLabs"
 Get-DscConfiguration -CimSession $ApertureLabs -Verbose
