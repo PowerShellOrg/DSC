@@ -277,7 +277,7 @@ function Resolve-HashtableProperty
 
     foreach ($property in $properties)
     {
-        if ($currentNode -isnot [hashtable] -or $null -eq $currentNode[$property]) { return $false }
+        if ($currentNode -isnot [hashtable] -or -not $currentNode.ContainsKey($property)) { return $false }
         $currentNode = $currentNode[$property]
     }
 
