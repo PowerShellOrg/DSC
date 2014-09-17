@@ -108,7 +108,7 @@ class $ResourceName : OMI_BaseResource
                 {$_ -like 'string'} { $PropertyString += '] string ' }
                 {$_ -like 'switch'} { $PropertyString += '] boolean '}
                 {$_ -like 'bool'} { $PropertyString += '] boolean '}
-                {$_ -like 'System.Management.Automation.PSCredential'} { $PropertyString += ',EmbeddedInstance("MSFT_Credential")] string '}
+                {$_ -imatch '(?:System\.Management\.Automation\.)?PSCredential'} { $PropertyString += ',EmbeddedInstance("MSFT_Credential")] string '}
                 {$_ -like 'string`[`]'} { $PropertyString += '] string '; $IsArray = $true}
                 {$_ -like 'long'} { $PropertyString += '] sint64 '}
                 {$_ -like 'long`[`]'} { $PropertyString += '] sint64 '; $IsArray = $true}
