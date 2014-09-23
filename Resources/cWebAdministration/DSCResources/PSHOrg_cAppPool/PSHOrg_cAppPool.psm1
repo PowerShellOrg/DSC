@@ -416,7 +416,7 @@ function Test-TargetResource
             #Only check username and password if IdentityType is set to specific user 
             if ($identityType -eq "SpecificUser"){
 
-                if ($PoolConfig.add.processModel.userName -ne $userName){
+                if ($PSBoundParameters.ContainsKey("UserName")){
                     if($PoolConfig.add.processModel.userName -ne $userName){
                         $DesiredConfigurationMatch = $false
                         Write-Verbose "userName of AppPool $Name does not match the desired state."
