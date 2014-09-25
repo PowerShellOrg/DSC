@@ -1773,9 +1773,14 @@ function Test-cDscResource
 
 
         #Check get has all key and required and that they are mandatory
+        # NOTE:  The LCM, at least as of version 4.0, treats Required properties as Key, and will not apply a configuration
+        #        properly if any of these are missing from Get-TargetResource.  Even though the Required properties are really
+        #        supposed to be part of the output of Get-TargetResource rather than part of its input, we still have to make
+        #        sure the resource matches the behavior that the LCM requires.
 
-        $getMandatoryError = -not (Test-GetKeyMandatory $GetCommandInfo.Parameters `
-                            ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Key -eq $_.Attribute)}))
+        $getMandatoryError = -not (Test-GetKeyRequiredMandatory $GetCommandInfo.Parameters `
+                            ($DscResourceProperties | Where-Object {([DscResourcePropertyAttribute]::Key -eq $_.Attribute) `
+                                        -or ([DscResourcePropertyAttribute]::Required -eq $_.Attribute)}))
         Write-Verbose ($localizedData["TestResourceGetMandatoryVerbose"] -f (-not $getMandatoryError))
         #Check that set has all write
 
@@ -1794,7 +1799,7 @@ function Test-cDscResource
     }
 }
 
-function Test-GetKeyMandatory
+function Test-GetKeyRequiredMandatory
 {
     param
     (
@@ -1808,7 +1813,7 @@ function Test-GetKeyMandatory
             Mandatory = $true,
             Position = 2)]
         [DscResourceProperty[]]
-        $KeyDscResourceProperties,
+        $KeyRequiredDscResourceProperties,
 
         [ref]
         $errorIdsRef
@@ -1816,7 +1821,7 @@ function Test-GetKeyMandatory
 
     $errorIds = @()
 
-    foreach ($property in $KeyDscResourceProperties)
+    foreach ($property in $KeyRequiredDscResourceProperties)
     {
 
         if (-not $GetParameters[$property.Name] -or `
