@@ -65,6 +65,7 @@ KeyFunctionsNotDefined=The following functions were not found: {0}.
 MissingOMI_BaseResourceError=The Schema must be defined as "class {0} : OMI_BaseResource".
 ClassNameSchemaNameDifferentError=The Class name {0} does not match the Schema name {1}.
 UnsupportedMofTypeError=In property {0}, the mof type {1} is not supported.
+ValueMapTypeMismatch=In property {0}, ValueMap value {1} is not valid for type {2}.
 ValueMapValuesPairError=In property {0}, the qualifiers "ValueMap" and "Values" must be used together and specify identical values.
 NoKeyTestError=At least one property must have the qualifier "Key".
 EmbeddedInstanceCimTypeError=In property {0}, all EmbeddedInstances must be encoded as Strings.
@@ -545,7 +546,7 @@ function New-cDscResource
     )
 
 
-    $null = Test-AdministratorPrivileges
+    Assert-AdminPrivilege
     Test-Name $Name "Resource"
     Write-Verbose $localizedData["NewResourceNameVerbose"]
 
@@ -1544,7 +1545,7 @@ function Update-cDscResource
     )
 
 
-    $null = Test-AdministratorPrivileges
+    Assert-AdminPrivilege
     # Will hold path to the .schema.mof file
     $Schema = ""
     # Will hold path to the .psm1 file
@@ -1729,7 +1730,7 @@ function Test-cDscResource
 
     process
     {
-        $null = Test-AdministratorPrivileges
+        Assert-AdminPrivilege
         # Will hold path to the .schema.mof file
         $Schema = ""
         # Will hold path to the .psm1 file
@@ -2012,7 +2013,13 @@ function Test-ParameterMetaDataIsDscResourceProperty
         return $false
     }
 
-    if ($TypeMap[$property.Type].FullName -ne $parameter.ParameterType.FullName -and
+    $typeToTest = $parameter.ParameterType
+    if ($typeToTest.IsEnum)
+    {
+        $typeToTest = $typeToTest.GetEnumUnderlyingType()
+    }
+
+    if ($TypeMap[$property.Type].FullName -ne $typeToTest.FullName -and
         -not $property.ContainsEmbeddedInstance)
     {
         $errorId = "SchemaModuleTypeError"
@@ -2029,14 +2036,17 @@ function Test-ParameterMetaDataIsDscResourceProperty
 
     if ($property.ValidateSet -xor $parameterValidateSet)
     {
-        $errorId = "SchemaModuleValidateSetDiscrepancyError"
-        Write-Error ($localizedData[$errorId] -f $property.Name) `
-            -ErrorId $errorId -ErrorAction Continue
-        if($errorIdRef)
+        if (-not $parameter.ParameterType.IsEnum)
         {
-            $errorIdRef.Value = $errorId
+            $errorId = "SchemaModuleValidateSetDiscrepancyError"
+            Write-Error ($localizedData[$errorId] -f $property.Name) `
+                -ErrorId $errorId -ErrorAction Continue
+            if($errorIdRef)
+            {
+                $errorIdRef.Value = $errorId
+            }
+            return $false
         }
-        return $false
     }
     elseif (-not $property.ValidateSet -and -not $parameterValidateSet)
     {
@@ -2146,12 +2156,17 @@ function Test-SchemaProperty
         $simplifiedType = $Matches[1]+"[]"
     }
 
+    $type = $null
     if (-not $TypeMap.ContainsKey($simplifiedType))
     {
         $errorId = "UnsupportedMofTypeError"
         Write-Error ($localizedData[$errorId] -f $CimProperty.Name,$CimProperty.CimType.ToString()) `
             -ErrorId $errorId -ErrorAction Continue
         $ErrorIdsRef.Value +=  $errorId
+    }
+    else
+    {
+        $type = $TypeMap[$simplifiedType]
     }
 
 
@@ -2168,8 +2183,14 @@ function Test-SchemaProperty
         {
             $error = $true
         }
-        else
+        elseif ($simplifiedType -like 'String*')
         {
+            # We only do this test for String properties.  Enums that map string names to numeric values (and so don't have
+            # identical values / valuemap arrays) are acceptable.
+
+            # TODO:  Should we also allow for valuemaps that map strings to other strings?  This is legal in WMI, though
+            # uncommon and perhaps not a use case that anyone cares about for DSC.
+
             for ($i = 0; $i -lt $ValueMap.Count; $i++)
             {
                 # Make sure the values contained in ValueMap and Values are identical
@@ -2177,6 +2198,19 @@ function Test-SchemaProperty
                 {
                     $error = $true
                     break
+                }
+            }
+        }
+        elseif ($null -ne $type)
+        {
+            foreach ($mappedValue in $ValueMap)
+            {
+                if ($null -eq ($mappedValue -as $type))
+                {
+                    $errorId = 'ValueMapTypeMismatch'
+                    Write-Error ($localizedData[$errorId] -f $CimProperty.Name, $mappedValue, $simplifiedType) `
+                        -ErrorId $errorId -ErrorAction Continue
+                    $ErrorIdsRef.Value +=  $errorId
                 }
             }
         }
@@ -3029,7 +3063,13 @@ function Test-BasicDscFunction
             continue;
         }
 
-        if (-not $TypeMap.ContainsValue($parameter.ParameterType))
+        $typeToFind = $parameter.ParameterType
+        if ($typeToFind.IsEnum)
+        {
+            $typeToFind = $typeToFind.GetEnumUnderlyingType()
+        }
+
+        if (-not $TypeMap.ContainsValue($typeToFind))
         {
             if ($parameter.ParameterType.tostring() -notmatch 'Microsoft\.Management\.Infrastructure\.CimInstance')
             {
@@ -3188,17 +3228,15 @@ function Test-SetTestIdentical
 
 
 # Throws an exception if New-DscResource or Test-DscResource are run without admin rights.
-function Test-AdministratorPrivileges
+function Assert-AdminPrivilege
 {
-    if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
-    [Security.Principal.WindowsBuiltInRole] "Administrator"))
+    if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+        [Security.Principal.WindowsBuiltInRole] "Administrator"))
     {
         $errorId = "AdminRightsError"
         Write-Error $localizedData[$errorId] `
             -ErrorId $errorId -ErrorAction Stop
     }
-
-    return $true
 }
 # Only run Convert-Cim* functions on a Schema that has been tested!
 
@@ -3222,7 +3260,7 @@ function Convert-SchemaToResourceProperty
                             -Name $cimProperty.Name `
                             -Type (Convert-CimType $cimProperty) `
                             -Attribute (Convert-CimAttribute $cimProperty) `
-                            -ValidateSet $cimProperty.Qualifiers["Values"].Value `
+                            -ValidateSet $cimProperty.Qualifiers["ValueMap"].Value `
                             -Description $CimProperty.Qualifiers["Description"].Value `
                             -ContainsEmbeddedInstance ($null -ne $cimProperty.Qualifiers['EmbeddedInstance'])
     }
