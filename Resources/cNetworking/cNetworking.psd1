@@ -1,32 +1,25 @@
-@{
+﻿@{
+# Script module or binary module file associated with this manifest.
+RootModule = 'cNetworking.psm1'
+
 # Version number of this module.
-ModuleVersion = '2.0'
+ModuleVersion = '2.2.0.0'
 
 # ID used to uniquely identify this module
-GUID = 'e6647cc3-ce9c-4c86-9eb8-2ee8919bf358'
+GUID = '32c0d74d-ad19-4965-8b1c-7e4c62f21c75'
 
 # Author of this module
-Author = 'Microsoft Corporation'
+Author = 'PowerShell.org Community'
 
 # Company or vendor of this module
-CompanyName = 'Microsoft Corporation'
+CompanyName = 'PowerShell.org Community'
 
 # Copyright statement for this module
-Copyright = '(c) 2013 Microsoft Corporation. All rights reserved.'
+Copyright = '(c) PowerShell.org Community. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'Module with DSC Resources for Networking area'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '4.0'
-
-# Minimum version of the common language runtime (CLR) required by this module
-CLRVersion = '4.0'
-
-# Functions to export from this module
-FunctionsToExport = '*'
-
-# Cmdlets to export from this module
-CmdletsToExport = '*'
 }
-
