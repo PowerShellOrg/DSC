@@ -1,8 +1,0 @@
-﻿
-[ClassVersion("1.0.0.0"), FriendlyName("cNetAdapterName")]
-class PSHOrg_cNetAdapterName : OMI_BaseResource
-{
-	[Key] String NewName;
-	[Key] String MacAddress;
-};
-
