@@ -8,6 +8,7 @@
 #
 function Get-TargetResource
 {
+    [OutputType([hashtable])]
     param
     (	
         [parameter(Mandatory)] 
@@ -161,6 +162,7 @@ function Set-TargetResource
 #
 function Test-TargetResource
 {
+    [OutputType([bool])]
     param
     (	
         [parameter(Mandatory)] 

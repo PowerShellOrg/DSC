@@ -6,6 +6,7 @@
 
 function Get-TargetResource
 {
+    [OutputType([hashtable])]
 	param
     (
        	[ValidateSet("Present", "Absent")]
@@ -34,7 +35,17 @@ function Get-TargetResource
         $InstalledMPs = Get-SCOMManagementPack |%{$_}|%{$_.name}
         foreach ($ManagementPack in $mpfiles)
         {
-            $mpname = [System.IO.Path]::GetFileNameWithoutExtension($ManagementPack)            If ($InstalledMPs -notcontains $mpname) {                 Write-Verbose -Message "$ManagementPack is missing."                $InstallList += $ManagementPack             }            Else            {                Write-Verbose -Message "$ManagementPack is already installed!"            }        }
+            $mpname = [System.IO.Path]::GetFileNameWithoutExtension($ManagementPack)
+            If ($InstalledMPs -notcontains $mpname)
+            {
+                Write-Verbose -Message "$ManagementPack is missing."
+                $InstallList += $ManagementPack
+            }
+            Else
+            {
+                Write-Verbose -Message "$ManagementPack is already installed!"
+            }
+        }
 
         $Instcnt = $InstallList.Count
 
@@ -96,7 +107,17 @@ function Set-TargetResource
         $InstalledMPs = Get-SCOMManagementPack |%{$_}|%{$_.name}
         foreach ($ManagementPack in $mpfiles)
         {
-            $mpname = [System.IO.Path]::GetFileNameWithoutExtension($ManagementPack)            If ($InstalledMPs -notcontains $mpname) {                 Write-Verbose -Message "Adding $ManagementPack to import queue..."                $InstallList += $ManagementPack             }            Else            {                Write-Verbose -Message "$ManagementPack is already installed!"            }        }
+            $mpname = [System.IO.Path]::GetFileNameWithoutExtension($ManagementPack)
+            If ($InstalledMPs -notcontains $mpname)
+            {
+                Write-Verbose -Message "Adding $ManagementPack to import queue..."
+                $InstallList += $ManagementPack
+            }
+            Else
+            {
+                Write-Verbose -Message "$ManagementPack is already installed!"
+            }
+        }
 
         $Instcnt = $InstallList.Count
 
@@ -126,6 +147,7 @@ function Set-TargetResource
 
 function Test-TargetResource
 {
+    [OutputType([bool])]
    	param
    	(
        	[ValidateSet("Present", "Absent")]
@@ -156,7 +178,17 @@ function Test-TargetResource
         $InstalledMPs = Get-SCOMManagementPack |%{$_}|%{$_.name}
         foreach ($ManagementPack in $mpfiles)
         {
-            $mpname = [System.IO.Path]::GetFileNameWithoutExtension($ManagementPack)            If ($InstalledMPs -notcontains $mpname) {                 Write-Verbose -Message "$ManagementPack is missing."                $InstallList += $ManagementPack             }            Else            {                Write-Verbose -Message "$ManagementPack is already installed!"            }        }
+            $mpname = [System.IO.Path]::GetFileNameWithoutExtension($ManagementPack)
+            If ($InstalledMPs -notcontains $mpname)
+            {
+                Write-Verbose -Message "$ManagementPack is missing."
+                $InstallList += $ManagementPack
+            }
+            Else
+            {
+                Write-Verbose -Message "$ManagementPack is already installed!"
+            }
+        }
 
         $Instcnt = $InstallList.Count
 

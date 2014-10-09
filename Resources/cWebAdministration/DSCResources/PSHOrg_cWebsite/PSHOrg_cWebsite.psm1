@@ -26,8 +26,16 @@ function Get-TargetResource
     (   
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [string]$Name
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$PhysicalPath
     )
+        # The LCM requires Get-TargetResource to take all Key AND Required properties as parameters, even though
+        # the Required properties such as PhysicalPath are really part of Get-TargetResource's output, not its
+        # input.  This is probably an LCM bug.
+        # We're not actually doing anything with whatever value was passed in to $PhysicalPath here.
 
         $getTargetResourceResult = $null;
 
