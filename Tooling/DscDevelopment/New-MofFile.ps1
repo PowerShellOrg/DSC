@@ -90,61 +90,77 @@ class $ResourceName : OMI_BaseResource
             {
                 {$_.typename -like 'ValidateSet'} {
                                 Write-Verbose "Parameter - $ParameterName has a validate set."
+                                $oldOFS = $OFS
                                 $OFS = '", "'
                                 $SingleQuote = "'"
-                                $ValidValues = "$($_.PositionalArguments -replace $SingleQuote)"
+                                $ValidValues = "$($_.PositionalArguments.Value -replace $SingleQuote)"
                                 $PropertyString += @"
 ,ValueMap{"$ValidValues"},Values{"$ValidValues"}
 "@
+                                $OFS = $oldOFS
                             }
             }
-                        
-
-            
-            $IsArray = $false
+                       
             Write-Verbose "Parameter - $ParameterName is typed with $($ParameterTypeAttributeAst.TypeName)."
-            switch ($ParameterTypeAttributeAst.TypeName)
-            {
-                {$_ -like 'string'} { $PropertyString += '] string ' }
-                {$_ -like 'switch'} { $PropertyString += '] boolean '}
-                {$_ -like 'bool'} { $PropertyString += '] boolean '}
-                {$_ -imatch '(?:System\.Management\.Automation\.)?PSCredential'} { $PropertyString += ',EmbeddedInstance("MSFT_Credential")] string '}
-                {$_ -like 'string`[`]'} { $PropertyString += '] string '; $IsArray = $true}
-                {$_ -like 'long'} { $PropertyString += '] sint64 '}
-                {$_ -like 'long`[`]'} { $PropertyString += '] sint64 '; $IsArray = $true}
-                {$_ -like 'int'} { $PropertyString += '] sint32 '}
-                {$_ -like 'int`[`]'} { $PropertyString += '] sint32 '; $IsArray = $true}
 
+            $type = $ParameterTypeAttributeAst.TypeName.FullName -as [Type]
+
+            $table = @{
+                [string]       = 'string'
+                [string[]]     = 'string'
+                [switch]       = 'boolean'
+                [bool]         = 'boolean'
+                [boolean[]]    = 'boolean'
+                [long]         = 'sint64'
+                [long[]]       = 'sint64'
+                [int]          = 'sint32'
+                [int[]]        = 'sint32'
+                [byte]         = 'uint8'
+                [byte[]]       = 'uint8'
+                [uint32]       = 'uint32'
+                [uint32[]]     = 'uint32'
+                [uint64]       = 'uint64'
+                [uint64[]]     = 'uint64'
+            }
+
+            if ($table.ContainsKey($type))
+            {
+                $PropertyString += "] $($table[$type]) "
+            }
+            elseif ($type -eq [pscredential])
+            {
+                $PropertyString += ',EmbeddedInstance("MSFT_Credential")] string '
+            }
+            else
+            {
+                $goodType = $false
+
+                if ($null -ne $type -and $type.IsEnum)
                 {
-                    try {
-                        $type = [System.Type]($_.Name)
-                        $type.BaseType.Name -eq 'Enum'
-                    } catch [System.InvalidCastException] {
-                        $false
+                    Write-Verbose "'$type' is an Enum type. Let's convert it into a ValueMap."
+
+                    $eNames = ($type.GetEnumNames() | ForEach-Object { "`"$_`"" }) -join ','
+                    $eValues = ($type.GetEnumValues().value__ | ForEach-Object { "`"$_`"" }) -join ','
+                    $eType = $type.GetEnumUnderlyingType()
+
+                    if ($table.ContainsKey($eType))
+                    {
+                        $goodType = $true
+                        $PropertyString += ",ValueMap{$eValues},Values{$eNames}] $($table[$eType]) "
                     }
-                } {
-                    Write-Verbose "'$_' is an Enum type. Let's convert it into a ValueMap."
-
-                    $type = [System.Type]($_.Name)
-
-                    $eNames = ($type.GetEnumNames() | ForEach-Object { "`"$_`"" }) -join ', '
-                    $eValues = ($type.GetEnumValues().value__ | ForEach-Object { "`"$_`"" }) -join ', '
-                    $eType = $type.GetEnumUnderlyingType().Name.ToLower()
-
-                    $PropertyString += ",ValueMap{$eValues},Values{$eNames}] $eType "
                 }
-
-                default { Write-Warning "Don't know what to do with $_";}
-            }
-            if ($IsArray)
-            {
-                $ParameterName = "$ParameterName[]"
-            }
                 
-            $Template += $PropertyString + "$ParameterName;`r`n"                 
-            
-        
+                if (-not $goodType)
+                {
+                    Write-Warning "Don't know what to do with $($ParameterTypeAttributeAst.TypeName.FullName)"
+                }
+            }
+
+            $arrayString = if ($type.IsArray) { '[]' } else { '' }
+
+            $Template += $PropertyString + "$ParameterName$arrayString;`r`n"
         }
+
         $Template += @'
 };
 '@

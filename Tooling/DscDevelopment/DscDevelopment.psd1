@@ -12,7 +12,7 @@
 RootModule = 'DscDevelopment.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.5.0.0'
+ModuleVersion = '1.5.1.0'
 
 # ID used to uniquely identify this module
 GUID = 'e51973fd-3e2b-46ef-b307-66b02811db52'
