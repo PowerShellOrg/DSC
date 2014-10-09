@@ -1,9 +1,0 @@
-
-[ClassVersion("1.0.0.0"), FriendlyName("cWebAuthentication")]
-class cWebAuthentication : OMI_BaseResource
-{
-	[Key] String Location;
-	[Key, ValueMap{"Anonymous","Basic","Windows"}, Values{"Anonymous","Basic","Windows"}] String Type;
-	[Write, ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
-};
-

@@ -1,9 +1,0 @@
-
-[ClassVersion("1.0.0.0"), FriendlyName("cKeyContainer")]
-class cKeyContainer : OMI_BaseResource
-{
-	[Key] String ContainerName;
-	[Write] String FilePath;
-	[Write, ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
-};
-
