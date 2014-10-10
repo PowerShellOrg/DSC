@@ -34,20 +34,22 @@ function Get-TargetResource
             Throw "Please ensure that WebAdministration module is installed."
         }
 
+        Write-Verbose "Getting AppPool $Name details"
         $AppPools = & $env:SystemRoot\system32\inetsrv\appcmd.exe list apppool $Name
 
         if ($AppPools.count -eq 0) # No AppPool exists with this name.
         {
+            Write-Verbose "App Pool is Absent"
             $ensureResult = "Absent";
         }
-        elseif ($AppPool.count -eq 1) # A single AppPool exists with this name.
+        elseif ($AppPools.count -eq 1) # A single AppPool exists with this name.
         {
+            Write-Verbose "App Pool is Present"
             $ensureResult = "Present"
 
-            [xml] $PoolConfig
-            $PoolConfig = & $env:SystemRoot\system32\inetsrv\appcmd.exe list apppool $Name /config:*
-            if($PoolConfig.add.processModel.userName){
-                $AppPoolPassword = $PoolConfig.add.processModel.password | ConvertTo-SecureString
+            [xml]$PoolConfig = & $env:SystemRoot\system32\inetsrv\appcmd.exe list apppool $Name /config:*
+            if(!([string]::IsNullOrEmpty($PoolConfig.add.processModel.userName))){
+                $AppPoolPassword = $PoolConfig.add.processModel.password | ConvertTo-SecureString -AsPlainText -Force
                 $AppPoolCred = new-object -typename System.Management.Automation.PSCredential -argumentlist $PoolConfig.add.processModel.userName,$AppPoolPassword
             }
             else{
@@ -78,15 +80,15 @@ function Get-TargetResource
                                         userName = $PoolConfig.add.processModel.userName;
                                         password = $AppPoolCred
                                         loadUserProfile = $PoolConfig.add.processModel.loadUserProfile;
-
+					                    Enabled32Bit = $PoolConfig.Add.Enable32BitAppOnWin64;
                                     }
         
-        return $getTargetResourceResult;
+        Write-Output $getTargetResourceResult;
 }
 
 
 # The Set-TargetResource cmdlet is used to create, delete or configuure a website on the target machine. 
-function Set-TargetResource 
+function Set-TargetResource
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
     param 
@@ -111,7 +113,7 @@ function Set-TargetResource
         [string]$startMode = "OnDemand",
 
         [ValidateSet("ApplicationPoolIdentity","LocalSystem","LocalService","NetworkService","SpecificUser")]
-        [string]$identityType = "ApplicationPoolIdentity",
+        [string]$identityType,
 
         [string]$userName,
 
@@ -119,7 +121,10 @@ function Set-TargetResource
         $Password,
 
         [ValidateSet("true","false")]
-        [string]$loadUserProfile = "true"
+        [string]$loadUserProfile = "true",
+        
+        [ValidateSet("true","false")]
+	    [string]$Enable32Bit = "false"
 
     )
  
@@ -128,7 +133,7 @@ function Set-TargetResource
     if($Ensure -eq "Present")
     {
         #Remove Ensure from parameters as it is not needed to create new AppPool
-        $Result = $psboundparameters.Remove("Ensure");
+        $Result = $PSBoundParameters.Remove("Ensure");
 
 
         # Check if WebAdministration module is present for IIS cmdlets
@@ -169,34 +174,52 @@ function Set-TargetResource
                 $UpdateNotRequired = $false
                 & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /startMode:$startMode
             }
+            
+            #only update identity Type if it is provided
             #update identityType if required
-            if($PoolConfig.add.processModel.identityType -ne $identityType){
+            if($PSBoundParameters.ContainsKey("identityType") -and $PoolConfig.add.processModel.identityType -ne $identityType){
+                #update the Identity Type
                 $UpdateNotRequired = $false
                 & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.identityType:$identityType
             }
-            #update userName if required
-            if($identityType -eq "SpecificUser" -and $PoolConfig.add.processModel.userName -ne $userName){
-                $UpdateNotRequired = $false
-                & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.userName:$userName
-            }
-            #update password if required
-            if($identityType -eq "SpecificUser" -and $Password){
-                $clearTextPassword = $Password.GetNetworkCredential().Password
-                if($clearTextPassword -eq $PoolConfig.add.processModel.password){
+
+            #update userName and password if the Identity Type is set to Specific User
+            if ($identityType -eq "SpecificUser"){
+                
+                #update username if it is required
+                if($PoolConfig.add.processModel.userName -ne $userName){
+                    Write-Verbose "updating User Name to $userName"
                     $UpdateNotRequired = $false
-                    & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.password:$clearTextPassword
+                    & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.userName:$userName
                 }
 
+                #update password if it is required
+                if($PSBoundParameters.ContainsKey("Password")){
+                    $clearTextPassword = $Password.GetNetworkCredential().Password
+                    if($clearTextPassword -cne $PoolConfig.add.processModel.password){
+                        $UpdateNotRequired = $false
+                        & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.password:$clearTextPassword
+                    }
+
+                }
             }
+            
             #update loadUserProfile if required
             if($PoolConfig.add.processModel.loadUserProfile -ne $loadUserProfile){
                 $UpdateNotRequired = $false
                 & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.loadUserProfile:$loadUserProfile
             }
-
+	
+	    #update Enable32bit
+            if($PoolConfig.add.enable32BitAppOnWin64 -ne $Enable32Bit){
+                Write-Verbose "Updating Enable32Bit to $Enable32Bit"
+                $UpdateNotRequired = $false
+                & $env:SystemRoot\System32\inetsrv\appcmd.exe set apppool $Name /enable32BitAppOnWin64:$Enable32Bit
+            }
+		
             if($UpdateNotRequired)
             {
-                Write-Verbose("AppPool $Name already exists and properties do not need to be udpated.");
+                Write-Verbose "AppPool $Name already exists and properties do not need to be udpated."
             }
             
 
@@ -217,20 +240,29 @@ function Set-TargetResource
                 & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /managedPipelineMode:$managedPipelineMode
 
                 & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /startMode:$startMode
-            
-                & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.identityType:$identityType
-            
-                & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.userName:$userName
-          
-            #set password if required
-                if($identityType -eq "SpecificUser" -and $Password){
-                    $clearTextPassword = $Password.GetNetworkCredential().Password
-                    & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.password:$clearTextPassword
-                }
+                
+                #only update the Identity Type if it is provided
+                if($PSBoundParameters.ContainsKey("identityType")){
+                    & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.identityType:$identityType    
+                
+                    #set the username and password if the identity type is set to specific user
+                    if($identityType -eq "SpecificUser"){
+                    
+                        Write-Verbose "Identity Type Set to Specific User"
+                        Write-Verbose "Updating username to $username"
+                        & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.userName:$userName
+                    
+                        Write-Verbose "Updating password"
+                        $clearTextPassword = $Password.GetNetworkCredential().Password
+                        & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.password:$clearTextPassword
+                    }
+                }          
+                
+                
 
                 & $env:SystemRoot\system32\inetsrv\appcmd.exe set apppool $Name /processModel.loadUserProfile:$loadUserProfile
             
-                Write-Verbose("successfully created AppPool $Name")
+                Write-Verbose "successfully created AppPool $Name"
                 
                 #Start site if required
                 if($autoStart -eq "true")
@@ -238,7 +270,7 @@ function Set-TargetResource
                     Start-WebAppPool $Name
                 }
 
-                Write-Verbose("successfully started AppPool $Name")
+                Write-Verbose "successfully started AppPool $Name"
             }
             catch
             {
@@ -252,7 +284,7 @@ function Set-TargetResource
             }
         }    
     }
-    else #Ensure is set to "Absent" so remove website 
+    else #Ensure is set to "Absent" so remove appPool 
     { 
         try
         {
@@ -262,11 +294,11 @@ function Set-TargetResource
                 Stop-WebAppPool $Name
                 Remove-WebAppPool $Name
         
-                Write-Verbose("Successfully removed AppPool $Name.")
+                Write-Verbose "Successfully removed AppPool $Name."
             }
             else
             {
-                Write-Verbose("AppPool $Name does not exist.")
+                Write-Verbose "AppPool $Name does not exist."
             }
         }
         catch
@@ -285,7 +317,7 @@ function Set-TargetResource
 
 
 # The Test-TargetResource cmdlet is used to validate if the role or feature is in a state as expected in the instance document.
-function Test-TargetResource 
+function Test-TargetResource
 {
     [OutputType([bool])]
     param 
@@ -310,7 +342,7 @@ function Test-TargetResource
         [string]$startMode = "OnDemand",
 
         [ValidateSet("ApplicationPoolIdentity","LocalSystem","LocalService","NetworkService","SpecificUser")]
-        [string]$identityType = "ApplicationPoolIdentity",
+        [string]$identityType,
 
         [string]$userName,
 
@@ -318,7 +350,10 @@ function Test-TargetResource
         $Password,
 
         [ValidateSet("true","false")]
-        [string]$loadUserProfile = "true"
+        [string]$loadUserProfile = "true",
+        
+        [ValidateSet("true","false")]
+	    [string]$Enable32Bit = "false"
     )
  
     $DesiredConfigurationMatch = $true
@@ -332,10 +367,8 @@ function Test-TargetResource
     $AppPool = & $env:SystemRoot\system32\inetsrv\appcmd.exe list apppool $Name
     if($AppPool){
         #get configuration of AppPool
-        #[xml] $PoolConfig
         [xml]$PoolConfig = & $env:SystemRoot\system32\inetsrv\appcmd.exe list apppool $Name /config:*
     }
-    $Stop = $true
 
     Do
     {
@@ -343,7 +376,7 @@ function Test-TargetResource
         if(($Ensure -eq "Present" -and $AppPool -eq $null) -or ($Ensure -eq "Absent" -and $AppPool -ne $null))
         {
             $DesiredConfigurationMatch = $false
-            Write-Verbose("The Ensure state for AppPool $Name does not match the desired state.");
+            Write-Verbose "The Ensure state for AppPool $Name does not match the desired state."
             break
         }
 
@@ -353,61 +386,77 @@ function Test-TargetResource
             #Check autoStart
             if($PoolConfig.add.autoStart -ne $autoStart){
                 $DesiredConfigurationMatch = $false
-                Write-Verbose("autoStart of AppPool $Name does not match the desired state.");
+                Write-Verbose "autoStart of AppPool $Name does not match the desired state."
                 break
             }
 
             #Check managedRuntimeVersion 
             if($PoolConfig.add.managedRuntimeVersion -ne $managedRuntimeVersion){
                 $DesiredConfigurationMatch = $false
-                Write-Verbose("managedRuntimeVersion of AppPool $Name does not match the desired state.");
+                Write-Verbose "managedRuntimeVersion of AppPool $Name does not match the desired state."
                 break
             }
             #Check managedPipelineMode 
             if($PoolConfig.add.managedPipelineMode -ne $managedPipelineMode){
                 $DesiredConfigurationMatch = $false
-                Write-Verbose("managedPipelineMode of AppPool $Name does not match the desired state.");
+                Write-Verbose "managedPipelineMode of AppPool $Name does not match the desired state."
                 break
             }
             #Check startMode 
             if($PoolConfig.add.startMode -ne $startMode){
                 $DesiredConfigurationMatch = $false
-                Write-Verbose("startMode of AppPool $Name does not match the desired state.");
+                Write-Verbose "startMode of AppPool $Name does not match the desired state."
                 break
             }
-            #Check identityType 
-            if($PoolConfig.add.processModel.identityType -ne $identityType){
+            #Check identityType - should match if it isn't null or empty
+            if($PSBoundParameters.ContainsKey("identityType") -and $PoolConfig.add.processModel.identityType -ne $identityType){
                 $DesiredConfigurationMatch = $false
-                Write-Verbose("identityType of AppPool $Name does not match the desired state.");
+                Write-Verbose "identityType of AppPool $Name does not match the desired state."
                 break
             }
-            #Check userName 
-            if($PoolConfig.add.processModel.userName -ne $userName){
-                $DesiredConfigurationMatch = $false
-                Write-Verbose("userName of AppPool $Name does not match the desired state.");
-                break
-            }
-            #Check password 
-            if($identityType -eq "SpecificUser" -and $Password){
-                $clearTextPassword = $Password.GetNetworkCredential().Password
-                if($clearTextPassword -eq $PoolConfig.add.processModel.password){
-                    $DesiredConfigurationMatch = $false
-                    Write-Verbose("Password of AppPool $Name does not match the desired state.");
-                    break
+            #Check userName
+            #Only check username and password if IdentityType is set to specific user 
+            if ($identityType -eq "SpecificUser"){
+
+                if ($PSBoundParameters.ContainsKey("UserName")){
+                    if($PoolConfig.add.processModel.userName -ne $userName){
+                        $DesiredConfigurationMatch = $false
+                        Write-Verbose "userName of AppPool $Name does not match the desired state."
+                        break
+                    }
+                }
+                
+                #Check password 
+                if($PSBoundParameters.ContainsKey("Password")){
+                    $clearTextPassword = $Password.GetNetworkCredential().Password
+                    if($clearTextPassword -cne $PoolConfig.add.processModel.password){
+                        $DesiredConfigurationMatch = $false
+                        Write-Verbose "Password of AppPool $Name does not match the desired state."
+                        break
+                    }
+
                 }
 
             }
+            
+            
             #Check loadUserProfile 
             if($PoolConfig.add.processModel.loadUserProfile -ne $loadUserProfile){
                 $DesiredConfigurationMatch = $false
-                Write-Verbose("loadUserProfile of AppPool $Name does not match the desired state.");
+                Write-Verbose "loadUserProfile of AppPool $Name does not match the desired state."
+                break
+            }
+            
+            #check enabled32BitAppOnWin64
+            if($PoolConfig.add.enable32BitAppOnWin64 -ne $Enable32Bit){
+                $DesiredConfigurationMatch = $false
+                Write-Verbose "enable32BitAppOnWin64 of AppPool $Name does not match the desired state."
                 break
             }
         }
 
-        $Stop = $false
     }
-    While($Stop)   
+    While($false)   
 
     return $DesiredConfigurationMatch
 }
