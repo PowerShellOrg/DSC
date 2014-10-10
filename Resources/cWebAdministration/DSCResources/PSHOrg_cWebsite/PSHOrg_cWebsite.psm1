@@ -45,7 +45,7 @@ function Get-TargetResource
             Throw "Please ensure that WebAdministration module is installed."
         }
 
-        $Website = Get-Website -Name $Name
+        $Website = Get-Website | Where-Object {$_.Name -eq $name}
 
         if ($Website.count -eq 0) # No Website exists with this name.
         {
@@ -133,7 +133,8 @@ function Set-TargetResource
         {
             Throw "Please ensure that WebAdministration module is installed."
         }
-        $website = get-website $Name
+        
+        $Website = Get-Website | Where-Object {$_.Name -eq $name}
 
         if($website -ne $null)
         {
@@ -215,7 +216,17 @@ function Set-TargetResource
         {
             try
             {
-                $Website = New-Website @psboundparameters
+                $Websites = Get-Website
+                if ($Websites -eq $null)
+                {
+                    # We do not have any sites this will cause a break in 2008R2
+                    $Website = New-Website @psboundparameters -ID 0
+                }
+                else
+                {
+                    $Website = New-Website @psboundparameters
+                }
+                
                 $Result = Stop-Website $Website.name -ErrorAction Stop
             
                 #Clear default bindings if new bindings defined and are different
@@ -256,7 +267,7 @@ function Set-TargetResource
     { 
         try
         {
-            $website = get-website $Name
+            $Website = Get-Website | Where-Object {$_.Name -eq $name}
             if($website -ne $null)
             {
                 Remove-website -name $Name
@@ -316,7 +327,7 @@ function Test-TargetResource
         Throw "Please ensure that WebAdministration module is installed."
     }
 
-    $website = Get-Website -Name $Name
+    $Website = Get-Website | Where-Object {$_.Name -eq $name}
     $Stop = $true
 
     Do
@@ -523,7 +534,7 @@ function compareWebsiteBindings
     #check to see if actual settings have been passed in. If not get them from website
     if($ActualBindings -eq $null)
     {
-        $ActualBindings = Get-Website $Name | Get-WebBinding
+        $ActualBindings = Get-Website | Where-Object {$_.Name -eq $Name} | Get-WebBinding
 
         #Format Binding information: Split BindingInfo into individual Properties (IPAddress:Port:HostName)
         $ActualBindingObjects = @()
