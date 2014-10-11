@@ -1,9 +1,0 @@
-[ClassVersion("1.0.0"), FriendlyName("GlobalAssemblyCache")] 
-class GlobalAssemblyCache : OMI_BaseResource
-{
-  [Key] string Name;
-  [write] string Version;
-  [write] string AssemblyFile;
-  [write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;  
-};
-

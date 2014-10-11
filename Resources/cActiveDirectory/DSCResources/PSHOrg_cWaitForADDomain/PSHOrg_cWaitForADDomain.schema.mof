@@ -1,9 +1,0 @@
-[ClassVersion("1.0.0.0"), FriendlyName("cWaitForADDomain")]
-class PSHOrg_cWaitForADDomain : OMI_BaseResource
-{
-	[Key] String DomainName;
-  	[Required, EmbeddedInstance("MSFT_Credential")] String DomainUserCredential;
-	[Write] Uint64 RetryIntervalSec;
-	[Write] Uint32 RetryCount;
-};
-

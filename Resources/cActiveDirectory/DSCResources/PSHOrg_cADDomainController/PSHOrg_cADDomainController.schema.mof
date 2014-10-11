@@ -1,7 +1,0 @@
-[ClassVersion("1.0.0.0"), FriendlyName("cADDomainController")]
-class PSHOrg_cADDomainController : OMI_BaseResource
-{
-	[Key] String DomainName;
-	[Required, EmbeddedInstance("MSFT_Credential")] String DomainAdministratorCredential;
-	[Required, EmbeddedInstance("MSFT_Credential")] String SafemodeAdministratorPassword;
-};

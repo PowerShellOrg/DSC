@@ -1,8 +1,0 @@
-[ClassVersion("1.0.0"), FriendlyName("Timezone")]
-class StackExchange_Timezone :  OMI_BaseResource
-{
-	[Key] string Name;
-	[write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
-};
-
-
