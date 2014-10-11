@@ -1,8 +1,0 @@
-
-[ClassVersion("1.0.0"), FriendlyName("cPSGet")]
-class PSHOrg_cPSGet : OMI_BaseResource
-{
-	[Key, Description("Module name")] String Name;
-	[Required, ValueMap{"Absent","Present"}, Values{"Absent","Present"}] String Ensure;
-};
-
