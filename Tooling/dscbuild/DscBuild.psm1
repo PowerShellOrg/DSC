@@ -13,8 +13,6 @@
 . $psscriptroot\Publish-DscResourceModule.ps1
 . $psscriptroot\Publish-DscToolModule.ps1
 . $psscriptroot\Test-DscResourceIsValid.ps1
-. $psscriptroot\Where-DscResource.ps1
-. $psscriptroot\Resolve-ConfigurationProperty.ps1
 . $psscriptroot\Get-DscResourceVersion.ps1
 . $psscriptroot\Update-ModuleMetadataVersion.ps1
 
@@ -47,8 +45,8 @@ function Add-DscBuildParameter {
     Write-Verbose ''
     Write-Verbose "Adding DscBuildParameter: $Name"
     Write-Verbose "`tWith Value: $Value"
-    $script:DscBuildParameters | 
-            add-member -membertype Noteproperty -force @psboundparameters        
+    $script:DscBuildParameters |
+            add-member -membertype Noteproperty -force @psboundparameters
     Write-Verbose ''
 }
 
@@ -63,7 +61,7 @@ function Test-BuildResource {
     #>
     [cmdletbinding()]
     param ()
-    $IsBuild = ( $script:DscBuildParameters.Resource -or 
+    $IsBuild = ( $script:DscBuildParameters.Resource -or
                 (-not ($script:DscBuildParameters.Tools -or $script:DscBuildParameters.Configuration) ) )
     Write-Verbose ''
     Write-Verbose "Is a Resource Build - $IsBuild"
@@ -82,7 +80,7 @@ function Test-BuildConfiguration {
     #>
     [cmdletbinding()]
     param ()
-    $IsBuild = ( $script:DscBuildParameters.Configuration -or 
+    $IsBuild = ( $script:DscBuildParameters.Configuration -or
                 (-not ($script:DscBuildParameters.Tools -or $script:DscBuildParameters.Resource) ) )
     Write-Verbose ''
     Write-Verbose "Is a Configuration Build - $IsBuild"
@@ -101,10 +99,11 @@ function Test-BuildTools {
     #>
     [cmdletbinding()]
     param ()
-    $IsBuild = ( $script:DscBuildParameters.Tools -or 
+    $IsBuild = ( $script:DscBuildParameters.Tools -or
                 (-not ($script:DscBuildParameters.Configuration -or $script:DscBuildParameters.Resource) ) )
     Write-Verbose ''
     Write-Verbose "Is a Tools Build - $IsBuild"
     Write-Verbose ''
     return $IsBuild
 }
+

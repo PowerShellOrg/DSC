@@ -37,3 +37,4 @@ FunctionsToExport = @('New-cDscResourceProperty',
 # Cmdlets to export from this module
 CmdletsToExport = '*'
 }
+

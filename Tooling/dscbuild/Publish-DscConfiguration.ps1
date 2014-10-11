@@ -3,14 +3,14 @@ function Publish-DscConfiguration {
     param ()
 
     if ( Test-BuildConfiguration ) {
-        
+
         Write-Verbose 'Moving Processed Resource Modules from '
         Write-Verbose "`t$($script:DscBuildParameters.ConfigurationOutputPath) to"
         Write-Verbose "`t$($script:DscBuildParameters.DestinationConfigurationDirectory)"
         if ($pscmdlet.shouldprocess("$($script:DscBuildParameters.ConfigurationOutputPath) to $($script:DscBuildParameters.DestinationConfigurationDirectory)")) {
-            dir (join-path $script:DscBuildParameters.ConfigurationOutputPath '*.mof') | 
+            dir (join-path $script:DscBuildParameters.ConfigurationOutputPath '*.mof') |
                 foreach-object { Write-Verbose "Moving $($_.name) to $($script:DscBuildParameters.DestinationConfigurationDirectory)"; $_ } |
-                Move-Item -Destination $script:DscBuildParameters.DestinationConfigurationDirectory -force -PassThru |        
+                Move-Item -Destination $script:DscBuildParameters.DestinationConfigurationDirectory -force -PassThru |
                 New-DscChecksumFile -Verbose:$false
         }
     }
@@ -18,4 +18,5 @@ function Publish-DscConfiguration {
         Write-Warning "Skipping publishing configurations."
     }
 }
+
 

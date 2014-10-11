@@ -3,16 +3,20 @@ function Compress-DscResourceModule {
     param ()
 
     if ( Test-BuildResource )  {
-        if ($pscmdlet.shouldprocess("from $($script:DscBuildParameters.ProgramFilesModuleDirectory) to $($script:DscBuildParameters.ModuleOutputPath)")) {    
+        if ($pscmdlet.shouldprocess("from $($script:DscBuildParameters.ProgramFilesModuleDirectory) to $($script:DscBuildParameters.ModuleOutputPath)")) {
             Write-Verbose "Compressing tested modules: "
             foreach ($module in $script:DscBuildParameters.TestedModules) {
-                Write-Verbose "`t$module"   
+                Write-Verbose "`t$module"
             }
 
-        	Get-Item $script:DscBuildParameters.TestedModules | 
-        		New-DscZipFile -ZipFile { join-path $script:DscBuildParameters.ModuleOutputPath "$($_.Name)" } -Force | 
-                Foreach-Object {Write-Verbose "New compressed resource module $($_.fullname)"}
+            if ($script:DscBuildParameters.TestedModules.Count -gt 0)
+            {
+                Get-Item $script:DscBuildParameters.TestedModules |
+                    New-DscZipFile -ZipFile { join-path $script:DscBuildParameters.ModuleOutputPath "$($_.Name)" } -Force |
+                    Foreach-Object {Write-Verbose "New compressed resource module $($_.fullname)"}
+            }
         }
     }
 }
+
 

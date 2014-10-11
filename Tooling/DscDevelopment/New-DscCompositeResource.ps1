@@ -4,7 +4,7 @@ Function New-DscCompositeResource
         .Synopsis
             Short description of the command
         .Description
-            Longer description of the command 
+            Longer description of the command
         .EXAMPLE
             New-DscCompositeResource -Path "C:\TestModules" -ModuleName "Wakka" -ResourceName "Foo"
         .EXAMPLE
@@ -43,28 +43,28 @@ Function New-DscCompositeResource
         if(-not $admin -and $Path -eq "$env:ProgramFiles\WindowsPowerShell\Modules"){
             throw "Must be in Administrative context to write to $Path"
         }
-         
+
         $rootModule     = Join-Path $Path $ModuleName
         Write-Verbose "Root module path - $RootModule"
-        
-        $rootModulePSD  = Join-Path $rootModule "$($moduleName).psd1" 
+
+        $rootModulePSD  = Join-Path $rootModule "$($moduleName).psd1"
         Write-Verbose "Root module metadata file - $rootModulePSD"
-        
+
         $rootModulePath = Join-Path $rootModule "DSCResources"
         Write-Verbose "DSCResources folder path $rootModulePath"
 
         if (-not (test-path $rootModulePSD)) {
-            if($PSCmdlet.ShouldProcess($rootModule, 'Creating a base module to host DSC Resources')) { 
+            if($PSCmdlet.ShouldProcess($rootModule, 'Creating a base module to host DSC Resources')) {
                 New-Item -ItemType Directory -Path $rootModule -Force:$Force  | Out-Null
                 New-ModuleManifest -Path $rootModulePSD -ModuleVersion '1.0.0' -Author $Author -CompanyName $Company -Description "CompositeResource Main module" -Copyright $Copyright
-            }    
+            }
         }
         else {
             Write-Verbose "Module and manifest already exist at $rootModulePSD"
         }
-        
+
         if (-not (test-path $rootModulePath) ) {
-            if($PSCmdlet.ShouldProcess($rootModulePath, 'Creating the DSCResources directory')) {                    
+            if($PSCmdlet.ShouldProcess($rootModulePath, 'Creating the DSCResources directory')) {
                 New-Item -ItemType Directory -Path $rootModulePath -Force:$Force  | Out-Null
             }
         }
@@ -78,22 +78,23 @@ Function New-DscCompositeResource
         $resourcePSMName = "$($ResourceName).schema.psm1"
         $resourcePSM     = Join-Path $resourceFolder $resourcePSMName
         $resourcePSD     = Join-Path $resourceFolder "$($ResourceName).psd1"
-        
+
         if($PSCmdlet.ShouldProcess($resourceFolder, "Creating new resource $ResourceName"))
-        { 
+        {
             New-Item -ItemType Directory -Path $resourceFolder -Force:$Force  | Out-Null
-            
-            if ((-not (test-path $resourcePSM)) -or ($force)) { 
+
+            if ((-not (test-path $resourcePSM)) -or ($force)) {
                 New-Item -ItemType File -Path $resourcePSM -Force:$Force | Out-Null
                 Add-Content -Path $resourcePSM -Value "Configuration $ResourceName`r`n{`r`n}"
             }
-            if ((-not (test-path $resourcePSD)) -or ($force)) { 
+            if ((-not (test-path $resourcePSD)) -or ($force)) {
                 New-ModuleManifest -Path $resourcePSD -RootModule $resourcePSMName -ModuleVersion '1.0.0' -Author $Author -CompanyName $Company -Copyright $Copyright
             }
 
         }
-        
+
     }
 
 }
+
 

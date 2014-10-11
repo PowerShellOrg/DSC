@@ -20,3 +20,4 @@ FunctionsToExport = @("*")
 
 NestedModules = @('cDscDiagnostics.psm1')
 }
+

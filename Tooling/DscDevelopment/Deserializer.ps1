@@ -14,7 +14,7 @@
 #
 #   Import-CimInstances -MofInstanceFilePath myInstances.mof # import and emit all CIM instances defined in this doc.
 #
- 
+
 <#
 .Synopsis
    Reset the CIM class cache
@@ -32,7 +32,7 @@ function Reset-CimClassCache
     [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ClearCache()
     [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::LoadDefaultCimKeywords()
 }
- 
+
 <#
 .Synopsis
    Adds the classes defined in a MOF file to the current set of classes
@@ -57,10 +57,10 @@ function Add-CachedCimClass
         [Parameter(ParameterSetName="FromModule")]
             $Module
     )
- 
+
     process {
       $errors = New-Object System.Collections.ObjectModel.Collection[Exception]
-   
+
       try
       {
           if ($PSCmdlet.ParameterSetName -eq "FromMofFile")
@@ -93,7 +93,7 @@ function Add-CachedCimClass
       }
   }
 }
- 
+
 <#
 .Synopsis
    Returns Dump out all of the cached CIM classes
@@ -103,7 +103,7 @@ function Add-CachedCimClass
 .EXAMPLE
    Import-CimInstances ./myInstanceDoc.mof
 #>
- 
+
 function Get-CachedCimClass
 {
     [CmdletBinding(DefaultParameterSetName="ByClassName")]
@@ -118,7 +118,7 @@ function Get-CachedCimClass
         [switch]
             $ListLoadedFiles
     )
- 
+
     switch ($PSCmdlet.ParameterSetName)
     {
         ByFileName {
@@ -140,7 +140,7 @@ function Get-CachedCimClass
         }
     }
 }
- 
+
 <#
 .Synopsis
    Returns CIM instances defined in a MOF file.
@@ -159,11 +159,11 @@ function Import-CimInstance
         [string]
         $MofInstanceFilePath
     )
- 
+
     process {
       try
       {
-          
+
           $resolvedMofPath = Resolve-Path -ErrorAction stop $MofInstanceFilePath
           [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($resolvedMofPath)
       }
@@ -173,4 +173,5 @@ function Import-CimInstance
       }
     }
 }
+
 

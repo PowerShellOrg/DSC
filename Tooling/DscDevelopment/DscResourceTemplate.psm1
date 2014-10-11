@@ -2,7 +2,7 @@
 DATA localizedData
 {
     # same as culture = "en-US"
-    ConvertFrom-StringData @'  
+    ConvertFrom-StringData @'
 '@
 }
 
@@ -24,7 +24,7 @@ function Get-TargetResource
         [string]
         $Ensure = 'Present'
     )
-    
+
     #Needs to return a hashtable that returns the current
     #status of the configuration component
     $Configuration = @{
@@ -63,7 +63,8 @@ function Test-TargetResource
         $Ensure = 'Present'
     )
 
-    #Needs to return a boolean  
+    #Needs to return a boolean
     return $true
 }
+
 

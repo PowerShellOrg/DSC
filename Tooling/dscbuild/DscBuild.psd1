@@ -48,7 +48,10 @@ PowerShellVersion = '4.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @('Pester', 'cDscResourceDesigner')
+RequiredModules = @(
+    @{ ModuleName = 'Pester'; ModuleVersion = '3.0.0' },
+    'cDscResourceDesigner'
+)
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -66,10 +69,9 @@ RequiredModules = @('Pester', 'cDscResourceDesigner')
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = 'Invoke-DscBuild', 
-    'Get-DscResourceWmiClass', 
-    'Remove-DscResourceWmiClass', 
-    'Resolve-DscConfigurationProperty'
+FunctionsToExport = 'Invoke-DscBuild',
+    'Get-DscResourceWmiClass',
+    'Remove-DscResourceWmiClass'
 
 # Cmdlets to export from this module
 #CmdletsToExport = '*'
@@ -96,5 +98,6 @@ FunctionsToExport = 'Invoke-DscBuild',
 # DefaultCommandPrefix = ''
 
 }
+
 
 

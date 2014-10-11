@@ -58,12 +58,9 @@ function Get-DscConfigurationData
                 Get-ServiceConfigurationData
                 Write-Verbose 'Loading Credential Data'
                 Get-CredentialConfigurationData
-                Write-Verbose 'Loading Application Data'
-                Get-ApplicationConfigurationData
             }
         }
 
-        Add-NodeRoleFromServiceConfigurationData
         return $script:ConfigurationData
     }
 }

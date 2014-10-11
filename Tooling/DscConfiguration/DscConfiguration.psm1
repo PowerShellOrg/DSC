@@ -1,18 +1,25 @@
-param 
+param
 (
     [string]
     $ConfigurationDataPath,
     [string]
-    $LocalCertificateThumbprint = "$((Get-DscLocalConfigurationManager).CertificateId)"
+    $LocalCertificateThumbprint = $null
 )
 
+if ($null -eq $LocalCertificateThumbprint)
+{
+    try
+    {
+        $LocalCertificateThumbprint = "$((Get-DscLocalConfigurationManager).CertificateId)"
+    }
+    catch { }
+}
 
 $LocalCertificatePath = "cert:\LocalMachine\My\$LocalCertificateThumbprint"
 $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services=@{}; SiteData =@{}}
 
 . $psscriptroot\Get-Hashtable.ps1
 . $psscriptroot\Test-LocalCertificate.ps1
-. $psscriptroot\Add-NodeRoleFromServiceConfigurationData.ps1
 
 . $psscriptroot\New-ConfigurationDataStore
 . $psscriptroot\New-DscNodeMetadata.ps1
@@ -20,10 +27,11 @@ $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services
 . $psscriptroot\Get-AllNodesConfigurationData.ps1
 . $psscriptroot\Get-ConfigurationData.ps1
 . $psscriptroot\Get-CredentialConfigurationData.ps1
-. $psscriptroot\Get-ApplicationConfigurationData.ps1
 . $psscriptroot\Get-ServiceConfigurationData.ps1
 . $psscriptroot\Get-SiteDataConfigurationData.ps1
 . $psscriptroot\Get-EncryptedPassword.ps1
+. $psscriptroot\Resolve-ConfigurationProperty.ps1
+. $psscriptroot\Test-ConfigurationPropertyExists.ps1
 
 . $psscriptroot\Add-EncryptedPassword.ps1
 . $psscriptroot\ConvertFrom-EncryptedFile.ps1
@@ -31,7 +39,6 @@ $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services
 . $psscriptroot\ConvertTo-EncryptedFile.ps1
 . $psscriptroot\New-Credential.ps1
 . $psscriptroot\Remove-PlainTextPassword.ps1
-
 
 function Set-DscConfigurationDataPath {
     param (
@@ -45,7 +52,7 @@ function Set-DscConfigurationDataPath {
 }
 Set-Alias -Name 'Set-ConfigurationDataPath' -Value 'Set-DscConfigurationDataPath'
 
-function Get-DscConfigurationDataPath {    
+function Get-DscConfigurationDataPath {
 
     $script:ConfigurationDataPath
 }
@@ -61,17 +68,17 @@ function Resolve-DscConfigurationDataPath {
     if ( -not ($psboundparameters.containskey('Path')) ) {
         if ([string]::isnullorempty($script:ConfigurationDataPath)) {
             if (test-path $env:ConfigurationDataPath) {
-                $path = $env:ConfigurationDataPath    
-            }            
+                $path = $env:ConfigurationDataPath
+            }
         }
         else {
             $path = $script:ConfigurationDataPath
-        }        
+        }
     }
 
     if ( -not ([string]::isnullorempty($path)) ) {
         Set-DscConfigurationDataPath -path $path
-    } 
-   
+    }
+
 }
 Set-Alias -Name 'Resolve-ConfigurationDataPath' -Value 'Resolve-DscConfigurationDataPath'

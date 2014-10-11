@@ -12,19 +12,20 @@ function ConvertTo-CredentialLookup
     {
         $CredentialHashtable = @{}
     }
-    Process 
-    {                
+    Process
+    {
         foreach ($key in $PasswordHashtable.Keys)
         {
             Write-Verbose "Creating new credential for $key"
             $CredentialHashtable.Add($key, (New-Credential -username $key -password $PasswordHashtable[$key]))
-        }        
+        }
     }
-    end 
+    end
     {
-        $CredentialHashtable 
+        $CredentialHashtable
     }
 }
+
 
 
 

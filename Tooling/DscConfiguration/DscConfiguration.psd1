@@ -12,7 +12,7 @@
 RootModule = 'DscConfiguration.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.5.1.0'
+ModuleVersion = '1.5.2.0'
 
 # ID used to uniquely identify this module
 GUID = '0b48e2a7-dcd7-4888-95ec-f80d6fca03b6'
@@ -66,15 +66,17 @@ Copyright = '(c) 2014 Steven. All rights reserved.'
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = 'Get-DscConfigurationData', 
+FunctionsToExport = 'Get-DscConfigurationData',
                     'New-DscNodeMetadata',
                     'New-DscServiceMetadata',
                     'New-DscSiteMetadata',
-                    'Add-DscEncryptedPassword', 
+                    'Add-DscEncryptedPassword',
                     'Get-DscEncryptedPassword',
-                    'Set-DscConfigurationDataPath', 
+                    'Set-DscConfigurationDataPath',
                     'Get-DscConfigurationDataPath',
-                    'New-DscConfigurationDataStore'
+                    'New-DscConfigurationDataStore',
+                    'Resolve-DscConfigurationProperty',
+                    'Test-DscConfigurationPropertyExists'
 
 # Cmdlets to export from this module
 #CmdletsToExport = '*'
@@ -83,9 +85,7 @@ FunctionsToExport = 'Get-DscConfigurationData',
 #VariablesToExport = '*'
 
 # Aliases to export from this module
-AliasesToExport =   'Add-EncryptedPassword',                     
-                    'Set-ConfigurationDataPath', 
-                    'Get-ConfigurationDataPath'
+AliasesToExport =   '*'
 
 # List of all modules packaged with this module
 # ModuleList = @()
@@ -103,5 +103,6 @@ AliasesToExport =   'Add-EncryptedPassword',
 # DefaultCommandPrefix = ''
 
 }
+
 
 

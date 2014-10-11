@@ -1,6 +1,6 @@
 function New-DscResourceFromModule
 {
-    param 
+    param
     (
         $ModulePath
     )
@@ -41,5 +41,6 @@ function New-DscResourceShell
         Copy-Item -Path "$PSScriptRoot\DscResourceTemplate.Tests.ps1" -Destination $ModuleFileTests -Force
     }
 }
+
 
 

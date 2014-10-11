@@ -38,7 +38,7 @@ function New-MofFile
         $SetTargetResourceAst = $CommandAst.FindAll(
             {$args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst]},
             $false
-        ) | 
+        ) |
             Where-Object {$_.name -like 'Set-TargetResource'}
 
         $ParametersAst = $SetTargetResourceAst.Body.ParamBlock.Parameters
@@ -72,11 +72,11 @@ class $ResourceName : OMI_BaseResource
             $ParameterName = $ParameterAst.Name -replace '\$'
             Write-Verbose "Processing $ParameterName."
 
-            $ParameterAttributesAst = $ParameterAst.Attributes | 
-                Where-Object {$_ -is [System.Management.Automation.Language.AttributeAst]}                           
-            $ParameterTypeAttributeAst = $ParameterAst.Attributes | 
+            $ParameterAttributesAst = $ParameterAst.Attributes |
+                Where-Object {$_ -is [System.Management.Automation.Language.AttributeAst]}
+            $ParameterTypeAttributeAst = $ParameterAst.Attributes |
                 Where-Object {$_ -is [System.Management.Automation.Language.TypeConstraintAst]}
-                
+
             switch ($ParameterAttributesAst)
             {
                 {($_.typename -like 'parameter') -and (($_.NamedArguments.ArgumentName) -contains 'Mandatory')} {
@@ -100,7 +100,7 @@ class $ResourceName : OMI_BaseResource
                                 $OFS = $oldOFS
                             }
             }
-                       
+
             Write-Verbose "Parameter - $ParameterName is typed with $($ParameterTypeAttributeAst.TypeName)."
 
             $type = $ParameterTypeAttributeAst.TypeName.FullName -as [Type]
@@ -164,9 +164,9 @@ class $ResourceName : OMI_BaseResource
         $Template += @'
 };
 '@
-    
+
         $TargetPath = join-path $Path "$ResourceName.schema.mof"
-    
+
         if (Test-Path $TargetPath)
         {
             Write-Verbose "Removing previous file from $TargetPath."
@@ -175,7 +175,7 @@ class $ResourceName : OMI_BaseResource
 
         Write-Verbose "Writing $ResourceName.schema.mof to $Path"
 
-        $Template | 
+        $Template |
             Out-File -Encoding ascii -FilePath $TargetPath
     }
     catch
@@ -183,5 +183,6 @@ class $ResourceName : OMI_BaseResource
         throw $_
     }
 }
+
 
 

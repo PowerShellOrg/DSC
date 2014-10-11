@@ -31,7 +31,7 @@ Function ConvertFrom-EncryptedFile
         )]
         [System.IO.FileInfo]
         $InputObject,
-        
+
         #Can be a path to the local cert store like Cert:\CurrentUser\My\9554F368FEA619A655A1D49408FC13C3E0D60E11
         [Parameter(
             mandatory=$true,
@@ -45,7 +45,7 @@ Function ConvertFrom-EncryptedFile
         )]
         [string]
         $CertificatePath,
-        
+
         #Must be a System.Security.Cryptography.X509Certificates.X509Certificate2 object
         [Parameter(
             mandatory=$true,
@@ -63,9 +63,9 @@ Function ConvertFrom-EncryptedFile
         [string]
         $FileExtension = 'encrypted'
     )
- 
+
     process
-    {        
+    {
         switch ($PSCmdlet.ParameterSetName)
         {
             'LocalCertStoreAndFilePath' { Write-Verbose "Loading certificate from $CertificatePath"; $Certificate = Get-Item $CertificatePath }
@@ -74,10 +74,10 @@ Function ConvertFrom-EncryptedFile
             'ArbitraryCertAndFilePath' {  }
         }
 
-        try 
+        try
         {
-            $Path = (Resolve-Path $Path -ErrorAction Stop).ProviderPath 
-     
+            $Path = (Resolve-Path $Path -ErrorAction Stop).ProviderPath
+
             $AesProvider                = New-Object System.Security.Cryptography.AesManaged
             $AesProvider.KeySize        = 256
             $AesProvider.BlockSize      = 128
@@ -97,15 +97,15 @@ Function ConvertFrom-EncryptedFile
                 Return
             }
 
-            Try 
-            {             
-                $FileStreamReader = New-Object System.IO.FileStream("$Path", [System.IO.FileMode]::Open)    
+            Try
+            {
+                $FileStreamReader = New-Object System.IO.FileStream("$Path", [System.IO.FileMode]::Open)
             }
             Catch
-            { 
-                $message = "Unable to open input file $path for reading."       
-                throw $message            
-            }    
+            {
+                $message = "Unable to open input file $path for reading."
+                throw $message
+            }
 
             $FileStreamReader.Seek(0, [System.IO.SeekOrigin]::Begin)         | Out-Null
             $FileStreamReader.Seek(0, [System.IO.SeekOrigin]::Begin)         | Out-Null
@@ -124,12 +124,12 @@ Function ConvertFrom-EncryptedFile
             $FileStreamReader.Read($IV, 0, $LIV)                             | Out-Null
             [Byte[]]$KeyDecrypted = $Certificate.PrivateKey.Decrypt($KeyEncrypted, $false)
             $Transform = $AesProvider.CreateDecryptor($KeyDecrypted, $IV)
-            Try    
-            { 
-                $FileStreamWriter = New-Object System.IO.FileStream("$($path -replace '\.encrypted')", [System.IO.FileMode]::Create) 
+            Try
+            {
+                $FileStreamWriter = New-Object System.IO.FileStream("$($path -replace '\.encrypted')", [System.IO.FileMode]::Create)
             }
-            Catch 
-            { 
+            Catch
+            {
                 Write-Error "Unable to open output file for writing.`r`n$($_.Message)"
                 $FileStreamReader.Close()
                 Return
@@ -161,5 +161,6 @@ Function ConvertFrom-EncryptedFile
         Get-Item "$($path -replace '\.encrypted')"
     }
 }
+
 
 

@@ -1,4 +1,4 @@
-function Invoke-DscBuild 
+function Invoke-DscBuild
 {
     <#
         .Synopsis
@@ -7,11 +7,11 @@ function Invoke-DscBuild
             Starts a build of DSC configurations, resources, and tools.  This command is the global entry point for DSC builds controls the flow of operations.
         .Example
             $BuildParameters = @{
-                WorkingDirectory = 'd:\gitlab\' 
+                WorkingDirectory = 'd:\gitlab\'
                 DestinationRootDirectory = 'd:\PullServerOutputTest\'
                 DestinationToolDirectory = 'd:\ToolsOutputTest\'
             }
-            Invoke-DscBuild @BuildParameters            
+            Invoke-DscBuild @BuildParameters
     #>
     [cmdletbinding(SupportsShouldProcess=$true)]
     param (
@@ -19,39 +19,39 @@ function Invoke-DscBuild
         [parameter(mandatory)]
         [string]
         $WorkingDirectory,
-       
+
         #Directory containing all the resources to process.  Defaults to a Dsc_Resources directory under the working directory.
         [parameter()]
-        [ValidateNotNullOrEmpty()]        
-        [string]        
+        [ValidateNotNullOrEmpty()]
+        [string]
         $SourceResourceDirectory,
-        
+
         #Directory containing all the tools to process.  Defaults to a Dsc_Tooling directory under the working directory.
         [parameter()]
-        [ValidateNotNullOrEmpty()]        
-        [string]        
-        $SourceToolDirectory, 
-       
-        #Root of the location where pull server artificates (configurations and zipped resources) are published.
-        [parameter(mandatory)]        
+        [ValidateNotNullOrEmpty()]
         [string]
-        $DestinationRootDirectory,  
+        $SourceToolDirectory,
+
+        #Root of the location where pull server artificates (configurations and zipped resources) are published.
+        [parameter(mandatory)]
+        [string]
+        $DestinationRootDirectory,
 
         #Destination for any tools that are published.
-        [parameter(mandatory)]        
+        [parameter(mandatory)]
         [string]
-        $DestinationToolDirectory,      
+        $DestinationToolDirectory,
 
         #Modules to exclude from the resource testing and deployment process.
-        [parameter(mandatory)]
+        [ValidateNotNullOrEmpty()]
         [string[]]
-        $ExcludedModules,
+        $ExcludedModules = @(),
 
         #The configuration data hashtable for the configuration to apply against.
         [parameter(mandatory)]
         [System.Collections.Hashtable]
-        $ConfigurationData, 
-        
+        $ConfigurationData,
+
         #The name of the module to load that contains the configuration to run.
         [parameter(mandatory)]
         [string]
@@ -67,19 +67,19 @@ function Invoke-DscBuild
         [ValidateNotNullOrEmpty()]
         [string]
         $CurrentToolsDirectory,
-        
+
         #This switch is used to indicate that configuration documents should be generated and deployed.
-        [parameter()]        
+        [parameter()]
         [switch]
         $Configuration,
-        
+
         #This switch is used to indicate that custom resources should be tested and deployed.
-        [parameter()]                
-        [switch]        
-        $Resource, 
+        [parameter()]
+        [switch]
+        $Resource,
 
         #This switch is used to indicate that the custom tools should be tested and deployed.
-        [parameter()]                      
+        [parameter()]
         [switch]
         $Tools
 
@@ -87,40 +87,40 @@ function Invoke-DscBuild
 
     $script:DscBuildParameters = new-object PSObject -property $PSBoundParameters
     if (-not $PSBoundParameters.ContainsKey('SourceResourceDirectory')) {
-        Add-DscBuildParameter -Name SourceResourceDirectory -value (Join-Path $WorkingDirectory 'Dsc_Resources') 
+        Add-DscBuildParameter -Name SourceResourceDirectory -value (Join-Path $WorkingDirectory 'Dsc_Resources')
     }
     if (-not $PSBoundParameters.ContainsKey('SourceToolDirectory')) {
-        Add-DscBuildParameter -Name SourceToolDirectory -value (Join-Path $WorkingDirectory 'Dsc_Tooling') 
+        Add-DscBuildParameter -Name SourceToolDirectory -value (Join-Path $WorkingDirectory 'Dsc_Tooling')
     }
     if (-not $PSBoundParameters.ContainsKey('CurrentToolsDirectory')) {
         Add-DscBuildParameter -Name CurrentToolsDirectory -value (join-path $env:ProgramFiles 'WindowsPowerShell\Modules')
     }
-    Add-DscBuildParameter -Name ProgramFilesModuleDirectory -value (join-path $env:ProgramFiles 'WindowsPowerShell\Modules')        
+    Add-DscBuildParameter -Name ProgramFilesModuleDirectory -value (join-path $env:ProgramFiles 'WindowsPowerShell\Modules')
 
     $ParametersToPass = @{}
     foreach ($key in ('Whatif', 'Verbose', 'Debug'))
     {
-        if ($PSBoundParameters.ContainsKey($key)) {        
+        if ($PSBoundParameters.ContainsKey($key)) {
             $ParametersToPass[$key] = $PSBoundParameters[$key]
         }
     }
 
-    Clear-InstalledDscResource @ParametersToPass   
+    Clear-InstalledDscResource @ParametersToPass
     Clear-CachedDscResource @ParametersToPass
 
     Invoke-DscResourceUnitTest @ParametersToPass
 
     Copy-CurrentDscResource @ParametersToPass
     Copy-CurrentDscTools @ParametersToPass
-    
+
     Test-DscResourceIsValid @ParametersToPass
-    
+
     Assert-DestinationDirectory @ParametersToPass
 
     Invoke-DscConfiguration @ParametersToPass
-    
+
     Compress-DscResourceModule @ParametersToPass
-    Publish-DscToolModule @ParametersToPass   
+    Publish-DscToolModule @ParametersToPass
     Publish-DscResourceModule @ParametersToPass
     Publish-DscConfiguration @ParametersToPass
 }
