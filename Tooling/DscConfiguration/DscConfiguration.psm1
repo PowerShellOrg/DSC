@@ -2,15 +2,16 @@ param
 (
     [string]
     $ConfigurationDataPath,
+
     [string]
-    $LocalCertificateThumbprint = $null
+    $LocalCertificateThumbprint
 )
 
-if ($null -eq $LocalCertificateThumbprint)
+if ([string]::IsNullOrEmpty($LocalCertificateThumbprint))
 {
     try
     {
-        $LocalCertificateThumbprint = "$((Get-DscLocalConfigurationManager).CertificateId)"
+        $LocalCertificateThumbprint = (Get-DscLocalConfigurationManager).CertificateId
     }
     catch { }
 }
@@ -82,3 +83,27 @@ function Resolve-DscConfigurationDataPath {
 
 }
 Set-Alias -Name 'Resolve-ConfigurationDataPath' -Value 'Resolve-DscConfigurationDataPath'
+
+function Set-DscConfigurationCertificate {
+    param (
+        [parameter(Mandatory)]
+        [string]
+        $CertificateThumbprint
+    )
+
+    $path = "Cert:\LocalMachine\My\$CertificateThumbprint"
+
+    if (Test-Path -Path $path)
+    {
+        $script:LocalCertificateThumbprint = $CertificateThumbprint
+        $script:LocalCertificatePath = $path
+    }
+    else
+    {
+        throw "Certificate '$Thumbprint' does not exist in the Local Computer\Personal certificate store."
+    }
+}
+
+function Get-DscConfigurationCertificate {
+    $script:LocalCertificateThumbprint
+}

@@ -74,6 +74,8 @@ FunctionsToExport = 'Get-DscConfigurationData',
                     'Get-DscEncryptedPassword',
                     'Set-DscConfigurationDataPath',
                     'Get-DscConfigurationDataPath',
+                    'Set-DscConfigurationCertificate',
+                    'Get-DscConfigurationCertificate',
                     'New-DscConfigurationDataStore',
                     'Resolve-DscConfigurationProperty',
                     'Test-DscConfigurationPropertyExists'
