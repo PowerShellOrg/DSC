@@ -1,6 +1,5 @@
 @{
     Nodes = 'WebServer02'
-    Roles = 'WebServer', 'BaseServer'
 
     BaseServerSettings = @{
         PowerPlan = 'High Performance'
