@@ -64,15 +64,29 @@ Function ConvertTo-EncryptedFile
         $FileExtension = 'encrypted'
     )
 
-    process
+    begin
     {
+        $cert = $Certificate
+
         switch ($PSCmdlet.ParameterSetName)
         {
-            'LocalCertStoreAndFilePath' { Write-Verbose "Loading certificate from $CertificatePath"; $Certificate = Get-Item $CertificatePath }
-            'LocalCertStoreAndInputObject' { Write-Verbose "Loading certificate from $CertificatePath"; $Certificate = Get-Item $CertificatePath ; $Path = $InputObject.FullName }
+            'LocalCertStoreAndFilePath' { Write-Verbose "Loading certificate from $CertificatePath"; $cert = Get-Item $CertificatePath }
+            'LocalCertStoreAndInputObject' { Write-Verbose "Loading certificate from $CertificatePath"; $cert = Get-Item $CertificatePath ; $Path = $InputObject.FullName }
             'ArbitraryCertAndInputObject' { $Path = $InputObject.FullName }
-            'ArbitraryCertAndFilePath' {  }
         }
+
+        if ($cert -isnot [System.Security.Cryptography.X509Certificates.X509Certificate2])
+        {
+            throw 'Specified certificate was not found'
+        }
+    }
+
+    process
+    {
+        $CryptoStream = $null
+        $FileStreamWriter = $null
+        $FileStreamReader = $null
+
         try
         {
             $Path = (Resolve-Path $Path -ErrorAction Stop).ProviderPath
@@ -82,7 +96,7 @@ Function ConvertTo-EncryptedFile
             $AesProvider.BlockSize      = 128
             $AesProvider.Mode           = [System.Security.Cryptography.CipherMode]::CBC
 
-            $KeyFormatter               = New-Object System.Security.Cryptography.RSAPKCS1KeyExchangeFormatter($Certificate.PublicKey.Key)
+            $KeyFormatter               = New-Object System.Security.Cryptography.RSAPKCS1KeyExchangeFormatter($cert.PublicKey.Key)
             [Byte[]]$KeyEncrypted       = $KeyFormatter.CreateKeyExchange($AesProvider.Key, $AesProvider.GetType())
             [Byte[]]$LenKey             = $Null
             [Byte[]]$LenIV              = $Null
@@ -98,8 +112,8 @@ Function ConvertTo-EncryptedFile
             }
             Catch
             {
-                $message = "Unable to open output file ($Path.$FileExtension) for writing."
-                throw $message
+                Write-Error "Unable to open output file ($Path.$FileExtension) for writing."
+                return
             }
 
             $FileStreamWriter.Write($LenKey,         0, 4)
@@ -122,7 +136,8 @@ Function ConvertTo-EncryptedFile
             }
             Catch
             {
-                throw "Unable to open input file ($Path) for reading."
+                Write-Error "Unable to open input file ($Path) for reading."
+                return
             }
 
             Do
@@ -137,13 +152,14 @@ Function ConvertTo-EncryptedFile
         }
         catch
         {
-            throw $_
+            Write-Error -ErrorRecord $_
+            return
         }
         finally
         {
-            $CryptoStream.Close()
-            $FileStreamReader.Close()
-            $FileStreamWriter.Close()
+            if ($null -ne $CryptoStream) { $CryptoStream.Close() }
+            if ($null -ne $FileStreamWriter) { $FileStreamWriter.Close() }
+            if ($null -ne $FileStreamReader) { $FileStreamReader.Close() }
         }
     }
 }

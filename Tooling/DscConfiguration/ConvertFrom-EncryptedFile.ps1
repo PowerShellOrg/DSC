@@ -64,15 +64,32 @@ Function ConvertFrom-EncryptedFile
         $FileExtension = 'encrypted'
     )
 
-    process
+    begin
     {
+        $cert = $Certificate
+
         switch ($PSCmdlet.ParameterSetName)
         {
-            'LocalCertStoreAndFilePath' { Write-Verbose "Loading certificate from $CertificatePath"; $Certificate = Get-Item $CertificatePath }
-            'LocalCertStoreAndInputObject' { Write-Verbose "Loading certificate from $CertificatePath"; $Certificate = Get-Item $CertificatePath ; $Path = $InputObject.FullName }
+            'LocalCertStoreAndFilePath' { Write-Verbose "Loading certificate from $CertificatePath"; $cert = Get-Item $CertificatePath }
+            'LocalCertStoreAndInputObject' { Write-Verbose "Loading certificate from $CertificatePath"; $cert = Get-Item $CertificatePath ; $Path = $InputObject.FullName }
             'ArbitraryCertAndInputObject' { $Path = $InputObject.FullName }
-            'ArbitraryCertAndFilePath' {  }
         }
+
+        if ($cert -isnot [System.Security.Cryptography.X509Certificates.X509Certificate2])
+        {
+            throw 'Specified certificate was not found'
+        }
+        elseif($cert.HasPrivateKey -eq $False -or $cert.PrivateKey -eq $null)
+        {
+            throw 'The supplied certificate does not contain a private key, or it could not be accessed.'
+        }
+    }
+
+    process
+    {
+        $CryptoStream = $null
+        $FileStreamWriter = $null
+        $FileStreamReader = $null
 
         try
         {
@@ -85,16 +102,10 @@ Function ConvertFrom-EncryptedFile
             [Byte[]]$LenKey             = New-Object Byte[] 4
             [Byte[]]$LenIV              = New-Object Byte[] 4
 
-            If($Path.Split(".")[-1] -ne $FileExtension)
+            If($Path.Split('.')[-1] -ne $FileExtension)
             {
-                Write-Error "The file to decrypt must be named *.encrypted."
-                Return
-            }
-
-            If($Certificate.HasPrivateKey -eq $False -or $Certificate.HasPrivateKey -eq $null)
-            {
-                Write-Error "The supplied certificate does not contain a private key, or it could not be accessed."
-                Return
+                Write-Error 'The file to decrypt must be named *.encrypted.'
+                return
             }
 
             Try
@@ -103,8 +114,8 @@ Function ConvertFrom-EncryptedFile
             }
             Catch
             {
-                $message = "Unable to open input file $path for reading."
-                throw $message
+                Write-Error "Unable to open input file $path for reading."
+                return
             }
 
             $FileStreamReader.Seek(0, [System.IO.SeekOrigin]::Begin)         | Out-Null
@@ -122,7 +133,7 @@ Function ConvertFrom-EncryptedFile
             $FileStreamReader.Read($KeyEncrypted, 0, $LKey)                  | Out-Null
             $FileStreamReader.Seek(8 + $LKey, [System.IO.SeekOrigin]::Begin) | Out-Null
             $FileStreamReader.Read($IV, 0, $LIV)                             | Out-Null
-            [Byte[]]$KeyDecrypted = $Certificate.PrivateKey.Decrypt($KeyEncrypted, $false)
+            [Byte[]]$KeyDecrypted = $cert.PrivateKey.Decrypt($KeyEncrypted, $false)
             $Transform = $AesProvider.CreateDecryptor($KeyDecrypted, $IV)
             Try
             {
@@ -131,7 +142,6 @@ Function ConvertFrom-EncryptedFile
             Catch
             {
                 Write-Error "Unable to open output file for writing.`r`n$($_.Message)"
-                $FileStreamReader.Close()
                 Return
             }
             [Int]$Count  = 0
@@ -147,18 +157,20 @@ Function ConvertFrom-EncryptedFile
             }
             While ($Count -gt 0)
             $CryptoStream.FlushFinalBlock()
+
+            return Get-Item "$($path -replace '\.encrypted')"
         }
         catch
         {
-            throw $_
+            Write-Error -ErrorRecord $_
+            return
         }
         finally
         {
-            $CryptoStream.Close()
-            $FileStreamWriter.Close()
-            $FileStreamReader.Close()
+            if ($null -ne $CryptoStream) { $CryptoStream.Close() }
+            if ($null -ne $FileStreamWriter) { $FileStreamWriter.Close() }
+            if ($null -ne $FileStreamReader) { $FileStreamReader.Close() }
         }
-        Get-Item "$($path -replace '\.encrypted')"
     }
 }
 
