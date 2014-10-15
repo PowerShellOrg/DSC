@@ -31,31 +31,45 @@ function Get-DscEncryptedPassword
     {
         if (Test-LocalCertificate)
         {
-            if (-not $PSBoundParameters.ContainsKey('EncryptedFilePath'))
+            $DecryptedDataFile = $null
+
+            try
             {
-                $EncryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
-            }
-
-            Write-Verbose "Decrypting $EncryptedFilePath."
-            $DecryptedDataFile = ConvertFrom-EncryptedFile -path $EncryptedFilePath -CertificatePath $LocalCertificatePath
-
-            Write-Verbose "Loading $($DecryptedDataFile.BaseName) into Credentials."
-            $Credentials = (Get-Hashtable $DecryptedDataFile.FullName)
-
-            Remove-PlainTextPassword $DecryptedDataFile.FullName
-
-            if ($PSBoundParameters.ContainsKey('UserName'))
-            {
-                $CredentialsToReturn = @{}
-                foreach ($User in $UserName)
+                if (-not $PSBoundParameters.ContainsKey('EncryptedFilePath'))
                 {
-                    $CredentialsToReturn.Add($User,$Credentials[$User])
+                    $EncryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
                 }
-                return $CredentialsToReturn
+
+                Write-Verbose "Decrypting $EncryptedFilePath."
+                $DecryptedDataFile = ConvertFrom-EncryptedFile -path $EncryptedFilePath -CertificatePath $LocalCertificatePath -ErrorAction Stop
+
+                Write-Verbose "Loading $($DecryptedDataFile.BaseName) into Credentials."
+                $Credentials = Get-Hashtable $DecryptedDataFile.FullName -ErrorAction Stop
+
+                if ($PSBoundParameters.ContainsKey('UserName'))
+                {
+                    $CredentialsToReturn = @{}
+                    foreach ($User in $UserName)
+                    {
+                        $CredentialsToReturn.Add($User,$Credentials[$User])
+                    }
+                    return $CredentialsToReturn
+                }
+                else
+                {
+                    return $Credentials
+                }
             }
-            else
+            catch
             {
-                return $Credentials
+                throw
+            }
+            finally
+            {
+                if ($null -ne $DecryptedDataFile)
+                {
+                    Remove-PlainTextPassword $DecryptedDataFile.FullName
+                }
             }
         }
     }

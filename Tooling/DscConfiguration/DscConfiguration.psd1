@@ -12,7 +12,7 @@
 RootModule = 'DscConfiguration.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.5.2.0'
+ModuleVersion = '1.5.2.1'
 
 # ID used to uniquely identify this module
 GUID = '0b48e2a7-dcd7-4888-95ec-f80d6fca03b6'
@@ -74,6 +74,8 @@ FunctionsToExport = 'Get-DscConfigurationData',
                     'Get-DscEncryptedPassword',
                     'Set-DscConfigurationDataPath',
                     'Get-DscConfigurationDataPath',
+                    'Set-DscConfigurationCertificate',
+                    'Get-DscConfigurationCertificate',
                     'New-DscConfigurationDataStore',
                     'Resolve-DscConfigurationProperty',
                     'Test-DscConfigurationPropertyExists'

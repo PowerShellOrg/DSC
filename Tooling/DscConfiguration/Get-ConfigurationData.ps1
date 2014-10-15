@@ -6,6 +6,9 @@ function Get-DscConfigurationData
         [ValidateNotNullOrEmpty()]
         [string] $Path,
 
+        [ValidateNotNullOrEmpty()]
+        [string] $CertificateThumbprint,
+
         [parameter(ParameterSetName = 'NameFilter')]
         [string] $Name,
 
@@ -31,6 +34,10 @@ function Get-DscConfigurationData
         }
         Resolve-ConfigurationDataPath @ResolveConfigurationDataPathParams
 
+        if ($CertificateThumbprint)
+        {
+            Set-DscConfigurationCertificate -CertificateThumbprint $CertificateThumbprint
+        }
     }
     end {
 
