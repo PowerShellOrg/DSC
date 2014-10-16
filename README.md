@@ -21,3 +21,77 @@ We have moved the DSC Resources into their own repositories under PowerShell.Org
 
 ## What is still here?
 So far, the DSC Tooling.  We'll probably break that out as well.  The focus of the repository will be documentation, examples and filing of issues that are broader than any one resource or tool.
+
+Current Repositories
+* [SystemHosting](https://github.org/PowerShellOrg/SystemHosting)
+  * SHT_AllowedServices
+  * SHT_DNSClient
+  * SHT_GroupResource
+  * SHT_IscsiInitiatorTargetPortal
+  * SHT_MPIOSetting
+  * SHT_NetAdapter
+  * SHT_NetAdapterAdvancedProperty
+  * SHT_NetAdapterBinding
+  * SHT_NetAdapterNetBios
+* [cWebAdministration](https://github.com/PowerShellOrg/cWebAdministration)
+  * PSHOrg_cAppPool
+  * PSHOrg_cWebsite
+* [cChoco](https://github.com/PowerShellOrg/cChoco)
+  * cChocoInstaller
+  * cChocoPackageInstall
+* [StackExchangeResources](https://github.com/PowerShellOrg/StackExchangeResources)
+  * StackExchange_CertificateStore
+  * StackExchange_FirewallRule
+  * StackExchange_NetworkAdapter
+  * StackExchange_Pagefile
+  * StackExchange_PowerPlan
+  * StackExchange_ScheduledTask
+  * StackExchange_SetExecutionPolicy
+  * StackExchange_Timezone
+* [rchaganti](https://github.com/PowerShellOrg/rchaganti)
+  * HostsFile
+* [PowerShellAccessControl](https://github.com/PowerShellOrg/PowerShellAccessControl)
+  * PowerShellAccessControl_cAccessControlEntry
+  * PowerShellAccessControl_cSecurityDescriptor
+  * PowerShellAccessControl_cSecurityDescriptorSddl
+* [cSystemCenterManagement](https://github.com/PowerShellOrg/cSystemCenterManagement)
+  * ICG_SCOMAgentMgmtGroup
+  * ICG_SCOMBulkMP
+  * ICG_SCOMImportMP
+* [cSqlPs](https://github.com/PowerShellOrg/cSqlPs)
+  * PSHOrg_cSqlHAEndPoint
+  * PSHOrg_cSqlHAGroup
+  * PSHOrg_cSqlHAService
+  * PSHOrg_cSqlServerInstall
+  * PSHOrg_cWaitForSqlHAGroup
+  * cScriptResource
+* [cSmbShare](https://github.com/PowerShellOrg/cSmbShare)
+  * PSHOrg_cSmbShare
+* [cRDPEnabled](https://github.com/PowerShellOrg/cRDPEnabled)
+  * PSHOrg_cRDPEnabled
+* [Craig-Martin](https://github.com/PowerShellOrg/Craig-Martin)
+  * GlobalAssemblyCache 
+* [cPSGet](https://github.com/PowerShellOrg/cPSGet)
+  * PSHOrg_cPSGet
+* [cPSDesiredStateConfiguration](https://github.com/PowerShellOrg/cPSDesiredStateConfiguration)
+  * PSHOrg_cDSCWebService
+* [cNetworking](https://github.com/PowerShellOrg/cNetworking)
+  * PSHOrg_cDNSServerAddress
+  * PSHOrg_cFirewall
+  * PSHOrg_cIPAddress
+* [cHyper-V](https://github.com/PowerShellOrg/cHyper-V)
+  * PSHOrg_cVHD
+  * PSHOrg_cVMHost
+  * PSHOrg_cVMHyperV
+  * PSHOrg_cVMSwitch
+  * PSHOrg_cVhdFileDirectory
+* [cFailoverCluster](https://github.com/PowerShellOrg/cFailoverCluster)
+  * PSHOrg_cCluster
+  * PSHOrg_cWaitForCluster
+* [cComputerManagement](https://github.com/PowerShellOrg/cComputerManagement)
+  * PSHOrg_cComputer
+* [cActiveDirectory](https://github.com/PowerShellOrg/cActiveDirectory)
+  * PSHOrg_cADDomain
+  * PSHOrg_cADDomainController
+  * PSHOrg_cADUser
+  * PSHOrg_cWaitForADDomain
