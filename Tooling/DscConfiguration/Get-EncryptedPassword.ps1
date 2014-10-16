@@ -31,46 +31,74 @@ function Get-DscEncryptedPassword
     {
         if (Test-LocalCertificate)
         {
-            $DecryptedDataFile = $null
+            if (-not $PSBoundParameters.ContainsKey('EncryptedFilePath'))
+            {
+                $EncryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
+            }
+
+            Write-Verbose "Decrypting $EncryptedFilePath."
+            $hashtable = $null
 
             try
             {
-                if (-not $PSBoundParameters.ContainsKey('EncryptedFilePath'))
-                {
-                    $EncryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
-                }
+                $hashtable = Import-DscCredentialFile -Path $EncryptedFilePath -ErrorAction Stop
 
-                Write-Verbose "Decrypting $EncryptedFilePath."
-                $DecryptedDataFile = ConvertFrom-EncryptedFile -path $EncryptedFilePath -CertificatePath $LocalCertificatePath -ErrorAction Stop
-
-                Write-Verbose "Loading $($DecryptedDataFile.BaseName) into Credentials."
-                $Credentials = Get-Hashtable $DecryptedDataFile.FullName -ErrorAction Stop
-
-                if ($PSBoundParameters.ContainsKey('UserName'))
+                if ($null -eq $hashtable)
                 {
-                    $CredentialsToReturn = @{}
-                    foreach ($User in $UserName)
-                    {
-                        $CredentialsToReturn.Add($User,$Credentials[$User])
-                    }
-                    return $CredentialsToReturn
-                }
-                else
-                {
-                    return $Credentials
+                    Write-Verbose "Failed to import $EncryptedFilePath with latest format.  Attempting legacy import."
+                    $hashtable = Import-LegacyDscCredentialFile -EncryptedFilePath $EncryptedFilePath
                 }
             }
             catch
             {
-                throw
+                Write-Error "Could not import encrypted credentials from file '$EncryptedFilePath': $($_.Exception.Message)"
+                return
             }
-            finally
+
+            if ($PSBoundParameters.ContainsKey('UserName'))
             {
-                if ($null -ne $DecryptedDataFile)
+                $newHashTable = @{}
+                foreach ($user in $UserName)
                 {
-                    Remove-PlainTextPassword $DecryptedDataFile.FullName
+                    $newHashTable[$user] = $hashtable[$user]
                 }
+                $hashtable = $newHashTable
             }
+
+            return $hashtable
+        }
+    }
+}
+
+function Import-LegacyDscCredentialFile
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $EncryptedFilePath
+    )
+
+    $DecryptedDataFile = $null
+
+    try
+    {
+        $DecryptedDataFile = ConvertFrom-EncryptedFile -path $EncryptedFilePath -CertificatePath $script:LocalCertificatePath -ErrorAction Stop
+
+        Write-Verbose "Loading $($DecryptedDataFile.BaseName) into Credentials."
+        $Credentials = Get-Hashtable $DecryptedDataFile.FullName -ErrorAction Stop
+
+        return $Credentials | ConvertTo-CredentialLookup
+    }
+    catch
+    {
+        throw
+    }
+    finally
+    {
+        if ($null -ne $DecryptedDataFile)
+        {
+            Remove-PlainTextPassword $DecryptedDataFile.FullName
         }
     }
 }

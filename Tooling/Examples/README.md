@@ -5,7 +5,7 @@ This folder contains some very basic examples of what a DSC configurationData fo
 
 - You must install all of the DSC tooling modules from this repository into your PSModulePath (typically into C:\Program Files\WindowsPowerShell\Modules\)
 - You must also copy the Tooling\Examples\SampleConfiguration folder to the PSModulePath.
-- You must copy [Pester](https://github.com/pester/Pester) (version 3.0.0 or later) into the PSModulePath.
+- You must copy [Pester](https://github.com/pester/Pester) (version 3.0.0 or later) and [ProtectedData](https://github.com/dlwyatt/ProtectedData) (version 2.1 or later) into the PSModulePath.
 - You should create a DSC_Resources folder in the same directory as SampleBuild.ps1 and DSC_Configuration.  Copy the following modules into that DSC_Resources folder:
   - [StackExchangeResources](https://github.com/PowerShellOrg/StackExchangeResources)
   - [cWebAdministration](https://github.com/PowerShellOrg/cWebAdministration)
