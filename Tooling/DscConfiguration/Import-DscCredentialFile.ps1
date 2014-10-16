@@ -31,8 +31,6 @@ function Import-DscCredentialFile
 
         foreach ($key in $savedTable.Keys)
         {
-            Write-Verbose "Decrypting credential of user $key"
-
             $bytes = [System.Convert]::FromBase64String($savedTable[$key])
             $xml = [System.Text.Encoding]::UTF8.GetString($bytes)
             $protectedData = [System.Management.Automation.PSSerializer]::Deserialize($xml)
@@ -40,10 +38,11 @@ function Import-DscCredentialFile
 
             if ($credential -isnot [pscredential])
             {
-                throw "Encrypted data for username $key was invalid.  Returned type $($credential.GetType().FullName) instead of PSCredential."
+                throw "Encrypted credential with index $key was invalid.  Returned type $($credential.GetType().FullName) instead of PSCredential."
             }
 
-            $returnTable[$key] = $credential
+            Write-Verbose "Successfully decrypted credential of user $($credential.UserName)"
+            $returnTable[$credential.UserName] = $credential
         }
 
         Write-Verbose 'Finished importing credentials.'
