@@ -11,8 +11,7 @@ function Get-CredentialConfigurationData
         Write-Verbose "Processing Credentials from $($script:ConfigurationDataPath))."
 
         $script:ConfigurationData.Credentials = Get-ChildItem -Path $credentialsPath |
-            Get-DscEncryptedPassword -StoreName { $_.Name -replace '\.encrypted' -replace '\.psd1' } |
-            ConvertTo-CredentialLookup
+            Get-DscEncryptedPassword -StoreName { $_.Name -replace '\.encrypted' -replace '\.psd1' }
     }
 }
 
