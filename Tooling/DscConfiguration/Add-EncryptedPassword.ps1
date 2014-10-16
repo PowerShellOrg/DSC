@@ -1,55 +1,73 @@
 function Add-DscEncryptedPassword
 {
+    [CmdletBinding(DefaultParameterSetName = 'Credential')]
     param (
         [parameter(mandatory)]
-        [string]
-        $StoreName,
+        [string] $StoreName,
+
         [parameter()]
-        [string]
-        $Path = (Join-path $script:ConfigurationDataPath 'Credentials'),
-        [parameter()]
-        [string]
-        $UserName,
-        [parameter()]
-        [string]
-        $Password
+        [string] $Path = (Join-path $script:ConfigurationDataPath 'Credentials'),
+
+        [Parameter(Mandatory, ParameterSetName = 'Credential')]
+        [pscredential]
+        [System.Management.Automation.Credential()]
+        $Credential,
+
+        [Parameter(Mandatory, ParameterSetName = 'PasswordString')]
+        [Parameter(Mandatory, ParameterSetName = 'PasswordSecureString')]
+        [string] $UserName,
+
+        [Parameter(Mandatory, ParameterSetName = 'PasswordSecureString')]
+        [securestring] $SecurePassword,
+
+        [Parameter(Mandatory, ParameterSetName = 'PasswordString')]
+        [string] $Password
     )
 
-    $EncryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
-    $FilePath = Join-Path $Path "$StoreName.psd1"
-
-    $Credentials = @{}
-    if (Test-Path $EncryptedFilePath)
+    switch ($PSCmdlet.ParameterSetName)
     {
-        $Credentials += Get-DscEncryptedPassword -StoreName $StoreName -Path $Path
-        Remove-Item $EncryptedFilePath
-        foreach ($key in $Credentials.Keys)
+        'PasswordString'
         {
-            Write-Verbose "Found credentials for $username."
+            $Credential = New-Credential $UserName $Password
+        }
+
+        'PasswordSecureString'
+        {
+            $Credential = New-Credential $UserName $SecurePassword
         }
     }
 
-    $Credentials.Add($UserName, $Password)
-    Write-Verbose "Adding credentials for $Username. ($($credentials.keys.count) total.)"
+    $encryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
 
-    if (Test-Path $FilePath)
+    $hashtable = @{}
+
+    if (Test-Path -Path $encryptedFilePath)
     {
-        Remove-Item $FilePath -Confirm:$false
+        Write-Verbose "Credential file $encryptedFilePath already exists; importing its contents..."
+
+        $hashtable = Get-DscEncryptedPassword -StoreName $StoreName -Path $Path
+        if ($hashtable -isnot [hashtable])
+        {
+            # Shouldn't happen; would indicate a bug in Get-DscEncryptedPassword or its helper functions
+            if ($null -eq $hashtable)
+            {
+                $type = 'Null'
+            }
+            else
+            {
+                $type = $hashtable.GetType().FullName
+            }
+
+            throw "Get-DscEncryptedPassword function returned an object of type $type instead of a Hashtable."
+        }
+
+        Write-Verbose "$encryptedFilePath imported successfully.  Current credential count: $($hashtable.Count)"
     }
 
-    '@{' | Out-File $FilePath
-    foreach ($key in $Credentials.Keys)
-    {
-        Write-Verbose "Persisting credentials for $key to disk."
-        "'$key' = '$($Credentials[$key])'" | Out-File $FilePath -Append
-    }
-    '}' | Out-File $FilePath -Append
+    Write-Verbose "Adding credential for user $($Credential.UserName)"
+    $hashtable[$Credential.UserName] = $Credential
 
-    Write-Verbose 'Encrypting credentials.'
-    ConvertTo-EncryptedFile -Path $FilePath -CertificatePath $LocalCertificatePath
-    Remove-PlainTextPassword $FilePath
+    Export-DscCredentialFile -Hashtable $hashtable -Path $encryptedFilePath
 }
 
 Set-Alias -Name 'Add-EncryptedPassword' -value 'Add-DscEncryptedPassword'
-
-

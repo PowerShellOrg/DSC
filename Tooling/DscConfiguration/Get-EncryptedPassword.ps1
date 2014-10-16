@@ -31,63 +31,62 @@ function Get-DscEncryptedPassword
     {
         if (Test-LocalCertificate)
         {
-            return Import-LegacyEncryptedCredentials @PSBoundParameters
+            if (-not $PSBoundParameters.ContainsKey('EncryptedFilePath'))
+            {
+                $EncryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
+            }
+
+            Write-Verbose "Decrypting $EncryptedFilePath."
+            $hashtable = $null
+
+            try
+            {
+                $hashtable = Import-DscCredentialFile -Path $EncryptedFilePath -ErrorAction Stop
+
+                if ($null -eq $hashtable)
+                {
+                    Write-Verbose "Failed to import $EncryptedFilePath with latest format.  Attempting legacy import."
+                    $hashtable = Import-LegacyDscCredentialFile -EncryptedFilePath $EncryptedFilePath
+                }
+            }
+            catch
+            {
+                Write-Error "Could not import encrypted credentials from file '$EncryptedFilePath': $($_.Exception.Message)"
+                return
+            }
+
+            if ($PSBoundParameters.ContainsKey('UserName'))
+            {
+                $newHashTable = @{}
+                foreach ($user in $UserName)
+                {
+                    $newHashTable[$user] = $hashtable[$user]
+                }
+                $hashtable = $newHashTable
+            }
+
+            return $hashtable
         }
     }
 }
 
-function Import-LegacyEncryptedCredentials
+function Import-LegacyDscCredentialFile
 {
-    [cmdletbinding(DefaultParameterSetName='ByStoreName')]
+    [CmdletBinding()]
     param (
-        [parameter(
-            ParameterSetName = 'ByStoreName',
-            Mandatory
-        )]
-        [Alias('BaseName')]
+        [Parameter(Mandatory)]
         [string]
-        $StoreName,
-        [parameter(
-            ParameterSetName = 'ByStoreName'
-        )]
-        [string]
-        $Path = (Join-path $script:ConfigurationDataPath 'Credentials'),
-        [parameter(
-            ParameterSetName = 'ByPipeline',
-            Mandatory
-        )]
-        [Alias('FullName')]
-        [string]
-        $EncryptedFilePath,
-        [parameter()]
-        [string[]]
-        $UserName
+        $EncryptedFilePath
     )
 
     $DecryptedDataFile = $null
 
     try
     {
-        if (-not $PSBoundParameters.ContainsKey('EncryptedFilePath'))
-        {
-            $EncryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
-        }
-
-        Write-Verbose "Decrypting $EncryptedFilePath."
-        $DecryptedDataFile = ConvertFrom-EncryptedFile -path $EncryptedFilePath -CertificatePath $LocalCertificatePath -ErrorAction Stop
+        $DecryptedDataFile = ConvertFrom-EncryptedFile -path $EncryptedFilePath -CertificatePath $script:LocalCertificatePath -ErrorAction Stop
 
         Write-Verbose "Loading $($DecryptedDataFile.BaseName) into Credentials."
         $Credentials = Get-Hashtable $DecryptedDataFile.FullName -ErrorAction Stop
-
-        if ($PSBoundParameters.ContainsKey('UserName'))
-        {
-            $CredentialsToReturn = @{}
-            foreach ($User in $UserName)
-            {
-                $CredentialsToReturn.Add($User,$Credentials[$User])
-            }
-            $Credentials = $CredentialsToReturn
-        }
 
         return $Credentials | ConvertTo-CredentialLookup
     }

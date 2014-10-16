@@ -35,9 +35,10 @@ $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services
 . $psscriptroot\Test-ConfigurationPropertyExists.ps1
 
 . $psscriptroot\Add-EncryptedPassword.ps1
+. $psscriptroot\Import-DscCredentialFile.ps1
+. $psscriptroot\Export-DscCredentialFile.ps1
 . $psscriptroot\ConvertFrom-EncryptedFile.ps1
 . $psscriptroot\ConvertTo-CredentialLookup.ps1
-. $psscriptroot\ConvertTo-EncryptedFile.ps1
 . $psscriptroot\New-Credential.ps1
 . $psscriptroot\Remove-PlainTextPassword.ps1
 
