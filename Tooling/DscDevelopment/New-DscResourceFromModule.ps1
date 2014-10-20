@@ -1,28 +1,32 @@
 function New-DscResourceFromModule
 {
-    param 
+    param
     (
-        $ModulePath
+        [ValidateScript({Test-Path $_ -PathType 'Container'})]
+        [parameter(Position = 0, Mandatory = $true)]
+        [string] $ModulePath,
+        [string] $Author,
+        [string] $CompanyName
     )
-    $ModuleName = Split-path $ModulePath -Leaf
-    $psd1 = Join-Path $ModulePath "$ModuleName.psd1"
+    $ModuleName = Split-Path -Path $ModulePath -Leaf
+    $psd1 = Join-Path -Path $ModulePath -ChildPath "$ModuleName.psd1"
     $psm1 = "$ModuleName.psm1"
-    New-ModuleManifest -Path $psd1 -RootModule $psm1 -Author 'Steven Murawski' -CompanyName 'Stack Exchange' -FunctionsToExport 'Get-TargetResource', 'Set-TargetResource', 'Test-TargetResource'
-    New-MofFile -path $ModulePath -Verbose
+    New-ModuleManifest -Path $psd1 -RootModule $psm1 -Author $Author -CompanyName $CompanyName -FunctionsToExport 'Get-TargetResource', 'Set-TargetResource', 'Test-TargetResource'
+    New-MofFile -Path $ModulePath -Verbose
 }
 
 function New-DscResourceShell
 {
     param
     (
-        [parameter()]
-        [string]
-        $Path
+        [ValidateScript({Test-Path $_ -PathType 'Container'})]
+        [parameter(Position = 0, Mandatory = $true)]
+        [string] $Path
     )
 
-    $ModuleName = Split-Path $Path -Leaf
-    $ModuleFile = Join-Path $Path "$ModuleName.psm1"
-    $ModuleFileTests = Join-Path $Path "$ModuleName.Tests.ps1"
+    $ModuleName = Split-Path -Path $Path -Leaf
+    $ModuleFile = Join-Path -Path $Path -ChildPath "$ModuleName.psm1"
+    $ModuleFileTests = Join-Path -Path $Path -ChildPath "$ModuleName.Tests.ps1"
 
     if (-not (Test-Path $Path))
     {
@@ -41,5 +45,3 @@ function New-DscResourceShell
         Copy-Item -Path "$PSScriptRoot\DscResourceTemplate.Tests.ps1" -Destination $ModuleFileTests -Force
     }
 }
-
-
