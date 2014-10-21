@@ -616,7 +616,7 @@ function Enable-DscEventLog
         [string] $Channel = "Analytic",
 
         [string] $ComputerName = $env:ComputerName,
-        [PSCredential] $Credential
+        $Credential
     )
 
     $LogName = "Microsoft-Windows-Dsc"
@@ -635,7 +635,7 @@ function Enable-DscEventLog
             # For any other computer, invoke command.
             $scriptTosetChannel = [Scriptblock]::Create(" wevtutil set-log $eventLogFullName /e:true /q:true")
 
-            if($Script:ThisCredential)
+            if($Credential)
             {
                 Invoke-Command -ScriptBlock $scriptTosetChannel -ComputerName $ComputerName -Credential $Credential
             }
