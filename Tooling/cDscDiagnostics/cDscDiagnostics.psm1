@@ -380,11 +380,19 @@ function Test-DscEventLogStatus
     param
     (
         [ValidateSet("Debug", "Analytic", "Operational")]
-        $Channel = "Analytic",
-        $ComputerName = $env:ComputerName
+        [string] $Channel = "Analytic",
+        [string] $ComputerName = $env:ComputerName,
+        $Credential
     )
 
-    return $(Get-WinEvent -ListLog "Microsoft-Windows-DSC/$Channel" -ComputerName $ComputerName).IsEnabled
+    if ($Credential)
+    {
+        $(Get-WinEvent -ListLog "Microsoft-Windows-DSC/$Channel" -ComputerName $ComputerName -Credential $Credential).IsEnabled
+    }
+    else
+    {
+        return $(Get-WinEvent -ListLog "Microsoft-Windows-DSC/$Channel" -ComputerName $ComputerName).IsEnabled
+    }
 }
 
  #This function gets all the DSC runs that are recorded into the event log.
@@ -663,7 +671,6 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
     param(
         [UInt32]$SequenceID=1, #latest is by default
         [Guid]$JobId
-        
         )
     
 
@@ -675,9 +682,9 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
         Log -Error "Please enter a valid Sequence ID . All sequence IDs can be seen after running command Get-cDscOperation . " -ForegroundColor Red
         return
     } 
-    if (! (Test-DscEventLogStatus -Channel "Analytic") ) { Write-Warning "Analytic log not enabled. Please run: Enable-DscEventLog -Channel 'Analytic'" }
+    if (! (Test-DscEventLogStatus -Channel "Analytic" -ComputerName $Script:ThisComputerName -Credential $Script:ThisCredential ) ) { Write-Warning "Analytic log not enabled. Please run: Enable-DscEventLog -Channel 'Analytic'" }
 
-    if (! (Test-DscEventLogStatus -Channel "Debug") ) { Write-Warning "Debug log not enabled. Please run: Enable-DscEventLog -Channel 'Debug'" }
+    if (! (Test-DscEventLogStatus -Channel "Debug" -ComputerName $ThisComputerName -Credential $Script:ThisCredential) ) { Write-Warning "Debug log not enabled. Please run: Enable-DscEventLog -Channel 'Debug'" }
     
     #endregion
 
