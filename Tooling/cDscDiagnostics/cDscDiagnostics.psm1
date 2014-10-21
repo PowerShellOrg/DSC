@@ -375,39 +375,17 @@ function Get-AllGroupedDscEvents
 
  #  Function to prompt the user to set an event log, for the channel passed in as parameter
  #
- function Test-DscEventLogStatus
- {
-    param($Channel="Analytic")
-    $LogDetails=Get-WinEvent -ListLog "$Script:DscLogName/$Channel"
-    if($($LogDetails.IsEnabled))
-    {
-        return $true
-    }
-    $numberOfTries=0;
-    while($numberOfTries -lt 3)
-    {
-        $enableLog=Read-Host "The $Channel log is not enabled. Would you like to enable it?(y/n)"
-        if($enableLog.ToLower() -eq "y")
-        {
-            Enable-DscEventLog -Channel $Channel
-            Write-Host "Execute the operation again to record the events. Events were not recorded in the $Channel channel since it was disabled"
-            break
-        }
+function Test-DscEventLogStatus
+{
+    param
+    (
+        [ValidateSet("Debug", "Analytic", "Operational")]
+        $Channel = "Analytic",
+        $ComputerName = $env:ComputerName
+    )
 
-        elseif($enableLog.ToLower() -eq "n")
-        {
-            Log -Error "The $Channel events cannot be read until it has been enabled" 
-            break
-        }
-        else
-        {
-            Log -Error "Could not understand the option, please try again" 
-        }
-        $numberOfTries++
-    }
-    return $false
-
- }
+    return $(Get-WinEvent -ListLog "Microsoft-Windows-DSC/$Channel" -ComputerName $ComputerName).IsEnabled
+}
 
  #This function gets all the DSC runs that are recorded into the event log.
  function Get-SingleDscOperation
@@ -697,8 +675,9 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
         Log -Error "Please enter a valid Sequence ID . All sequence IDs can be seen after running command Get-cDscOperation . " -ForegroundColor Red
         return
     } 
-    $null=Test-DscEventLogStatus -Channel "Analytic" 
-    $null=Test-DscEventLogStatus -Channel "Debug"
+    if (! (Test-DscEventLogStatus -Channel "Analytic") ) { Write-Warning "Analytic log not enabled. Please run: Enable-DscEventLog -Channel 'Analytic'" }
+
+    if (! (Test-DscEventLogStatus -Channel "Debug") ) { Write-Warning "Debug log not enabled. Please run: Enable-DscEventLog -Channel 'Debug'" }
     
     #endregion
 
@@ -784,5 +763,5 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
  }
  
 
-Export-ModuleMember -Function Trace-cDscOperation, Get-cDscOperation
+Export-ModuleMember -Function Trace-cDscOperation, Get-cDscOperation, Test-DscEventLogStatus
 
