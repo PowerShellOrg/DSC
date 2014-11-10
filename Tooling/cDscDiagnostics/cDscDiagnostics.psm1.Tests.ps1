@@ -532,7 +532,7 @@ InModuleScope cDscDiagnostics {
             $result | should be "Output Error Message "
         }
     }
-    
+
     Describe 'Get-SingleRelevantErrorMessage' {
         Context 'Property Index is -1' {
             $value = @{Value = "Property"}
@@ -562,6 +562,25 @@ InModuleScope cDscDiagnostics {
             It 'should reutrn the correct string' {
                 $result | should be "Mocked Message"
             }
+        }
+    }
+
+    Describe 'Get-DscOperationInternal' {
+        Mock -ModuleName cDscDiagnostics Get-AllGroupedDscEvents { return "GroupedEvents" }
+        Mock -ModuleName cDscDiagnostics Split-SingleDscGroupedRecord  { return "singleOutputRecord" }
+
+        $result = Get-DscOperationInternal -Newest 1;
+
+        It 'should call Get-AllGroupedDscEvents' {
+            Assert-MockCalled Get-AllGroupedDscEvents -ModuleName cDscDiagnostics
+        }
+
+        It 'should loop over the events the correct amount of times' {
+            Assert-MockCalled Split-SingleDscGroupedRecord -ModuleName cDscDiagnostics -Times 1
+        }
+
+        It 'should return the singleOutputRecord' {
+            $result | Should Be "singleOutputRecord"
         }
     }
 }
