@@ -583,6 +583,62 @@ InModuleScope cDscDiagnostics {
             $result | Should Be "singleOutputRecord"
         }
     }
+
+    Describe 'Test-DscEventLogStatus' {
+        Context 'Log is Enabled' {
+            Mock -ModuleName cDscDiagnostics Get-WinEvent {return @{IsEnabled = $true}}
+            $result = Test-DscEventLogStatus
+
+            It 'should return true' {
+                $result | Should Be $true
+            }
+        }
+
+        Context 'Log is Disabled and not enabled' {
+            Mock -ModuleName cDscDiagnostics Get-WinEvent {return @{IsEnabled = $false}}
+            Mock -ModuleName cDscDiagnostics Log {}
+            Mock -ModuleName cDscDiagnostics Read-Host {return "n"};
+
+            $result = Test-DscEventLogStatus
+
+            It 'should return false' {
+                $result | Should Be $false
+            }
+
+            It 'should call Log' {
+                Assert-MockCalled Log -ModuleName cDscDiagnostics
+            }
+
+            It 'should call Read-Host' {
+                Assert-MockCalled Read-Host -ModuleName cDscDiagnostics
+            }
+        }
+
+        Context 'Log is Disabled and is enabled' {
+            Mock -ModuleName cDscDiagnostics Get-WinEvent {return @{IsEnabled = $false}}
+            Mock -ModuleName cDscDiagnostics Enable-DscEventLog {}
+            Mock -ModuleName cDscDiagnostics Read-Host {return "y"};
+            Mock -ModuleName cDscDiagnostics Write-Host {};
+
+            $result = Test-DscEventLogStatus
+
+            It 'should return false' {
+                $result | Should Be $false
+            }
+
+            It 'should call Write-Host' {
+                Assert-MockCalled Write-Host -ModuleName cDscDiagnostics
+            }
+
+            It 'should call Read-Host' {
+                Assert-MockCalled Read-Host -ModuleName cDscDiagnostics
+            }
+
+            It 'should call Enable-DscEventLog' {
+                Assert-MockCalled Enable-DscEventLog -ModuleName cDscDiagnostics
+            }
+        }
+    }
 }
 
 Describe "Get-cDscOperation" {
