@@ -72,7 +72,7 @@ InModuleScope cDscDiagnostics {
         Context 'SequenceID is passed' {
             Mock -ModuleName cDscDiagnostics Log { }
             $result = Trace-DscOperationInternal -SequenceID 0;
-            
+
             It 'should return null if SequenceID is less then 1' {
                 $result | Should Be $null;
             }
@@ -184,6 +184,38 @@ InModuleScope cDscDiagnostics {
         }
 
         # This way we don't cache anything while testing.
+        AfterEach {
+            Clear-DscDiagnosticsCache
+        }
+    }
+
+    Describe 'Get-DscLatestJobId' {
+        Context 'It has a Job to Return' {
+            Mock -ModuleName cDscDiagnostics Get-WinEvent {
+                $value = @{"Value" = "{3BBB79B7-BD46-424C-9718-983C8C76D37E}"}
+                $returnObject = @(@{Properties = @($value)}, [Environment]::NewLine)
+                return @(@{Properties = @($value)}, [Environment]::NewLine)
+            }
+
+            $result = Get-DscLatestJobId;
+
+            It 'should return the GUID' {
+                $result | Should Be "{3BBB79B7-BD46-424C-9718-983C8C76D37E}"
+            }
+        }
+
+        Context 'When it does not have a Job' {
+            Mock -ModuleName cDscDiagnostics Get-WinEvent {
+                return $null
+            }
+
+            $result = Get-DscLatestJobId;
+
+            It 'should return "NOJOBID"' {
+                $result | Should Be "NOJOBID"
+            }
+        }
+
         AfterEach {
             Clear-DscDiagnosticsCache
         }
