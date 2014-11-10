@@ -40,6 +40,35 @@ Describe "Add-ClassTypes" {
     }
 }
 
+InModuleScope cDscDiagnostics {
+    Describe 'Log' {
+        It 'Should write verbosely' {
+            $text = "Verbose Text"
+            $verboseLog = Log $text -Verbose 4>&1
+            $verboseLog | Should Be $text
+        }
+
+        It 'should write errors' {
+            $text = "Error Text"
+            $errorLog = Log $text -Error 2>&1
+            $errorLog | Should Be $text
+        }
+
+        BeforeEach {
+            $vPreference = $VerbosePreference;
+            $ePreference = $ErrorAction;
+
+            $VerbosePreference = "Continue";
+            $ErrorAction = "Continue";
+        }
+
+        AfterEach {
+            $VerbosePreference = $vPreference;
+            $ErrorAction = $ePreference;
+        }
+    }
+}
+
 Describe "Get-cDscOperation" {
     Context "does it call its internal functions" {
         Mock -ModuleName cDscDiagnostics Add-ClassTypes {}
