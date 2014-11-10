@@ -237,6 +237,37 @@ InModuleScope cDscDiagnostics {
             $result | Should Not Be $null;
         }
     }
+
+    Describe 'Get-AllGroupedDscEvents' {
+        Context 'Get-AllDscEvents is empty' {
+            Mock -ModuleName cDscDiagnostics Get-DscLatestJobId {}
+            Mock -ModuleName cDscDiagnostics Get-AllDscEvents {}
+            Mock -ModuleName cDscDiagnostics Log {}
+
+            $result = Get-AllGroupedDscEvents;
+
+            It 'should return nothing' {
+                $result  | Should BeNullorEmpty
+            }
+        }
+
+        Context 'Get-AllDscEvents is not empty' {
+            Mock -ModuleName cDscDiagnostics Get-WinEvent {
+                Microsoft.PowerShell.Diagnostics\Get-WinEvent -LogName Application -MaxEvents 1
+            }
+
+            Mock -ModuleName cDscDiagnostics Get-DscLatestJobId {}
+            $result = Get-AllGroupedDscEvents;
+
+            It 'should return GroupInfo' {
+                $result | Should Be Microsoft.PowerShell.Commands.GroupInfo
+            }
+        }
+
+        AfterEach {
+            Clear-DscDiagnosticsCache
+        }
+    }
 }
 
 Describe "Get-cDscOperation" {
