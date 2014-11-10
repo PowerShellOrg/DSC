@@ -21,3 +21,21 @@ Describe "Trace-cDscOperation" {
         }
     }
 }
+
+Describe "Add-ClassTypes" {
+    Context "when its called" {
+        Mock -ModuleName cDscDiagnostics Update-FormatData {}
+        Mock -ModuleName cDscDiagnostics Trace-DscOperationInternal {}
+        Mock -ModuleName cDscDiagnostics Log {}
+
+        $result = Trace-cDscOperation -ComputerName $env:ComputerName;
+
+        It "should have loaded it's event types" {
+            { [Microsoft.PowerShell.cDscDiagnostics.EventType]::ANALYTIC } | Should Not Throw
+        }
+
+        It "should have loaded it's group events" {
+            { [Microsoft.PowerShell.cDscDiagnostics.GroupedEvents] } | Should Not Throw
+        }
+    }
+}
