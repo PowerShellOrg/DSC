@@ -532,6 +532,38 @@ InModuleScope cDscDiagnostics {
             $result | should be "Output Error Message "
         }
     }
+    
+    Describe 'Get-SingleRelevantErrorMessage' {
+        Context 'Property Index is -1' {
+            $value = @{Value = "Property"}
+            $hash = @([Environment]::NewLine; $value)
+            $errorEvent = @{Id = 4131; Properties = $hash}
+
+            $result = Get-SingleRelevantErrorMessage -ErrorEvent $errorEvent;
+
+            It 'should reutrn the correct string' {
+                $result | should be "Property"
+            }
+        }
+
+        Context 'Property Index is not -1' {
+            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+
+            $value = @{Value = "Property"}
+            $hash = @([Environment]::NewLine; $value)
+            $errorEvent = @{Id = 4183; Properties = $hash}
+
+            $result = Get-SingleRelevantErrorMessage -ErrorEvent $errorEvent;
+
+            It 'should call Get-MessageFromEvent' {
+                Assert-MockCalled Get-MessageFromEvent -ModuleName cDscDiagnostics
+            }
+
+            It 'should reutrn the correct string' {
+                $result | should be "Mocked Message"
+            }
+        }
+    }
 }
 
 Describe "Get-cDscOperation" {
