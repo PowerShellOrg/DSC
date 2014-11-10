@@ -1,4 +1,4 @@
-Import-Module .\cDscDiagnostics.psm1
+Import-Module $PSScriptRoot\cDscDiagnostics.psm1
 
 Describe "Trace-cDscOperation" {
     Context "does it call its internal functions" {
@@ -56,15 +56,15 @@ InModuleScope cDscDiagnostics {
 
         BeforeEach {
             $vPreference = $VerbosePreference;
-            $ePreference = $ErrorAction;
+            $ePreference = $ErrorActionPreference;
 
             $VerbosePreference = "Continue";
-            $ErrorAction = "Continue";
+            $ErrorActionPreference = "Continue";
         }
 
         AfterEach {
             $VerbosePreference = $vPreference;
-            $ErrorAction = $ePreference;
+            $ErrorActionPreference = $ePreference;
         }
     }
 
