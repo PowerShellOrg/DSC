@@ -268,6 +268,50 @@ InModuleScope cDscDiagnostics {
             Clear-DscDiagnosticsCache
         }
     }
+
+    Describe 'Get-SingleDscOperation' {
+        Context 'Get-AllGroupedDscEvents is empty' {
+            Mock -ModuleName cDscDiagnostics Get-AllGroupedDscEvents {}
+
+            $result = Get-SingleDscOperation;
+
+            It 'should return empty' {
+                $result | Should BeNullorEmpty
+            }
+        }
+
+        Context 'JobId is Passed but its not found' {
+            Mock -ModuleName cDscDiagnostics Log {}
+            Mock -ModuleName cDscDiagnostics Get-AllGroupedDscEvents {@{Name = "NOJOBID"}}
+            $result = Get-SingleDscOperation -JobId 3BBB79B7-BD46-424C-9718-983C8C76D37E
+
+            It 'should return empty' {
+                $result | Should BeNullorEmpty
+            }
+        }
+
+        Context 'JobId is passed and found' {
+            Mock -ModuleName cDscDiagnostics Log {}
+            Mock -ModuleName cDscDiagnostics Get-AllGroupedDscEvents {
+                return New-Object PSObject -Property @{
+                    Name = New-Object PSObject -Property @{
+                        Guid = "3bbb79b7-bd46-424c-9718-983c8c76d37e"
+                    }
+
+                    Count = 1
+                }
+            }
+
+            Mock -ModuleName cDscDiagnostics Split-SingleDscGroupedRecord { $true }
+
+            $result = Get-SingleDscOperation -JobId 3BBB79B7-BD46-424C-9718-983C8C76D37E
+
+            It 'should have called Get-SingleDscOperation' {
+                Assert-MockCalled Split-SingleDscGroupedRecord -ModuleName cDscDiagnostics -Times 1
+                $result | Should Be $true
+            }
+        }
+    }
 }
 
 Describe "Get-cDscOperation" {
