@@ -239,33 +239,42 @@ InModuleScope cDscDiagnostics {
     }
 
     Describe 'Get-AllGroupedDscEvents' {
-        Context 'Get-AllDscEvents is empty' {
-            Mock -ModuleName cDscDiagnostics Get-DscLatestJobId {}
+        Context 'Get-AllDscEvents returns null' {
             Mock -ModuleName cDscDiagnostics Get-AllDscEvents {}
+            Mock -ModuleName cDscDiagnostics Get-DscLatestJobId {return "NOJOBID"}
             Mock -ModuleName cDscDiagnostics Log {}
-
             $result = Get-AllGroupedDscEvents;
 
-            It 'should return nothing' {
-                $result  | Should BeNullorEmpty
+            It "should call Log" {
+                Assert-MockCalled Log -ModuleName cDscDiagnostics -Times 1
+            }
+
+            It 'should call Get-DscLatestJobId' {
+                Assert-MockCalled Get-DscLatestJobId -ModuleName cDscDiagnostics -Times 1
+            }
+
+            It 'should return null' {
+                $result | Should Be $null
             }
         }
 
-        Context 'Get-AllDscEvents is not empty' {
-            Mock -ModuleName cDscDiagnostics Get-WinEvent {
-                Microsoft.PowerShell.Diagnostics\Get-WinEvent -LogName Application -MaxEvents 1
-            }
-
-            Mock -ModuleName cDscDiagnostics Get-DscLatestJobId {}
+        Context 'Get-AllDscEvents returns events' {
+            $value = @{"Value" = "{3BBB79B7-BD46-424C-9718-983C8C76D37E}"}
+            Mock -ModuleName cDscDiagnostics Get-AllDscEvents {return @{Properties = @($value)}}
+            Mock -ModuleName cDscDiagnostics Log {}
             $result = Get-AllGroupedDscEvents;
 
-            It 'should return GroupInfo' {
-                $result | Should Be Microsoft.PowerShell.Commands.GroupInfo
+            It 'should return a specific event' {
+                $result.Name | Should Be "{3BBB79B7-BD46-424C-9718-983C8C76D37E}"
             }
         }
 
-        AfterEach {
-            Clear-DscDiagnosticsCache
+        Context 'Cached Events' {
+            $result = Get-AllGroupedDscEvents;
+
+            It 'should return a specific event' {
+                $result.Name | Should Be "{3BBB79B7-BD46-424C-9718-983C8C76D37E}"
+            }
         }
     }
 
