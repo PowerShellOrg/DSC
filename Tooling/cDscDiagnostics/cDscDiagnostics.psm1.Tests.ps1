@@ -220,6 +220,23 @@ InModuleScope cDscDiagnostics {
             Clear-DscDiagnosticsCache
         }
     }
+
+    Describe 'Get-AllDscEvents' {
+        Mock -ModuleName cDscDiagnostics Get-WinEvent {
+            Microsoft.PowerShell.Diagnostics\Get-WinEvent -LogName Application -MaxEvents 1
+        }
+
+        $result = Get-AllDscEvents;
+
+        It 'should do call Get-WinEvent for each log passed' {
+            Assert-MockCalled Get-WinEvent -ModuleName cDscDiagnostics -Times 3
+            $result.Count | Should Be 3
+        }
+
+        It 'should return something' {
+            $result | Should Not Be $null;
+        }
+    }
 }
 
 Describe "Get-cDscOperation" {
