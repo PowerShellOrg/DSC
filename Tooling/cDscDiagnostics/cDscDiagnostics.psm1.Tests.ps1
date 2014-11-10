@@ -491,6 +491,36 @@ InModuleScope cDscDiagnostics {
             }
         }
     }
+
+    Describe 'Get-MessageFromEvent' {
+        Context 'For a non-verbose event' {
+            $eventRecord = New-Object PSObject -Property @{
+                Message = [Environment]::NewLine + "Some Message";
+            }
+
+            $result = Get-MessageFromEvent -EventRecord $eventRecord
+
+            It 'should return the value' {
+                $result | Should Be "Some Message"
+            }
+        }
+
+        Context 'For a verbose event' {
+            $verboseMessage = New-Object PSObject -Property @{Value = "Verbose Message"}
+            $value = @([Environment]::NewLine, [Environment]::NewLine, $verboseMessage)
+            $eventRecord = New-Object PSObject -Property @{
+                Message = [Environment]::NewLine + "Some Message";
+                Id = 4117
+                Properties = $value;
+            }
+
+            $result = Get-MessageFromEvent -EventRecord $eventRecord -verboseType
+
+            It 'should return the value' {
+                $result | Should Be "Verbose Message"
+            }
+        }
+    }
 }
 
 Describe "Get-cDscOperation" {
