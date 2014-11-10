@@ -521,6 +521,17 @@ InModuleScope cDscDiagnostics {
             }
         }
     }
+
+    Describe 'Get-DscErrorMessage' {
+        Mock -ModuleName cDscDiagnostics Get-SingleRelevantErrorMessage {return "Output Error Message"}
+        $errorRecords = @{Id = "4131";}
+
+        $result = Get-DscErrorMessage -ErrorRecords $errorRecords
+
+        It 'should be the message' {
+            $result | should be "Output Error Message "
+        }
+    }
 }
 
 Describe "Get-cDscOperation" {
