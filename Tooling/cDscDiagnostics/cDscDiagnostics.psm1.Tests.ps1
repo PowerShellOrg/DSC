@@ -312,6 +312,185 @@ InModuleScope cDscDiagnostics {
             }
         }
     }
+
+    Describe 'Split-SingleDscGroupedRecord' {
+        Context 'Passed an bad DSC record' {
+            $TimeCreated = Get-Date;
+            $singleRecordInGroupedEvents = New-Object PSObject -Property @{
+                Group = New-Object PSObject -Property @{
+                    Guid = "3bbb79b7-bd46-424c-9718-983c8c76d37e"
+                    TimeCreated = $TimeCreated;
+                    Level = 2;
+                    ContainerLog = "Microsoft-Windows-Dsc/Operational";
+                }
+                Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
+                Count = 1
+            }
+
+            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+
+            $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
+
+            It 'should have SequenceID match the index' {
+                $result.SequenceID | Should Be 0
+            }
+
+            It 'should have ComputerName match this computer' {
+                $result.ComputerName | Should Be $env:ComputerName
+            }
+
+            It 'should have a failure as the result' {
+                $result.Result | Should Be "Failure"
+            }
+
+            It 'should have error as the type' {
+                $result.AllEvents[0].Type | Should Be "ERROR"
+            }
+
+            It 'should have the mocked message' {
+                $result.AllEvents[0].Message | Should Be "Mocked Message"
+            }
+
+            It 'should have the right JobId' {
+                $result.JobId | Should Be "54137C5A-F607-48A5-9311-D6E102C15F83"
+            }
+
+            It 'should have the right count' {
+                $result.NumberOfEvents | Should Be 1
+            }
+        }
+
+        Context 'Passing a Warning' {
+            $TimeCreated = Get-Date;
+            $singleRecordInGroupedEvents = New-Object PSObject -Property @{
+                Group = New-Object PSObject -Property @{
+                    Guid = "3bbb79b7-bd46-424c-9718-983c8c76d37e"
+                    TimeCreated = $TimeCreated;
+                    Level = 1;
+                    ContainerLog = "Microsoft-Windows-Dsc/Operational";
+                    LevelDisplayName = "Warning";
+                }
+                Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
+            }
+
+            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+
+            $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
+
+            it 'should find a warning event' {
+                $result.WarningEvents | Should Not Be $null
+            }
+        }
+
+        Context 'Passing an Operational Log' {
+            $TimeCreated = Get-Date;
+            $singleRecordInGroupedEvents = New-Object PSObject -Property @{
+                Group = New-Object PSObject -Property @{
+                    Guid = "3bbb79b7-bd46-424c-9718-983c8c76d37e"
+                    TimeCreated = $TimeCreated;
+                    Level = 1;
+                    ContainerLog = "Microsoft-Windows-Dsc/operational";
+                    LevelDisplayName = "Operational";
+                }
+                Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
+            }
+
+            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+
+            $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
+
+            It 'should find the right type' {
+                $result.AllEvents[0].Type | Should Be "OPERATIONAL"
+            }
+
+            It 'should find some operational events' {
+                $result.OperationalEvents | Should Not Be $null
+            }
+
+            It 'should find some non-verbose events' {
+                $result.NonVerboseEvents | Should Not Be $null
+            }
+        }
+
+        Context 'Passing a Debug Log' {
+            $TimeCreated = Get-Date;
+            $singleRecordInGroupedEvents = New-Object PSObject -Property @{
+                Group = New-Object PSObject -Property @{
+                    Guid = "3bbb79b7-bd46-424c-9718-983c8c76d37e"
+                    TimeCreated = $TimeCreated;
+                    Level = 1;
+                    ContainerLog = "Microsoft-Windows-Dsc/debug";
+                    LevelDisplayName = "Debug";
+                }
+                Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
+            }
+
+            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+
+            $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
+
+            It 'should find the right type' {
+                $result.AllEvents[0].Type | Should Be "DEBUG"
+            }
+
+            It 'should find some debug events' {
+                $result.DebugEvents | Should Not Be $null
+            }
+        }
+
+        Context 'Passing a Verbose Log' {
+            $TimeCreated = Get-Date;
+            $singleRecordInGroupedEvents = New-Object PSObject -Property @{
+                Group = New-Object PSObject -Property @{
+                    Guid = "3bbb79b7-bd46-424c-9718-983c8c76d37e"
+                    TimeCreated = $TimeCreated;
+                    Level = 1;
+                    ContainerLog = "Microsoft-Windows-Dsc/analytic";
+                    LevelDisplayName = "analytic";
+                    Id = 4100;
+                }
+                Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
+            }
+
+            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+
+            $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
+
+            It 'should find the right type' {
+                $result.AllEvents[0].Type | Should Be "Verbose"
+            }
+
+            It 'should find some debug events' {
+                $result.VerboseEvents | Should Not Be $null
+            }
+        }
+
+        Context 'Passing an Analytic Log' {
+            $TimeCreated = Get-Date;
+            $singleRecordInGroupedEvents = New-Object PSObject -Property @{
+                Group = New-Object PSObject -Property @{
+                    Guid = "3bbb79b7-bd46-424c-9718-983c8c76d37e"
+                    TimeCreated = $TimeCreated;
+                    Level = 1;
+                    ContainerLog = "Microsoft-Windows-Dsc/analytic";
+                    LevelDisplayName = "analytic";
+                }
+                Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
+            }
+
+            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+
+            $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
+
+            It 'should find the right type' {
+                $result.AllEvents[0].Type | Should Be "Analytic"
+            }
+
+            It 'should find some analytic events' {
+                $result.NonVerboseEvents | Should Not Be $null
+            }
+        }
+    }
 }
 
 Describe "Get-cDscOperation" {
