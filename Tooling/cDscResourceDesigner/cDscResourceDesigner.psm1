@@ -1867,37 +1867,6 @@ function Test-GetKeyRequiredMandatory
     return ($errorIds.Length -eq 0)
 }
 
-function Test-EnumsMatchValueMaps
-{
-    param
-    (
-        [parameter(
-            Mandatory = $true,
-            Position = 1)]
-        [System.Management.Automation.CommandInfo]
-        $Command,
-
-        [parameter(
-            Mandatory = $true,
-            Position = 2)]
-        [DscResourceProperty[]]
-        $DscResourceProperties,
-
-        [ref]
-        $errorIdsRef
-    )
-
-    return $true
-
-    $parameters = $Command.Parameters
-    $metadata = [System.Management.Automation.CommandMetadata]$Command
-
-    $errorIds = @()
-
-
-}
-
-
 function Test-SetHasExactlyAllNonReadProperties
 {
     param
