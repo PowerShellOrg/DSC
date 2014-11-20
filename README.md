@@ -23,7 +23,7 @@ We have moved the DSC Resources into their own repositories under PowerShell.Org
 So far, the DSC Tooling.  We'll probably break that out as well.  The focus of the repository will be documentation, examples and filing of issues that are broader than any one resource or tool.
 
 Current Repositories
-* [SystemHosting](https://github.org/PowerShellOrg/SystemHosting)
+* [SystemHosting](https://github.com/PowerShellOrg/SystemHosting)
   * SHT_AllowedServices
   * SHT_DNSClient
   * SHT_GroupResource
