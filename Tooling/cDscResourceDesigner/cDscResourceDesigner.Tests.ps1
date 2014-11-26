@@ -179,6 +179,128 @@ end
                 }
             }
         }
+
+        Describe 'New-cDscResource' {
+            $dscProperty = [DscResourceProperty] @{
+                    Name = "Ensure"
+                    Type = "String"
+                    Attribute = [DscResourcePropertyAttribute]::Key
+                    ValueMap = @("Present", "Absent")
+                    Description = "Ensure Present or Absent"
+                    ContainsEmbeddedInstance = $false;
+            }
+
+            Mock Test-Name {return $true} -Verifiable
+            Mock Test-PropertiesForResource {return $true} -Verifiable
+            Mock New-Item {Write-Error "SomeError"} -Verifiable
+
+            Context 'everything should be working' {
+                Mock Test-Path {return $true} -Verifiable
+                Mock New-DscSchema {return $null} -Verifiable
+                Mock New-DscModule {return $null} -Verifiable
+                Mock Test-cDscResource {return $true} -Verifiable
+
+                It 'does not throw' {
+                    { New-cDscResource -Name "UserResource" -Property $dscProperty -Path "$pshome\Modules\UserResource" -ClassVersion 1.0 -FriendlyName "User" -Force } | Should Not throw;
+                }
+
+                $result = New-cDscResource -Name "UserResource" -Property $dscProperty -Path "$pshome\Modules\UserResource" -ClassVersion 1.0 -FriendlyName "User" -Force;
+
+                It 'calls Test-PropertiesForResource ' {
+                    Assert-MockCalled Test-PropertiesForResource -Times 1
+                }
+
+                It 'calls Test-Name' {
+                    Assert-MockCalled Test-Name -Times 1
+                }
+
+                It 'calls Test-Path' {
+                    Assert-MockCalled Test-Path
+                }
+
+                It 'calls New-DscSchema' {
+                    Assert-MockCalled New-DscSchema
+                }
+
+                It 'calls New-DscModule' {
+                    Assert-MockCalled New-DscModule
+                }
+
+                It 'calls Test-cDscResource' {
+                    Assert-MockCalled Test-cDscResource
+                }
+            }
+
+            Context 'a bad path is passed' {
+                Mock Test-Path {return $false } -Verifiable
+
+                It 'should throw a Path is Invalid Error' {
+                    $path = 'C:\somerandompaththatdoesactuallyexistbecausethisisatest'
+                    $errorMessage = ($localizedData.PathIsInvalidError -f $path)
+                    {New-cDscResource -Name "UserResource" -Property $dscProperty -Path "C:\somerandompaththatdoesactuallyexistbecausethisisatest" -ClassVersion 1.0 -FriendlyName "User" -Force;} | Should throw $errorMessage
+                }
+            }
+
+            Context 'a bad module path is passed' {
+                It 'should throw a Path is invalid error' {
+                    $fullPath = Join-Path -Path $pshome -ChildPath "UserResource"
+                    Mock Test-Path {return $true} -Verifiable
+                    Mock Test-Path {return $false} -ParameterFilter {$Path -eq  $fullPath -and $PathType -eq "Container"}
+                    $errorMessage = ($localizedData.PathIsInvalidError -f $fullPath)
+
+                    {New-cDscResource -Name "UserResource" -Property $dscProperty -Path $pshome -ModuleName "UserResource" -ClassVersion 1.0 -FriendlyName "User" -Force} | Should throw $errorMessage;
+                }
+
+                It 'should throw a Path is invalid error for the manifest' {
+                    Mock Test-Path {return $true} -Verifiable
+                    Mock Test-Path {return $true} -ParameterFilter {$Path -eq "$pshome\UserResource"}
+                    Mock Test-Path {return $false} -ParameterFilter {$Path -eq "$pshome\UserResource\UserResource.psd1"}
+                    Mock New-ModuleManifest {Write-Error "SomeError"}
+
+                    $path = "$pshome\UserResource"
+                    $errorMessage = ($localizedData.PathIsInvalidError -f $path)
+
+                    {New-cDscResource -Name "UserResource" -Property $dscProperty -Path $pshome -ModuleName 'UserResource' -ClassVersion 1.0 -FriendlyName "User" -Force;} | Should throw $errorMessage
+                }
+            }
+
+            Context 'a bad DSC Resource path is passed' {
+                Mock New-Item {Write-Error "SomeError"} -Verifiable
+
+                It 'should throw a Path is invalid error' {
+                    $dscPath = "$pshome\UserResource\DSCResources"
+                    Mock Test-Path {return $true} -Verifiable
+                    Mock Test-Path {return $false} -ParamterFilter {$Path -eq $dscPath}
+                    $errorMessage = ($localizedData.PathIsInvalidError -f $dscPath)
+                    {New-cDscResource -Name "UserResource" -Property $dscProperty -Path $dscPath -ClassVersion 1.0 -FriendlyName "User" -Force;} | Should throw $errorMessage
+                }
+            }
+
+            Context 'a bad DSC Resource + Name path is passed' {
+                Mock New-Item {Write-Error "SomeError"} -Verifiable
+
+                It 'should throw a Path is invalid error' {
+                    $dscPath = "$pshome\UserResource\DSCResources"
+                    Mock Test-Path {return $true} -Verifiable
+                    Mock Test-Path {return $false} -ParamterFilter {$Path -eq $dscPath}
+                    $errorMessage = ($localizedData.PathIsInvalidError -f $dscPath)
+                    {New-cDscResource -Name "UserResource" -Property $dscProperty -Path $dscPath -ClassVersion 1.0 -FriendlyName "User" -Force;} | Should throw $errorMessage
+                }
+            }
+
+            Context 'Test-cDscResource does not pass' {
+                Mock New-DscSchema {return $null} -Verifiable
+                Mock New-DscModule {return $null} -Verifiable
+                Mock Test-cDscResource {return $false} -Verifiable
+                Mock Remove-Item {return $null} -Verifiable
+                Mock Test-Path {return $true} -Verifiable
+
+                It 'should throw a Path is invalid error' {
+                    $dscPath = "$pshome\UserResource\DSCResources"
+                    {New-cDscResource -Name "UserResource" -Property $dscProperty -Path $dscPath -ClassVersion 1.0 -FriendlyName "User" -Force;} | Should throw $localizedData.ResourceError
+                }
+            }
+        }
     }
 }
 
