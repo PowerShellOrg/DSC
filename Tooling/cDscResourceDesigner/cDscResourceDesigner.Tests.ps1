@@ -103,6 +103,33 @@ end
                 }
             }
         }
+
+        Describe 'Test-Name' {
+            Context 'Passed a bad name' {
+                It 'should return the correct property error text' {
+                    $errorMessage = $LocalizedData.InvalidPropertyNameError -f "123"
+                    { $result = Test-Name "123" "Property" } | Should Throw $errorMessage;
+                }
+
+                It 'should return the correct resource error text' {
+                    $errorMessage = $LocalizedData.InvalidResourceNameError -f "123"
+                    { $result = Test-Name "123" "Resource"; } | Should Throw $errorMessage;
+                }
+            }
+
+            Context 'Passed a name that was to long' {
+                $name = 'a' * 256;
+                It 'should return the correct property error text' {
+                    $errorMessage = $LocalizedData.PropertyNameTooLongError -f $name;
+                    { $result = Test-Name $name "Property" } | Should throw $errorMessage;
+                }
+
+                It 'should return the correct resource error text' {
+                    $errorMessage = $LocalizedData.ResourceNameTooLongError -f $name;
+                    { $result = Test-Name $name "Resource" } | Should throw $errorMessage;
+                }
+            }
+        }
     }
 }
 
