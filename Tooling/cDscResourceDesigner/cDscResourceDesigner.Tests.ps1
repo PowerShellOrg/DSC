@@ -9,10 +9,17 @@ end
     Describe Test-cDscResource {
         Context 'A module with a psm1 file but no matching schema.mof' {
             Setup -Dir TestResource
-            Setup -File TestResource\TestResource.psm1 -Content (Get-TestDscResourceModuleContent)
+            Setup -File TestResource\TestResource.ps1m -Content (Get-TestDscResourceModuleContent)
+
+            $result = Test-cDscResource -Name $TestDrive\TestResource *>&1
+
+            It 'should throw the correct error' {
+                $result[0].FullyQualifiedErrorID | Should Be 'SchemaNotFoundInDirectoryError,Test-ResourcePath'
+            }
 
             It 'Should fail the test' {
-                Test-cDscResource -Name $TestDrive\TestResource | Should Be $false
+                # This should always be the last thing returned.
+                $result[-1] | Should Be $false
             }
         }
 
@@ -20,8 +27,14 @@ end
             Setup -Dir TestResource
             Setup -File TestResource\TestResource.schema.mof -Content (Get-TestDscResourceSchemaContent)
 
+            $result = Test-cDscResource -Name $TestDrive\TestResource *>&1
+
+            It 'should write the correct error' {
+                $result[0].FullyQualifiedErrorID | Should Be 'ModuleNotFoundInDirectoryError,Test-ResourcePath'
+            }
+
             It 'Should fail the test' {
-                Test-cDscResource -Name $TestDrive\TestResource | Should Be $false
+                $result[1] | Should Be $false
             }
         }
 
