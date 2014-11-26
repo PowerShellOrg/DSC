@@ -48,6 +48,62 @@ end
             }
         }
     }
+
+    InModuleScope cDscResourceDesigner {
+        Describe 'New-cDscResourceProperty' {
+            Context 'An Array is a Key' {
+                It 'Should write an error' {
+                    $errorMessage = New-cDscResourceProperty -Name "SomeName" -Type "String[]" -Attribute "Key" 2>&1
+                    $errorMessage | Should Be $LocalizedData.KeyArrayError
+                }
+            }
+            Context 'Values is an Array Type' {
+                Mock -ModuleName cDscResourceDesigner Test-TypeIsArray {return $true}
+                It 'should throw an error' {
+                    $errorMessage = New-cDscResourceProperty -Name "Ensure" -Type "String" -Attribute Write -Values "Present","Absent" -Description "Ensure Present or Absent" 2>&1
+                    $errorMessage | Should Be $LocalizedData.InvalidValidateSetUsageError
+                }
+            }
+            Context 'ValueMap is given the wrong type' {
+                Mock -ModuleName cDscResourceDesigner Test-TypeIsArray {return $false}
+                It 'should throw an error' {
+                    $errorMessage = @()
+                    $errorMessage += $localizedData.ValidateSetTypeError -f "Present","Uint8"
+                    $errorMessage += $localizedData.ValidateSetTypeError -f "Absent","Uint8"
+
+                    $returnedError = New-cDscResourceProperty -Name "Ensure" -Type "Uint8" -Attribute Write -ValueMap "Present","Absent" -Description "Ensure Present or Absent" 2>&1
+
+                    $returnedError[0] | Should Be $errorMessage[0]
+                }
+            }
+
+            Context 'Everything is passed correctly' {
+                Mock -ModuleName cDscResourceDesigner Test-TypeIsArray {return $false}
+                Mock -ModuleName cDscResourceDesigner Test-Name {return $true}
+                $result = New-cDscResourceProperty -Name "Ensure" -Type "String" -Attribute Write -ValueMap "Present","Absent" -Description "Ensure Present or Absent"
+
+                It 'should return the correct Name' {
+                    $result.Name | Should Be "Ensure"
+                }
+
+                It 'should return the correct Type' {
+                    $result.Type | Should Be "String"
+                }
+
+                It 'should return the correct Attribute' {
+                    $result.Attribute | Should Be "Write"
+                }
+
+                It 'should return the correct ValidateSet' {
+                    $result.ValueMap | Should Be @("Present", "Absent")
+                }
+
+                It 'should return the correct Description' {
+                    $result.Description | Should Be "Ensure Present or Absent"
+                }
+            }
+        }
+    }
 }
 
 begin
