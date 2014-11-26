@@ -130,6 +130,55 @@ end
                 }
             }
         }
+
+        Describe 'Test-PropertiesForResource' {
+            Context 'No Key is passed' {
+                It 'should throw an error' {
+                    $dscProperty = [DscResourceProperty] @{
+                        Name = "Ensure"
+                        Type = "String"
+                        Attribute = [DscResourcePropertyAttribute]::Write
+                        ValueMap = @("Present", "Absent")
+                        Description = "Ensure Present or Absent"
+                        ContainsEmbeddedInstance = $false;
+                    }
+
+                    {Test-PropertiesForResource -Properties $dscProperty } | Should throw $LocalizedData.NoKeyError
+                }
+            }
+
+            Context 'a non-unique name is passed' {
+                $dscProperty = [DscResourceProperty] @{
+                        Name = "Ensure"
+                        Type = "String"
+                        Attribute = [DscResourcePropertyAttribute]::Key
+                        ValueMap = @("Present", "Absent")
+                        Description = "Ensure Present or Absent"
+                        ContainsEmbeddedInstance = $false;
+                    }
+                $dscPropertyArray = @($dscProperty, $dscProperty)
+
+                It 'should throw a non-unique name error' {
+                    $errorMessage = $localizedData.NonUniqueNameError -f "Ensure";
+                    {Test-PropertiesForResource -Properties $dscPropertyArray } | Should throw $errorMessage
+                }
+            }
+
+            Context 'a unique name is passed' {
+                $dscProperty = [DscResourceProperty] @{
+                    Name = "Ensure"
+                    Type = "String"
+                    Attribute = [DscResourcePropertyAttribute]::Key
+                    ValueMap = @("Present", "Absent")
+                    Description = "Ensure Present or Absent"
+                    ContainsEmbeddedInstance = $false;
+                }
+
+                It 'should return true' {
+                    Test-PropertiesForResource -Properties $dscProperty | Should Be $true
+                }
+            }
+        }
     }
 }
 
