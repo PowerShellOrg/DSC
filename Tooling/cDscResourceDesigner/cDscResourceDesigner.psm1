@@ -586,7 +586,7 @@ function New-cDscResource
             New-Item $Path -ItemType Directory -ErrorVariable ev -ErrorAction SilentlyContinue
             if($ev)
             {
-                 Write-Error ($localizedData.PathIsInvalidError -f $fullPath) `
+                 Write-Error ($localizedData.PathIsInvalidError -f $Path) `
                         -ErrorId 'PathIsInvalidError' -ErrorAction Stop
             }
         }
@@ -596,7 +596,7 @@ function New-cDscResource
             New-ModuleManifest -Path $manifestPath -ErrorVariable ev -ErrorAction SilentlyContinue
             if($ev)
             {
-                Write-Error ($localizedData.PathIsInvalidError -f $fullPath) `
+                Write-Error ($localizedData.PathIsInvalidError -f $Path) `
                         -ErrorId 'PathIsInvalidError' -ErrorAction Stop
 
             }
