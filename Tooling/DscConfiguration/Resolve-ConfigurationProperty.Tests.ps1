@@ -168,6 +168,26 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
             $result | should be 'FromSecondServiceConfig'
         }
     }
+
+    Context 'When a service-to-node relationship is defined from the Node instead of the Service' {
+        $ConfigurationData.Services = @{
+            MyTestService = @{
+                MyTestKey = 'From MyTestService'
+            }
+        }
+
+        $Node = @{
+            Name = 'TestBox'
+            Location = 'NY'
+            Services = 'MyTestService'
+        }
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName MyTestKey
+
+        It 'Should still resolve data from the service' {
+            $result | Should Be 'From MyTestService'
+        }
+    }
 }
 
 Describe 'Resolving multiple values' {

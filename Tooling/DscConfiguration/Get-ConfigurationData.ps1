@@ -15,9 +15,6 @@ function Get-DscConfigurationData
         [parameter(ParameterSetName = 'NodeNameFilter')]
         [string] $NodeName,
 
-        [parameter(ParameterSetName = 'RoleFilter')]
-        [string] $Role,
-
         [parameter()]
         [switch] $Force
     )
@@ -53,10 +50,6 @@ function Get-DscConfigurationData
             'NodeNameFilter' {
                 Write-Verbose "Filtering for nodes with the GUID of $NodeName"
                 $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({$_.NodeName -like $NodeName})
-            }
-            'RoleFilter' {
-                Write-Verbose "Filtering for nodes with the Role of $Role"
-                $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({ $_.roles -contains $Role})
             }
             default {
                 Write-Verbose 'Loading Site Data'
