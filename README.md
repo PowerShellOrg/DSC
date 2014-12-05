@@ -11,8 +11,10 @@ We have moved the DSC Resources into their own repositories under PowerShell.Org
 
 ### If you have a new resource you want to share, 
 * File an issue here and let us know what the name of the project should be.  
-* We'll create a repository and make you an contributor to that repository.  
+* We'll create a repository and make you an contributor (if you want) to that repository. 
 * You can then populate that repository via a pull request or we can clone an existing repository in the organization.
+or
+* You can create a gist containing the files for your DSC resource and we can move them into a repository.
 
 ### If you want to help maintain an existing resource
 * Start by contributing something.. a bugfix, documentation, file issues
