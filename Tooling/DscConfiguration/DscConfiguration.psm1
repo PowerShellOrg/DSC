@@ -16,7 +16,15 @@ if ([string]::IsNullOrEmpty($LocalCertificateThumbprint))
     catch { }
 }
 
-$LocalCertificatePath = "cert:\LocalMachine\My\$LocalCertificateThumbprint"
+if ($LocalCertificateThumbprint)
+{
+    $LocalCertificatePath = "cert:\LocalMachine\My\$LocalCertificateThumbprint"
+}
+else
+{
+    $LocalCertificatePath = ''
+}
+
 $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services=@{}; SiteData =@{}}
 
 . $psscriptroot\Get-Hashtable.ps1
