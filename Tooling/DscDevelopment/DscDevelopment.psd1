@@ -12,7 +12,7 @@
 RootModule = 'DscDevelopment.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.5.1.0'
+ModuleVersion = '1.5.2.0'
 
 # ID used to uniquely identify this module
 GUID = 'e51973fd-3e2b-46ef-b307-66b02811db52'
@@ -70,7 +70,7 @@ FunctionsToExport = 'Add-CachedCimClass',
     'Get-CachedCimClass',
     'Get-Hashtable',
     'Import-CimInstance',
-    'New-cDscCompositeResource',
+    'New-DscCompositeResource',
     'New-DscResourceFromModule',
     'New-DscResourceShell',
     'New-MofFile',
