@@ -566,8 +566,77 @@ end
                     $result | should be $expected
                 }
             }
+        }
 
+        Describe 'New-DelimitedList' {
+            Context 'a list of numbers is passed in' {
+                $result = New-DelimitedList -list @(1,2,3,4,5)
+                $expected = '1,2,3,4,5'
 
+                It 'should return the numbers' {
+                    $result | Should Be $expected
+                }
+            }
+
+            Context 'the string switch is used' {
+                $result = New-DelimitedList -list @(1,2,3,4,5) -String
+                $expected = '"1","2","3","4","5"'
+
+                It 'should return the numbers wrapped in quotes' {
+                    $result | Should Be $expected
+                }
+            }
+
+            Context 'the seperator parameter is used' {
+                $result = New-DelimitedList -list @(1,2,3,4,5) -String -Separator ';'
+                $expected = '"1";"2";"3";"4";"5"'
+
+                It 'should return the numbers wrapped in qoutes, seperated by semicolons' {
+                    $result | Should Be $expected
+                }
+            }
+        }
+
+        Describe 'New-DscModule' {
+            $dscProperty = [DscResourceProperty] @{
+                Name                     = 'Ensure'
+                Type                     = 'String'
+                Attribute                = [DscResourcePropertyAttribute]::Key
+                ValueMap                 = @('Present', 'Absent')
+                Description              = 'Ensure Present or Absent'
+                ContainsEmbeddedInstance = $false
+            }
+
+            Context 'writing out to a file' {
+                Mock New-GetTargetResourceFunction { return $null } -Verifiable
+                Mock New-SetTargetResourceFunction { return $null } -Verifiable
+                Mock New-TestTargetResourceFunction { return $null } -Verifiable
+
+                Mock Out-File { return $null } -Verifiable
+
+                $result = New-DscModule -Name 'Test' -Path $env:temp -Parameters $dscProperty
+
+                It 'should call all the Mocks' {
+                    Assert-VerifiableMocks
+                }
+            }
+
+            Context 'unable to overwrite module' {
+                Mock New-GetTargetResourceFunction { return $null } -Verifiable
+                Mock New-SetTargetResourceFunction { return $null } -Verifiable
+                Mock New-TestTargetResourceFunction { return $null } -Verifiable
+
+                Mock Test-Path { return $true } -Verifiable
+
+                $result = New-DscModule -Name 'Test' -Path $env:temp -Parameters $dscProperty -WhatIf *>&1
+
+                $ModulePath = Join-Path $env:tmp "Test.psm1"
+                $warning = ($localizedData.ModuleNotOverWrittenWarning -f $ModulePath)
+
+                It 'Should throw a Warning' {
+                    $result.Message | Should Be $warning
+                }
+            }
         }
     }
 }
