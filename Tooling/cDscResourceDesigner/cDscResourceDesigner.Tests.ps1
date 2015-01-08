@@ -301,6 +301,25 @@ end
                 }
             }
         }
+
+        Describe 'New-DscManifest' {
+            Mock New-ModuleManifest {return $null} -Verifiable
+
+            $result1 = New-DscManifest -Name "UserResource" -Path $env:tmp -ClassVersion 1.0 -Force
+
+            It 'should call all the Mocks' {
+                Assert-VerifiableMocks;
+            }
+
+            BeforeEach {
+                $oldConfirm = $ConfirmPreference
+                $ConfirmPreference = "SilentlyContinue"
+            }
+
+            AfterEach {
+                $ConfirmPreference = $oldConfirm;
+            }
+        }
     }
 }
 
