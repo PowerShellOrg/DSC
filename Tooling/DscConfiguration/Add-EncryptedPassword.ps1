@@ -24,6 +24,11 @@ function Add-DscEncryptedPassword
         [string] $Password
     )
 
+    if (-not $script:LocalCertificatePath -or -not (Test-Path -LiteralPath $script:LocalCertificatePath))
+    {
+        throw 'You must first set the local encryption certificate before calling Add-DscEncryptedPassword.  Use the Set-DscConfigurationCertificate command.'
+    }
+
     switch ($PSCmdlet.ParameterSetName)
     {
         'PasswordString'

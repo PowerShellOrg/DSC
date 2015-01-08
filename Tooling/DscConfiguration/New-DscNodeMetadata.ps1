@@ -43,7 +43,12 @@ function New-DscNodeMetadata
         [parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $Path
+        $Path,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string[]]
+        $Services = @()
     )
     begin
     {
@@ -75,8 +80,6 @@ function New-DscServiceMetadata {
         $Name,
         [string[]]
         $Nodes,
-        [string[]]
-        $Roles,
         [string]
         $Path
     )

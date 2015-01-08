@@ -92,7 +92,7 @@ function Get-ServiceValue
         [hashtable] $Node,
         [string] $PropertyName,
         [hashtable] $ConfigurationData,
-        [string[]] $ServiceName,
+        [string[]] $ServiceName = '*',
         [switch] $AllValues
     )
 
@@ -107,7 +107,7 @@ function Get-ServiceValue
         $name = $keyValuePair.Key
         $serviceValue = $keyValuePair.Value
 
-        if (-not (ShouldProcessService -Name $name -Service $serviceValue -Filter $ServiceName -NodeName $node.Name))
+        if (-not (ShouldProcessService -ServiceName $name -Service $serviceValue -Filter $ServiceName -Node $node))
         {
             continue
         }
@@ -158,28 +158,29 @@ function Get-ServiceValue
 function ShouldProcessService
 {
     param (
-        [string] $Name,
+        [string] $ServiceName,
         [hashtable] $Service,
-        [string[]] $Filter = @(),
-        [string] $NodeName
+        [string[]] $Filter = '*',
+        [hashtable] $Node
     )
 
-    if ($NodeName -and ($Service['Nodes'] -notcontains $NodeName))
+    $isNodeAssociatedWithService = ($Node.Name -and ($Service['Nodes'] -contains $Node.Name)) -or
+                                   ($Node['Services'] -contains $ServiceName)
+
+    if (-not $isNodeAssociatedWithService)
     {
         return $false
     }
 
-    $foundMatchingFilter = $false
     foreach ($pattern in $Filter)
     {
-        if ($Name -like $pattern)
+        if ($ServiceName -like $pattern)
         {
-            $foundMatchingFilter = $true
-            break
+            return $true
         }
     }
 
-    return $foundMatchingFilter
+    return $false
 }
 
 function Get-NodeValue

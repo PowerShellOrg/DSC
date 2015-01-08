@@ -27,6 +27,15 @@ function Get-DscEncryptedPassword
         [string[]]
         $UserName
     )
+
+    begin
+    {
+        if (-not $script:LocalCertificatePath -or -not (Test-Path -LiteralPath $script:LocalCertificatePath))
+        {
+            throw 'You must first set the local encryption certificate before calling Get-DscEncryptedPassword.  Use the Set-DscConfigurationCertificate command.'
+        }
+    }
+
     process
     {
         if (Test-LocalCertificate)
