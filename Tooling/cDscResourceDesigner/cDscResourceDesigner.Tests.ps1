@@ -468,6 +468,22 @@ end
                 }
             }
         }
+
+        Describe 'Test-TypeIsArray' {
+            Context 'Passed a hashtable' {
+                $result = Test-TypeIsArray -Type 'Int32[]'
+                It 'Should return true' {
+                    $result | should be $true
+                }
+            }
+
+            Context 'not passed a hashtable' {
+                $result = Test-TypeIsArray -Type 'String'
+                it 'should return false' {
+                    $result | should be $false
+                }
+            }
+        }
     }
 }
 
