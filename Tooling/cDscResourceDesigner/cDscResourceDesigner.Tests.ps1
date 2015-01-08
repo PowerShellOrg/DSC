@@ -444,6 +444,30 @@ end
                 $result.Message | Should Be $warning
             }
         }
+
+        Describe 'Get-TypeNameForSchema' {
+            Context 'get type Hashtable' {
+                $result = Get-TypeNameForSchema -Type 'Hashtable'
+
+                It 'should return string' {
+                    $result | should be 'String'
+                }
+            }
+
+            Context 'get type int32' {
+                $result = Get-TypeNameForSchema -Type 'int32'
+
+                It 'should return int32' {
+                    $result | should be 'int32'
+                }
+            }
+
+            Context 'get non-existant type' {
+                It 'should throw an error ' {
+                    {Get-TypeNameForSchema -Type Get-Random} | Should throw
+                }
+            }
+        }
     }
 }
 
