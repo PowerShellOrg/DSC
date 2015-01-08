@@ -484,6 +484,91 @@ end
                 }
             }
         }
+
+        Describe 'New-DscSchemaParameter' {
+            Context 'dscProperty only contains the minimum properties' {
+                $dscProperty = [DscResourceProperty] @{
+                    Name                     = 'Ensure'
+                    Type                     = 'String'
+                    Attribute                = [DscResourcePropertyAttribute]::Key
+                }
+
+                $result = New-DscSchemaParameter -Parameter $dscProperty
+                $expected = "`t[Key] String Ensure;"
+
+                It 'should return the correct string' {
+                    $result | should be $expected
+                }
+            }
+
+            Context 'dscProperty has an embeded instance' {
+                $dscProperty = [DscResourceProperty] @{
+                    Name                     = 'Ensure'
+                    Type                     = 'Hashtable'
+                    Attribute                = [DscResourcePropertyAttribute]::Key
+                }
+
+                $result = New-DscSchemaParameter -Parameter $dscProperty
+                $expected = "`t[Key, EmbeddedInstance(`"MSFT_KeyValuePair`")] String Ensure[];"
+
+                It 'should return the correct string' {
+                    $result | should be $expected
+                }
+            }
+
+            Context 'dscProperty has a Description' {
+                $dscProperty = [DscResourceProperty] @{
+                    Name                     = 'Ensure'
+                    Type                     = 'String'
+                    Attribute                = [DscResourcePropertyAttribute]::Key
+                    Description              = 'Ensure Present or Absent'
+                }
+
+                $result = New-DscSchemaParameter -Parameter $dscProperty
+                $expected = "`t[Key, Description(`"Ensure Present or Absent`")] String Ensure;"
+
+                It 'should return the correct string' {
+                    $result | should be $expected
+                }
+            }
+
+            Context 'dscProperty has a value map' {
+                $dscProperty = [DscResourceProperty] @{
+                    Name        = 'Ensure'
+                    Type        = 'String'
+                    Attribute   = [DscResourcePropertyAttribute]::Key
+                    Description = 'Ensure Present or Absent'
+                    ValueMap    = @('Present', 'Absent')
+                }
+
+                $result = New-DscSchemaParameter -Parameter $dscProperty
+                $expected = "`t[Key, Description(`"Ensure Present or Absent`"), ValueMap{`"Present`",`"Absent`"}] String Ensure;"
+
+                It 'should return the correct string' {
+                    $result | should be $expected
+                }
+            }
+
+            Context 'dscProperty has values' {
+                $dscProperty = [DscResourceProperty] @{
+                    Name        = 'Ensure'
+                    Type        = 'String'
+                    Attribute   = [DscResourcePropertyAttribute]::Key
+                    Description = 'Ensure Present or Absent'
+                    ValueMap    = @('Present', 'Absent')
+                    Values      = @('Present', 'Absent')
+                }
+
+                $result = New-DscSchemaParameter -Parameter $dscProperty
+                $expected = "`t[Key, Description(`"Ensure Present or Absent`"), ValueMap{`"Present`",`"Absent`"}, Values{`"Present`",`"Absent`"}] String Ensure;"
+
+                It 'should return the correct string' {
+                    $result | should be $expected
+                }
+            }
+
+
+        }
     }
 }
 
