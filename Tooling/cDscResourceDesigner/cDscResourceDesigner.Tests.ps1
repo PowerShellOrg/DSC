@@ -407,37 +407,41 @@ end
                 Assert-VerifiableMocks
             }
 
-            BeforeEach {
-                $oldConfirm = $ConfirmPreference
-                $ConfirmPreference = 'SilentlyContinue'
-            }
+            $result2 = New-DscManifest -Name 'UserResource' -Path $env:tmp -ClassVersion 1.0 -WhatIf *>&1
 
-            AfterEach {
-                $ConfirmPreference = $oldConfirm
+            $ManifestPath = Join-Path $env:tmp "UserResource.psd1"
+            $warning = ($localizedData.ManifestNotOverWrittenWarning -f $ManifestPath)
+
+            It 'should write a warning message' {
+                $result2.Message | Should Be $warning
             }
         }
 
         Describe 'New-DscSchema' {
-            Mock Add-StringBuilderLine {
-                return $null
-            } -Verifiable
-            Mock Test-Path {
-                return $false
-            } -Verifiable
+            Mock Add-StringBuilderLine { return $null } -Verifiable
+            Mock Test-Path { return $true } -Verifiable
+            Mock New-DscSchemaParameter {return $null} -Verifiable
+            
+            $dscProperty = [DscResourceProperty] @{
+                Name                     = 'Ensure'
+                Type                     = 'String'
+                Attribute                = [DscResourcePropertyAttribute]::Key
+                ValueMap                 = @('Present', 'Absent')
+                Description              = 'Ensure Present or Absent'
+                ContainsEmbeddedInstance = $false
+            }
 
-            $result1 = New-DscManifest -Name 'UserResource' -Path $env:tmp -ClassVersion 1.0 -Force
+            $result = New-DscSchema -Name 'Test' -Path $env:temp -Parameters $dscProperty -ClassVersion 1.0 -WhatIf *>&1
 
             It 'should call all the Mocks' {
                 Assert-VerifiableMocks
             }
 
-            BeforeEach {
-                $oldConfirm = $ConfirmPreference
-                $ConfirmPreference = 'SilentlyContinue'
-            }
+            $schemaPath = Join-Path $env:tmp "Test.schema.mof"
+            $warning = ($localizedData.SchemaNotOverWrittenWarning -f $SchemaPath)
 
-            AfterEach {
-                $ConfirmPreference = $oldConfirm
+            It 'Should throw a Warning' {
+                $result.Message | Should Be $warning
             }
         }
     }
