@@ -23,7 +23,10 @@ function Resolve-DscConfigurationProperty
         [string] $MultipleResultBehavior = 'SingleValueOnly',
 
         #If you want to override the default behavior of checking up-scope for configuration data, it can be supplied here.
-        [System.Collections.Hashtable] $ConfigurationData
+        [System.Collections.Hashtable] $ConfigurationData,
+
+        #If the specified PropertyName is not found in the hashtable and you specify a default value, that value will be returned.  If the specified PropertyName is not found and you have not specified a default value, the function will throw an error.
+        [object] $DefaultValue
     )
 
     Write-Verbose ""
@@ -68,19 +71,25 @@ function Resolve-DscConfigurationProperty
         Write-Verbose "Value after checking the global is $Value"
     }
 
-    if ($Value.count -eq 0)
-    {
-        throw "Failed to resolve $PropertyName for $($Node.Name).  Please update your node, service, site, or all sites with a default value."
-    }
 
     if (($MultipleResultBehavior -eq 'SingleValueOnly') -and ($Value.count -gt 1))
     {
         throw "More than one result was returned for $PropertyName for $($Node.Name).  Verify that your property configurations are correct.  If multiples are to be allowed, set -MultipleResultBehavior to MultipleValuesFromServiceOnly or AllValues."
     }
-    else
+
+    if ($Value.count -eq 0)
     {
-        return $Value
+        if ($PSBoundParameters.ContainsKey('DefaultValue'))
+        {
+            $Value = $DefaultValue
+        }
+        else
+        {
+            throw "Failed to resolve $PropertyName for $($Node.Name).  Please update your node, service, site, or all sites with a default value."
+        }
     }
+
+    return $Value
 }
 
 Set-Alias -Name 'Resolve-ConfigurationProperty' -Value 'Resolve-DscConfigurationProperty'

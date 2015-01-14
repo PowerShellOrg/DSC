@@ -51,6 +51,20 @@ describe 'how Resolve-DscConfigurationProperty responds' {
             $result | should be 'ConfiguredByDefault'
         }
     }
+
+    Context 'When a value is not found in the configuration data' {
+        It 'Throws an error if -DefaultValue is not used' {
+            { Resolve-DscConfigurationProperty -Node $Node -PropertyName DoesNotExist } | Should Throw
+        }
+
+        It 'Does not throw an error if a -DefaultValue is specified' {
+            $result = [pscustomobject] @{ Value = $null }
+            $scriptBlock = { $result.Value = Resolve-DscConfigurationProperty -Node $Node -PropertyName DoesNotExist -DefaultValue Default }
+
+            $scriptBlock | Should Not Throw
+            $result.Value | Should Be 'Default'
+        }
+    }
 }
 
 describe 'how Resolve-DscConfigurationProperty (services) responds' {
