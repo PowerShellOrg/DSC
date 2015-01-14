@@ -276,7 +276,7 @@ Describe 'Resolving multiple values' {
     }
 
     It 'Returns the proper results for multiple services' {
-        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'ServiceLevel1\Property' -MultipleResultBehavior AllowMultipleResultsFromSingleScope }
+        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'ServiceLevel1\Property' -ResolutionBehavior OneLevel }
         $scriptBlock | Should Not Throw
 
         $result = (& $scriptBlock) -join ', '
@@ -284,7 +284,7 @@ Describe 'Resolving multiple values' {
     }
 
     It 'Returns the property results for all scopes' {
-        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Property' -MultipleResultBehavior AllValues }
+        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Property' -ResolutionBehavior AllValues }
         $scriptBlock | Should Not Throw
 
         $result = (& $scriptBlock) -join ', '

@@ -18,9 +18,9 @@ function Resolve-DscConfigurationProperty
         [parameter(Mandatory)]
         [string] $PropertyName,
 
-        #By default, all results must return just one entry.  If you want to fetch values from multiple services or from all scopes, set this parameter to 'MultipleValuesFromServiceOnly' or 'AllValues', respectively.
-        [ValidateSet('SingleValueOnly', 'AllowMultipleResultsFromSingleScope', 'AllValues')]
-        [string] $MultipleResultBehavior = 'SingleValueOnly',
+        #By default, all results must return just one entry.  If you want to fetch values from multiple services or from all scopes, set this parameter to 'OneLevel' or 'AllValues', respectively.
+        [ValidateSet('SingleValue', 'OneLevel', 'AllValues')]
+        [string] $ResolutionBehavior = 'SingleValue',
 
         #If you want to override the default behavior of checking up-scope for configuration data, it can be supplied here.
         [System.Collections.Hashtable] $ConfigurationData,
@@ -43,9 +43,9 @@ function Resolve-DscConfigurationProperty
         }
     }
 
-    $doGetAllResults = $MultipleResultBehavior -eq 'AllValues'
+    $doGetAllResults = $ResolutionBehavior -eq 'AllValues'
 
-    Write-Verbose "Starting to evaluate $($Node.Name) for PropertyName: $PropertyName and resolution behavior: $MultipleResultBehavior"
+    Write-Verbose "Starting to evaluate $($Node.Name) for PropertyName: $PropertyName and resolution behavior: $ResolutionBehavior"
 
     if ($doGetAllResults -or $Value.count -eq 0)
     {
@@ -72,9 +72,9 @@ function Resolve-DscConfigurationProperty
     }
 
 
-    if (($MultipleResultBehavior -eq 'SingleValueOnly') -and ($Value.count -gt 1))
+    if (($ResolutionBehavior -eq 'SingleValue') -and ($Value.count -gt 1))
     {
-        throw "More than one result was returned for $PropertyName for $($Node.Name).  Verify that your property configurations are correct.  If multiples are to be allowed, set -MultipleResultBehavior to MultipleValuesFromServiceOnly or AllValues."
+        throw "More than one result was returned for $PropertyName for $($Node.Name).  Verify that your property configurations are correct.  If multiples are to be allowed, set -ResolutionBehavior to OneLevel or AllValues."
     }
 
     if ($Value.count -eq 0)
@@ -156,11 +156,11 @@ function Get-ServiceValue
 
         if ($value.Count -gt 0)
         {
-            Write-Verbose "        Found Service Value: $resolved"
+            Write-Verbose "        Found Service Value: $value"
+            $value
         }
 
         Write-Verbose "    Finished checking Service $name"
-        $value
     }
 }
 
