@@ -638,6 +638,40 @@ end
                 }
             }
         }
+
+        Describe 'Add-StringBuilderLine' {
+            $StringBuilder = New-Object -TypeName System.Text.StringBuilder
+            $Line = 'Line';
+
+            Context 'A line is passed' {
+                $result = Add-StringBuilderLine -Builder $StringBuilder -Line $Line
+                $expect = 'Line'
+
+                It 'should return the correct line' {
+                    $result | should be $expected
+                }
+            }
+
+            Context 'No line is passed' {
+                $result = Add-StringBuilderLine -Builder $StringBuilder
+
+                $expect = $Line + [Environment]::NewLine
+
+                It 'should return the correct line' {
+                    $result | should be $expected
+                }
+            }
+
+            Context 'Append is Passed' {
+                $result = Add-StringBuilderLine -Builder $StringBuilder -Line $Line -Append
+
+                $expect = $Line + [Environment]::NewLine + $Line
+
+                It 'should return the correct line' {
+                    $result | should be $expected
+                }
+            }
+        }
     }
 }
 
