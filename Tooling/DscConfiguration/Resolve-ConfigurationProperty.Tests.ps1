@@ -193,7 +193,7 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
         $Node = @{
             Name = 'TestBox'
             Location = 'NY'
-            Services = 'MyTestService'
+            MemberOfServices = 'MyTestService'
         }
 
         $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName MyTestKey
