@@ -174,7 +174,7 @@ function ShouldProcessService
     )
 
     $isNodeAssociatedWithService = ($Node.Name -and ($Service['Nodes'] -contains $Node.Name)) -or
-                                   ($Node['Services'] -contains $ServiceName)
+                                   ($Node['MemberOfServices'] -contains $ServiceName)
 
     if (-not $isNodeAssociatedWithService)
     {
