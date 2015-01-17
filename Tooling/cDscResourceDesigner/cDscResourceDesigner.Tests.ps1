@@ -646,9 +646,28 @@ end
                 ContainsEmbeddedInstance = $false
             }
 
-            $result = New-DscModuleFunction 'Get-TargetResource' ($dscProperty | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}) 'Boolean'` -FunctionContent $functionContent
+            $result = New-DscModuleFunction 'Get-TargetResource' ($dscProperty | Where-Object {([DscResourcePropertyAttribute]::Key -eq $_.Attribute) -or ([DscResourcePropertyAttribute]::Required -eq $_.Attribute)}) 'System.Collections.Hashtable' ($dscProperty) -FunctionContent $functionContent
 
-            $expected = "function Get-TargetResource`r`n{`r`n`t[CmdletBinding()]`r`n`t[OutputType([System.Boolean])]`r`n`tparam`r`n`t(`r`n`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure`r`n`t)`r`n`r`n`t#Write-Verbose `"Use this cmdlet to deliver information about command processing.`"`r`n`r`n`t#Write-Debug `"Use this cmdlet to write debug information while troubleshooting.`"`r`n`r`n`r`n`t<#`r`n`t`$result = [System.Boolean]`r`n`t`r`n`t`$result`r`n`t#>`r`n}`r`n`r`n"
+            $expected = "function Get-TargetResource`r`n{`r`n`t[CmdletBinding()]`r`n`t[OutputType([System.Collections.Hashtable])]`r`n`tparam`r`n`t(`r`n`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure`r`n`t)`r`n`r`n`t#Write-Verbose `"Use this cmdlet to deliver information about command processing.`"`r`n`r`n`t#Write-Debug `"Use this cmdlet to write debug information while troubleshooting.`"`r`n`r`n`r`n`t<#`r`n`t`$returnValue = @{`r`n`t`tEnsure = [System.String]`r`n`t}`r`n`r`n`t`$returnValue`r`n`t#>`r`n}`r`n`r`n"
+
+            It 'returns the correct string' {
+                $result | Should Be $expected
+            }
+        }
+
+        Describe 'New-SetTargetResourceFunction' {
+            $dscProperty = [DscResourceProperty] @{
+                Name                     = 'Ensure'
+                Type                     = 'String'
+                Attribute                = [DscResourcePropertyAttribute]::Key
+                ValueMap                 = @('Present', 'Absent')
+                Description              = 'Ensure Present or Absent'
+                ContainsEmbeddedInstance = $false
+            }
+
+            $result = New-DscModuleFunction 'Set-TargetResource' ($dscProperty | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}) -FunctionContent $functionContent
+
+            $expected = "function Set-TargetResource`r`n{`r`n`t[CmdletBinding()]`r`n`tparam`r`n`t(`r`n`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure`r`n`t)`r`n`r`n`t#Write-Verbose `"Use this cmdlet to deliver information about command processing.`"`r`n`r`n`t#Write-Debug `"Use this cmdlet to write debug information while troubleshooting.`"`r`n`r`n`t#Include this line if the resource requires a system reboot.`r`n`t#`$global:DSCMachineStatus = 1`r`n`r`n`r`n}`r`n`r`n"
 
             It 'returns the correct string' {
                 $result | Should Be $expected
