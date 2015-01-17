@@ -315,14 +315,8 @@ end
 
                 It 'should throw a Path is invalid error' {
                     $dscPath = "$pshome\UserResource\DSCResources"
-                    Mock Test-Path {
-                        return $true
-                    } -Verifiable
-                    Mock Test-Path {
-                        return $false
-                    } -ParamterFilter {
-                        $path -eq $dscPath
-                    }
+                    Mock Test-Path { return $true } -Verifiable
+                    Mock Test-Path { return $false } -ParamterFilter { $path -eq $dscPath }
                     $errorMessage = ($LocalizedData.PathIsInvalidError -f $dscPath)
                     {
                         New-cDscResource -Name 'UserResource' -Property $dscProperty -Path $dscPath -ClassVersion 1.0 -FriendlyName 'User' -Force
@@ -331,21 +325,11 @@ end
             }
 
             Context 'Test-cDscResource does not pass' {
-                Mock New-DscSchema {
-                    return $null
-                } -Verifiable
-                Mock New-DscModule {
-                    return $null
-                } -Verifiable
-                Mock Test-cDscResource {
-                    return $false
-                } -Verifiable
-                Mock Remove-Item {
-                    return $null
-                } -Verifiable
-                Mock Test-Path {
-                    return $true
-                } -Verifiable
+                Mock New-DscSchema { return $null } -Verifiable
+                Mock New-DscModule { return $null } -Verifiable
+                Mock Test-cDscResource { return $false } -Verifiable
+                Mock Remove-Item { return $null } -Verifiable
+                Mock Test-Path { return $true } -Verifiable
 
                 It 'should throw a Path is invalid error' {
                     $dscPath = "$pshome\UserResource\DSCResources"
@@ -665,7 +649,7 @@ end
             $result = New-DscModuleFunction 'Get-TargetResource' ($dscProperty | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}) 'Boolean'` -FunctionContent $functionContent
 
             $expected = "function Get-TargetResource`r`n{`r`n`t[CmdletBinding()]`r`n`t[OutputType([System.Boolean])]`r`n`tparam`r`n`t(`r`n`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure`r`n`t)`r`n`r`n`t#Write-Verbose `"Use this cmdlet to deliver information about command processing.`"`r`n`r`n`t#Write-Debug `"Use this cmdlet to write debug information while troubleshooting.`"`r`n`r`n`r`n`t<#`r`n`t`$result = [System.Boolean]`r`n`t`r`n`t`$result`r`n`t#>`r`n}`r`n`r`n"
-            
+
             It 'returns the correct string' {
                 $result | Should Be $expected
             }
