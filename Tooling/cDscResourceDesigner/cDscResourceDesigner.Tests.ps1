@@ -741,6 +741,43 @@ end
                 }
             }
         }
+
+        Describe 'Get-FunctionParamLineNumbers' {
+            Context 'Function Name is found in Module'{
+                # This might be an awful idea.
+                $path = Resolve-Path $PSScriptRoot\cDscResourceDesigner.psm1 | ForEach-Object {$_.Path}
+
+                $functionNames = 'New-cDscResourceProperty'
+
+                $expected = @{
+                    'New-cDscResourceProperty' = 308,356,398
+                }
+
+                $result = Get-FunctionParamLineNumbers -ModulePath $path -FunctionNames $functionNames
+
+                $testResult =  Compare-Object -ReferenceObject $result -DifferenceObject $expected -PassThru
+
+                It 'Should return the correct array' {
+                    $testResult | should BeNullOrEmpty
+                }
+            }
+
+            Context 'Function Name is NOT found in Module' {
+                $path = Resolve-Path $PSScriptRoot\cDscResourceDesigner.psm1 | ForEach-Object {$_.Path}
+
+                $functionNames = 'none'
+
+                $result = Get-FunctionParamLineNumbers -ModulePath $path -FunctionNames $functionNames
+
+                It 'Should return nothing' {
+                    $testResult | should BeNullOrEmpty
+                }
+            }
+
+            # TODO: Not sure how to generate errors in [System.Management.Automation.Language.Parser]
+            # Context 'Error Processing Module' {
+            # }
+        }
     }
 }
 
