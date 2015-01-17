@@ -633,6 +633,44 @@ end
             }
         }
 
+        Describe 'New-TestTargetResourceFunction' {
+            $dscProperty = [DscResourceProperty] @{
+                Name                     = 'Ensure'
+                Type                     = 'String'
+                Attribute                = [DscResourcePropertyAttribute]::Key
+                ValueMap                 = @('Present', 'Absent')
+                Description              = 'Ensure Present or Absent'
+                ContainsEmbeddedInstance = $false
+            }
+
+            $result = New-DscModuleFunction 'Test-TargetResource' ($dscProperty | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}) 'Boolean'` -FunctionContent $functionContent
+
+            $expected = "function Test-TargetResource`r`n{`r`n`t[CmdletBinding()]`r`n`t[OutputType([System.Boolean])]`r`n`tparam`r`n`t(`r`n`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure`r`n`t)`r`n`r`n`t#Write-Verbose `"Use this cmdlet to deliver information about command processing.`"`r`n`r`n`t#Write-Debug `"Use this cmdlet to write debug information while troubleshooting.`"`r`n`r`n`r`n`t<#`r`n`t`$result = [System.Boolean]`r`n`t`r`n`t`$result`r`n`t#>`r`n}`r`n`r`n"
+
+            It 'returns the correct string' {
+                $result | Should Be $expected
+            }
+        }
+
+        Describe 'New-GetTargetResourceFunction' {
+            $dscProperty = [DscResourceProperty] @{
+                Name                     = 'Ensure'
+                Type                     = 'String'
+                Attribute                = [DscResourcePropertyAttribute]::Key
+                ValueMap                 = @('Present', 'Absent')
+                Description              = 'Ensure Present or Absent'
+                ContainsEmbeddedInstance = $false
+            }
+
+            $result = New-DscModuleFunction 'Test-TargetResource' ($dscProperty | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}) 'Boolean'` -FunctionContent $functionContent
+
+            $expected = "function Test-TargetResource`r`n{`r`n`t[CmdletBinding()]`r`n`t[OutputType([System.Boolean])]`r`n`tparam`r`n`t(`r`n`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure`r`n`t)`r`n`r`n`t#Write-Verbose `"Use this cmdlet to deliver information about command processing.`"`r`n`r`n`t#Write-Debug `"Use this cmdlet to write debug information while troubleshooting.`"`r`n`r`n`r`n`t<#`r`n`t`$result = [System.Boolean]`r`n`t`r`n`t`$result`r`n`t#>`r`n}`r`n`r`n"
+
+            It 'returns the correct string' {
+                $result | Should Be $expected
+            }
+        }
+
         Describe 'New-DscModuleFunction' {
             $dscProperty = [DscResourceProperty] @{
                 Name                     = 'Ensure'
