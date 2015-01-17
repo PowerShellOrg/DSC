@@ -210,29 +210,15 @@ end
                 ContainsEmbeddedInstance = $false
             }
 
-            Mock Test-Name {
-                return $true
-            } -Verifiable
-            Mock Test-PropertiesForResource {
-                return $true
-            } -Verifiable
-            Mock New-Item {
-                Write-Error 'SomeError'
-            } -Verifiable
+            Mock Test-Name { return $true } -Verifiable
+            Mock Test-PropertiesForResource { return $true } -Verifiable
+            Mock New-Item { Write-Error 'SomeError'} -Verifiable
 
             Context 'everything should be working' {
-                Mock Test-Path {
-                    return $true
-                } -Verifiable
-                Mock New-DscSchema {
-                    return $null
-                } -Verifiable
-                Mock New-DscModule {
-                    return $null
-                } -Verifiable
-                Mock Test-cDscResource {
-                    return $true
-                } -Verifiable
+                Mock Test-Path { return $true } -Verifiable
+                Mock New-DscSchema { return $null } -Verifiable
+                Mock New-DscModule { return $null } -Verifiable
+                Mock Test-cDscResource { return $true } -Verifiable
 
                 It 'does not throw' {
                     {
@@ -268,9 +254,7 @@ end
             }
 
             Context 'a bad path is passed' {
-                Mock Test-Path {
-                    return $false 
-                } -Verifiable
+                Mock Test-Path { return $false } -Verifiable
 
                 It 'should throw a Path is Invalid Error' {
                     $path = 'C:\somerandompaththatdoesactuallyexistbecausethisisatest'
@@ -283,36 +267,20 @@ end
 
             Context 'a bad module path is passed' {
                 It 'should throw a Path is invalid error' {
-                    $fullPath = Join-Path -Path $pshome -ChildPath 'UserResource'
-                    Mock Test-Path {
-                        return $true
-                    } -Verifiable
-                    Mock Test-Path {
-                        return $false
-                    } -ParameterFilter {
-                        $path -eq $fullPath -and $PathType -eq 'Container'
-                    }
+                    $fullPath = Join-Path -Path $pshome -ChildPath 'ModuleName\DSCResources'
+                    Mock Test-Path { return $true } -Verifiable
+                    Mock Test-Path { return $false } -ParameterFilter { $path -eq $fullPath -and $PathType -eq 'Container' }
                     $errorMessage = ($LocalizedData.PathIsInvalidError -f $fullPath)
 
                     {
-                        New-cDscResource -Name 'UserResource' -Property $dscProperty -Path $pshome -ModuleName 'UserResource' -ClassVersion 1.0 -FriendlyName 'User' -Force
+                        New-cDscResource -Name 'UserResource' -Property $dscProperty -Path $pshome -ModuleName 'ModuleName' -ClassVersion 1.0 -FriendlyName 'User' -Force
                     } | Should throw $errorMessage
                 }
 
                 It 'should throw a Path is invalid error for the manifest' {
-                    Mock Test-Path {
-                        return $true
-                    } -Verifiable
-                    Mock Test-Path {
-                        return $true
-                    } -ParameterFilter {
-                        $path -eq "$pshome\UserResource"
-                    }
-                    Mock Test-Path {
-                        return $false
-                    } -ParameterFilter {
-                        $path -eq "$pshome\UserResource\UserResource.psd1"
-                    }
+                    Mock Test-Path { return $true} -Verifiable
+                    Mock Test-Path { return $true } -ParameterFilter { $path -eq "$pshome\UserResource" }
+                    Mock Test-Path { return $false } -ParameterFilter { $path -eq "$pshome\UserResource\UserResource.psd1" }
                     Mock New-ModuleManifest {
                         Write-Error 'SomeError'
                     }
@@ -327,20 +295,12 @@ end
             }
 
             Context 'a bad DSC Resource path is passed' {
-                Mock New-Item {
-                    Write-Error 'SomeError'
-                } -Verifiable
+                Mock New-Item { Write-Error 'SomeError' } -Verifiable
 
                 It 'should throw a Path is invalid error' {
                     $dscPath = "$pshome\UserResource\DSCResources"
-                    Mock Test-Path {
-                        return $true
-                    } -Verifiable
-                    Mock Test-Path {
-                        return $false
-                    } -ParamterFilter {
-                        $path -eq $dscPath
-                    }
+                    Mock Test-Path { return $true } -Verifiable
+                    Mock Test-Path { return $false } -ParamterFilter { $path -eq $dscPath }
                     $errorMessage = ($LocalizedData.PathIsInvalidError -f $dscPath)
                     {
                         New-cDscResource -Name 'UserResource' -Property $dscProperty -Path $dscPath -ClassVersion 1.0 -FriendlyName 'User' -Force
