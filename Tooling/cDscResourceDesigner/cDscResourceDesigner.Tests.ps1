@@ -692,11 +692,11 @@ end
                 }
             }
 
-            Context 'Last Parameter not passed' {
+            Context 'Last Parameter is passed' {
                 $result = New-DscModuleParameter $dscProperty[0] -Last
                 $expected = "`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure"
 
-                It 'Should do something useful' {
+                It 'should return the string without a comma' {
                     $result | should be $expected
                 }
             }
