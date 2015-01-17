@@ -673,6 +673,46 @@ end
             }
         }
 
+        Describe 'New-DscModuleFunction' {
+            $dscProperty = [DscResourceProperty] @{
+                Name                     = 'Ensure'
+                Type                     = 'String'
+                Attribute                = [DscResourcePropertyAttribute]::Key
+                ValueMap                 = @('Present', 'Absent')
+                Description              = 'Ensure Present or Absent'
+                ContainsEmbeddedInstance = $false
+            }
+
+            Context 'Function Content is passed' {
+                $result = New-DscModuleFunction -Name 'Set-TargetResource' -Parameters ($dscProperty | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}) -FunctionContent 'Test'
+
+                $expected = "function Set-TargetResource`r`n{`r`n`t[CmdletBinding()]`r`n`tparam`r`n`t(`r`n`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure`r`n`t)`r`nTest`r`n}`r`n"
+
+                It 'should return the funciton content' {
+                    $result | should be $expected
+                }
+            }
+
+            Context 'Return Type is Passed' {
+                $result = New-DscModuleFunction -Name 'Set-TargetResource' -Parameters ($dscProperty | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}) -FunctionContent 'Test' -ReturnType 'Boolean'
+                $expected = "function Set-TargetResource`r`n{`r`n`t[CmdletBinding()]`r`n`t[OutputType([System.Boolean])]`r`n`tparam`r`n`t(`r`n`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure`r`n`t)`r`nTest`r`n}`r`n"
+
+                It 'should return the return type' {
+                    $result | Should Be $expected
+                }
+            }
+
+            Context 'No Function Content is passed' {
+                $result = New-DscModuleFunction -Name 'Set-TargetResource' -Parameters ($dscProperty | Where-Object {([DscResourcePropertyAttribute]::Read -ne $_.Attribute)}) -ReturnType 'Boolean'
+
+                $expected = "function Set-TargetResource`r`n{`r`n`t[CmdletBinding()]`r`n`t[OutputType([System.Boolean])]`r`n`tparam`r`n`t(`r`n`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure`r`n`t)`r`n`r`n`t#Write-Verbose `"Use this cmdlet to deliver information about command processing.`"`r`n`r`n`t#Write-Debug `"Use this cmdlet to write debug information while troubleshooting.`"`r`n`r`n`t#Include this line if the resource requires a system reboot.`r`n`t#`$global:DSCMachineStatus = 1`r`n`r`n`r`n`t<#`r`n`t`$result = [System.Boolean]`r`n`t`r`n`t`$result`r`n`t#>`r`n}`r`n`r`n"
+
+                It 'should return the default function data' {
+                    $result | Should Be $expected
+                }
+            }
+        }
+
         Describe 'New-DscModuleParameter' {
             $dscProperty = [DscResourceProperty] @{
                 Name                     = 'Ensure'
