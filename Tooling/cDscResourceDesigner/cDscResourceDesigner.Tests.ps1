@@ -742,7 +742,7 @@ end
                 }
             }
         }
-        
+
         Describe 'New-DscModuleReturn' {
             $dscProperty = [DscResourceProperty] @{
                 Name                     = 'Ensure'
