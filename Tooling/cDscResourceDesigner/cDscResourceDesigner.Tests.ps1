@@ -720,13 +720,14 @@ end
                 Type                     = 'String'
                 Attribute                = [DscResourcePropertyAttribute]::Key
                 ValueMap                 = @('Present', 'Absent')
+                Values                   = 'Present'
                 Description              = 'Ensure Present or Absent'
                 ContainsEmbeddedInstance = $false
             }
 
             Context 'Last Parameter not passed' {
                 $result = New-DscModuleParameter $dscProperty[0]
-                $expected = "`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure,`r`n"
+                $expected = "`t`t[parameter(Mandatory = `$true)]`r`n`t`t[ValidateSet(`"Present`",`"Absent`")]`r`n`t`t[System.String]`r`n`t`t`$Ensure,`r`n"
 
                 It 'should return the correct string' {
                     $result | should be $expected
@@ -735,7 +736,7 @@ end
 
             Context 'Last Parameter is passed' {
                 $result = New-DscModuleParameter $dscProperty[0] -Last
-                $expected = "`t`t[parameter(Mandatory = `$true)]`r`n`t`t[System.String]`r`n`t`t`$Ensure"
+                $expected = $expected = "`t`t[parameter(Mandatory = `$true)]`r`n`t`t[ValidateSet(`"Present`",`"Absent`")]`r`n`t`t[System.String]`r`n`t`t`$Ensure"
 
                 It 'should return the string without a comma' {
                     $result | should be $expected
