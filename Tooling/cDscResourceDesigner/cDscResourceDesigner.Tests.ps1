@@ -742,6 +742,24 @@ end
                 }
             }
         }
+        
+        Describe 'New-DscModuleReturn' {
+            $dscProperty = [DscResourceProperty] @{
+                Name                     = 'Ensure'
+                Type                     = 'String'
+                Attribute                = [DscResourcePropertyAttribute]::Key
+                ValueMap                 = @('Present', 'Absent')
+                Description              = 'Ensure Present or Absent'
+                ContainsEmbeddedInstance = $false
+            }
+
+            $result = New-DscModuleReturn -Parameters $dscProperty
+            $expected = "`t<#`r`n`t`$returnValue = @{`r`n`t`tEnsure = [System.String]`r`n`t}`r`n`r`n`t`$returnValue`r`n`t#>"
+
+            It 'return the correct string' {
+                $result | should be $expected
+            }
+        }
 
         Describe 'Get-FunctionParamLineNumbers' {
             Context 'Function Name is found in Module'{
