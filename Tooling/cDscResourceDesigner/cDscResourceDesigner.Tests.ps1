@@ -801,9 +801,22 @@ end
         Describe 'Convert-LineNumberToIndex' {
             $result = Convert-LineNumberToIndex -LineNumber 1
             $expect = 0
-            
+
             It 'Should return the correct number' {
                 $result | should be $expect
+            }
+        }
+
+        Describe 'Get-SortedFunctionNames' {
+            $hash = @{
+                'New-cDscResourceProperty' = 356,398,308
+                'Get-Properties' = 100,398,308
+            }
+            $result = Get-SortedFunctionNames -functionLineNumbers $hash
+            $expect = @('Get-Properties', 'New-cDscResourceProperty')
+
+            It 'Should return the correct hash' {
+                $result | should Be $expect
             }
         }
     }
