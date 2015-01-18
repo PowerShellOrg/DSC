@@ -797,6 +797,15 @@ end
             # Context 'Error Processing Module' {
             # }
         }
+
+        Describe 'Convert-LineNumberToIndex' {
+            $result = Convert-LineNumberToIndex -LineNumber 1
+            $expect = 0
+            
+            It 'Should return the correct number' {
+                $result | should be $expect
+            }
+        }
     }
 }
 
