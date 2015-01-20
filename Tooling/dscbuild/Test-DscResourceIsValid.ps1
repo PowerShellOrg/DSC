@@ -71,13 +71,15 @@ function Get-DscResourceForModule
             Write-Verbose "`t$Name contains $($_.Name)."
             $_
         }
+
     if ($ResourcesInModule.count -eq 0)
     {
-        Write-Warning "$Name does not contain any resources."
+        Write-Verbose "$Name does not contain any testable resources."
     }
-    else {
-        $script:DscBuildParameters.TestedModules += $InputObject.FullName
-    }
+
+    # We still want to deploy modules that have no testeable resources; they may contain
+    # resources that are composite, or implemented as binary, etc.
+    $script:DscBuildParameters.TestedModules += $InputObject.FullName
 
     $ResourcesInModule
 }
