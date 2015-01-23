@@ -13,7 +13,7 @@ configuration SampleConfiguration
         # you can deal with potential conflicts between your services when they contribute a setting to the same role, and in
         # this case, 'High Performance' is "greater than" 'Balanced'.
 
-        $PowerPlan = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'BaseServerSettings\PowerPlan' -MultipleResultBehavior AllValues |
+        $PowerPlan = Resolve-DscConfigurationProperty -Node $Node -PropertyName 'BaseServerSettings\PowerPlan' -ResolutionBehavior AllValues |
                      Sort-Object -Descending |
                      Select-Object -First 1
 
@@ -31,7 +31,7 @@ configuration SampleConfiguration
             }
 
             $shares = @(
-                Resolve-DscConfigurationProperty -Node $Node -PropertyName FileServerSettings\Shares -MultipleResultBehavior AllValues
+                Resolve-DscConfigurationProperty -Node $Node -PropertyName FileServerSettings\Shares -ResolutionBehavior AllValues
             )
 
             foreach ($share in $shares)
@@ -56,7 +56,7 @@ configuration SampleConfiguration
             }
 
             $websites = @(
-                Resolve-DscConfigurationProperty -Node $Node -PropertyName WebServerSettings\Websites -MultipleResultBehavior AllValues
+                Resolve-DscConfigurationProperty -Node $Node -PropertyName WebServerSettings\Websites -ResolutionBehavior AllValues
             )
 
             foreach ($website in $websites)
