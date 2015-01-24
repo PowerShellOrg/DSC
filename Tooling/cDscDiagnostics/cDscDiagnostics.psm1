@@ -530,21 +530,22 @@ function Get-AllGroupedDscEvents
             $jobIdWithoutParenthesis=($($singleRecordInGroupedEvents.Name).split('{}'))[1] #Remove paranthesis that comes in the job id
             if(!$jobIdWithoutParenthesis) {$jobIdWithoutParenthesis=$null}
 
-            $singleOutputRecord = new-object Microsoft.PowerShell.cDscDiagnostics.GroupedEvents -property @{
-                   SequenceID=$index;
-                   ComputerName=$Script:ThisComputerName;
-                   JobId=$jobIdWithoutParenthesis;
-                   TimeCreated=$column_Time;
-                   AllEvents=$col_AllEvents | Sort-Object TimeCreated;
-                   AnalyticEvents=$col_analyticEvents ;
-                   WarningEvents=$col_warningEvents | Sort-Object TimeCreated ;
-                   OperationalEvents=$col_operationalEvents;
-                   DebugEvents=$col_debugEvents ;
-                   VerboseEvents=$col_verboseEvents  ;
-                   NonVerboseEvents=$col_nonVerboseEvents | Sort-Object TimeCreated;
-                   ErrorEvents=$errorEvents;
-                   Result=$status;
-                   NumberOfEvents=$singleRecordInGroupedEvents.Count;}
+            $singleOutputRecord = new-object Microsoft.PowerShell.cDscDiagnostics.GroupedEvents
+
+            $singleOutputRecord.SequenceID=$index;
+            $singleOutputRecord.ComputerName=$Script:ThisComputerName;
+            $singleOutputRecord.JobId=$jobIdWithoutParenthesis;
+            $singleOutputRecord.TimeCreated=$column_Time;
+            $singleOutputRecord.AllEvents=$col_AllEvents | Sort-Object TimeCreated;
+            $singleOutputRecord.AnalyticEvents=$col_analyticEvents ;
+            $singleOutputRecord.WarningEvents=$col_warningEvents | Sort-Object TimeCreated ;
+            $singleOutputRecord.OperationalEvents=$col_operationalEvents;
+            $singleOutputRecord.DebugEvents=$col_debugEvents ;
+            $singleOutputRecord.VerboseEvents=$col_verboseEvents  ;
+            $singleOutputRecord.NonVerboseEvents=$col_nonVerboseEvents | Sort-Object TimeCreated;
+            $singleOutputRecord.ErrorEvents=$errorEvents;
+            $singleOutputRecord.Result=$status;
+            $singleOutputRecord.NumberOfEvents=$singleRecordInGroupedEvents.Count;
 
             
             return $singleOutputRecord
