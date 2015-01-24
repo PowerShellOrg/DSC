@@ -1,3 +1,4 @@
+Remove-Module [c]DscDiagnostics
 Import-Module $PSScriptRoot\cDscDiagnostics.psm1
 
 Describe "Trace-cDscOperation" {
@@ -70,7 +71,7 @@ InModuleScope cDscDiagnostics {
 
     Describe 'Trace-DscOperationInternal' {
         Context 'SequenceID is passed' {
-            Mock -ModuleName cDscDiagnostics Log { }
+            Mock Log { }
             $result = Trace-DscOperationInternal -SequenceID 0;
 
             It 'should return null if SequenceID is less then 1' {
@@ -91,28 +92,28 @@ InModuleScope cDscDiagnostics {
                 Event = $event;
             }
 
-            Mock -ModuleName cDscDiagnostics Get-SingleDscOperation { return @{
+            Mock Get-SingleDscOperation { return @{
                     AllEvents = $traceOutput;
                     ErrorEvents = "SomeEvent";
                     JobId = "54137c5a-f607-48a5-9311-d6e102c15f83";
                 }
             }
 
-            Mock -ModuleName cDscDiagnostics Test-DscEventLogStatus { }
-            Mock -ModuleName cDscDiagnostics Get-DscErrorMessage { return "Error Text" }
+            Mock Test-DscEventLogStatus { }
+            Mock Get-DscErrorMessage { return "Error Text" }
 
             $result = Trace-DscOperationInternal -SequenceID 2;
 
             It 'should do call Test-DscEventLogStatus' {
-                Assert-MockCalled Test-DscEventLogStatus -ModuleName cDscDiagnostics -Times 2
+                Assert-MockCalled Test-DscEventLogStatus -Times 2
             }
 
             It 'should call Get-SingleDscOperation' {
-                Assert-MockCalled Get-SingleDscOperation -ModuleName cDscDiagnostics -Times 1
+                Assert-MockCalled Get-SingleDscOperation -Times 1
             }
 
             It 'should call Get-DscErrorMessage' {
-                Assert-MockCalled Get-DscErrorMessage -ModuleName cDscDiagnostics -Times 1
+                Assert-MockCalled Get-DscErrorMessage -Times 1
             }
 
             It 'should return the correct event type' {
@@ -155,15 +156,15 @@ InModuleScope cDscDiagnostics {
                 Event = $event;
             }
 
-            Mock -ModuleName cDscDiagnostics Get-SingleDscOperation { return @{
+            Mock Get-SingleDscOperation { return @{
                     AllEvents = $traceOutput;
                     ErrorEvents = "SomeEvent";
                     JobId = "54137c5a-f607-48a5-9311-d6e102c15f83";
                 }
             }
 
-            Mock -ModuleName cDscDiagnostics Test-DscEventLogStatus { }
-            Mock -ModuleName cDscDiagnostics Get-DscErrorMessage { return "Error Text" }
+            Mock Test-DscEventLogStatus { }
+            Mock Get-DscErrorMessage { return "Error Text" }
 
             $result = Trace-DscOperationInternal -SequenceID 1 -JobId "54137c5a-f607-48a5-9311-d6e102c15f83";
 
@@ -173,8 +174,8 @@ InModuleScope cDscDiagnostics {
         }
 
         Context 'Get-SingleDscOperation returns null' {
-            Mock -ModuleName cDscDiagnostics Test-DscEventLogStatus { }
-            Mock -ModuleName cDscDiagnostics Get-SingleDscOperation { }
+            Mock Test-DscEventLogStatus { }
+            Mock Get-SingleDscOperation { }
 
             $result = Trace-DscOperationInternal -SequenceID 1 -JobId "54137c5a-f607-48a5-9311-d6e102c15f83";
 
@@ -191,7 +192,7 @@ InModuleScope cDscDiagnostics {
 
     Describe 'Get-DscLatestJobId' {
         Context 'It has a Job to Return' {
-            Mock -ModuleName cDscDiagnostics Get-WinEvent {
+            Mock Get-WinEvent {
                 $value = @{"Value" = "{3BBB79B7-BD46-424C-9718-983C8C76D37E}"}
                 $returnObject = @(@{Properties = @($value)}, [Environment]::NewLine)
                 return @(@{Properties = @($value)}, [Environment]::NewLine)
@@ -205,7 +206,7 @@ InModuleScope cDscDiagnostics {
         }
 
         Context 'When it does not have a Job' {
-            Mock -ModuleName cDscDiagnostics Get-WinEvent {
+            Mock Get-WinEvent {
                 return $null
             }
 
@@ -222,14 +223,14 @@ InModuleScope cDscDiagnostics {
     }
 
     Describe 'Get-AllDscEvents' {
-        Mock -ModuleName cDscDiagnostics Get-WinEvent {
+        Mock Get-WinEvent {
             Microsoft.PowerShell.Diagnostics\Get-WinEvent -LogName Application -MaxEvents 1
         }
 
         $result = Get-AllDscEvents;
 
         It 'should do call Get-WinEvent for each log passed' {
-            Assert-MockCalled Get-WinEvent -ModuleName cDscDiagnostics -Times 3
+            Assert-MockCalled Get-WinEvent -Times 3
             $result.Count | Should Be 3
         }
 
@@ -240,17 +241,17 @@ InModuleScope cDscDiagnostics {
 
     Describe 'Get-AllGroupedDscEvents' {
         Context 'Get-AllDscEvents returns null' {
-            Mock -ModuleName cDscDiagnostics Get-AllDscEvents {}
-            Mock -ModuleName cDscDiagnostics Get-DscLatestJobId {return "NOJOBID"}
-            Mock -ModuleName cDscDiagnostics Log {}
+            Mock Get-AllDscEvents {}
+            Mock Get-DscLatestJobId {return "NOJOBID"}
+            Mock Log {}
             $result = Get-AllGroupedDscEvents;
 
             It "should call Log" {
-                Assert-MockCalled Log -ModuleName cDscDiagnostics -Times 1
+                Assert-MockCalled Log -Times 1
             }
 
             It 'should call Get-DscLatestJobId' {
-                Assert-MockCalled Get-DscLatestJobId -ModuleName cDscDiagnostics -Times 1
+                Assert-MockCalled Get-DscLatestJobId -Times 1
             }
 
             It 'should return null' {
@@ -260,9 +261,10 @@ InModuleScope cDscDiagnostics {
 
         Context 'Get-AllDscEvents returns events' {
             $value = @{"Value" = "{3BBB79B7-BD46-424C-9718-983C8C76D37E}"}
-            Mock -ModuleName cDscDiagnostics Get-AllDscEvents {return @{Properties = @($value)}}
-            Mock -ModuleName cDscDiagnostics Log {}
-            $result = Get-AllGroupedDscEvents;
+            Mock Get-AllDscEvents {return @{Properties = @($value)}}
+            Mock Log {}
+            Mock Get-DscLatestJobId { return 'MOCKEDJOBID' }
+            $result = Get-AllGroupedDscEvents
 
             It 'should return a specific event' {
                 $result.Name | Should Be "{3BBB79B7-BD46-424C-9718-983C8C76D37E}"
@@ -270,9 +272,13 @@ InModuleScope cDscDiagnostics {
         }
 
         Context 'Cached Events' {
+            Mock Get-DscLatestJobId { return 'MOCKEDJOBID' }
+            Mock Get-AllDscEvents {}
+
             $result = Get-AllGroupedDscEvents;
 
             It 'should return a specific event' {
+                Assert-MockCalled Get-AllDscEvents -Scope It -Times 0
                 $result.Name | Should Be "{3BBB79B7-BD46-424C-9718-983C8C76D37E}"
             }
         }
@@ -280,7 +286,7 @@ InModuleScope cDscDiagnostics {
 
     Describe 'Get-SingleDscOperation' {
         Context 'Get-AllGroupedDscEvents is empty' {
-            Mock -ModuleName cDscDiagnostics Get-AllGroupedDscEvents {}
+            Mock Get-AllGroupedDscEvents {}
 
             $result = Get-SingleDscOperation;
 
@@ -290,8 +296,8 @@ InModuleScope cDscDiagnostics {
         }
 
         Context 'JobId is Passed but its not found' {
-            Mock -ModuleName cDscDiagnostics Log {}
-            Mock -ModuleName cDscDiagnostics Get-AllGroupedDscEvents {@{Name = "NOJOBID"}}
+            Mock Log {}
+            Mock Get-AllGroupedDscEvents {@{Name = "NOJOBID"}}
             $result = Get-SingleDscOperation -JobId 3BBB79B7-BD46-424C-9718-983C8C76D37E
 
             It 'should return empty' {
@@ -300,8 +306,8 @@ InModuleScope cDscDiagnostics {
         }
 
         Context 'JobId is passed and found' {
-            Mock -ModuleName cDscDiagnostics Log {}
-            Mock -ModuleName cDscDiagnostics Get-AllGroupedDscEvents {
+            Mock Log {}
+            Mock Get-AllGroupedDscEvents {
                 return New-Object PSObject -Property @{
                     Name = New-Object PSObject -Property @{
                         Guid = "3bbb79b7-bd46-424c-9718-983c8c76d37e"
@@ -311,12 +317,12 @@ InModuleScope cDscDiagnostics {
                 }
             }
 
-            Mock -ModuleName cDscDiagnostics Split-SingleDscGroupedRecord { $true }
+            Mock Split-SingleDscGroupedRecord { $true }
 
             $result = Get-SingleDscOperation -JobId 3BBB79B7-BD46-424C-9718-983C8C76D37E
 
             It 'should have called Get-SingleDscOperation' {
-                Assert-MockCalled Split-SingleDscGroupedRecord -ModuleName cDscDiagnostics -Times 1
+                Assert-MockCalled Split-SingleDscGroupedRecord -Times 1
                 $result | Should Be $true
             }
         }
@@ -336,7 +342,7 @@ InModuleScope cDscDiagnostics {
                 Count = 1
             }
 
-            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+            Mock Get-MessageFromEvent {return "Mocked Message"}
 
             $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
 
@@ -382,7 +388,7 @@ InModuleScope cDscDiagnostics {
                 Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
             }
 
-            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+            Mock Get-MessageFromEvent {return "Mocked Message"}
 
             $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
 
@@ -404,7 +410,7 @@ InModuleScope cDscDiagnostics {
                 Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
             }
 
-            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+            Mock Get-MessageFromEvent {return "Mocked Message"}
 
             $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
 
@@ -434,7 +440,7 @@ InModuleScope cDscDiagnostics {
                 Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
             }
 
-            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+            Mock Get-MessageFromEvent {return "Mocked Message"}
 
             $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
 
@@ -461,7 +467,7 @@ InModuleScope cDscDiagnostics {
                 Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
             }
 
-            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+            Mock Get-MessageFromEvent {return "Mocked Message"}
 
             $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
 
@@ -487,7 +493,7 @@ InModuleScope cDscDiagnostics {
                 Name = "{54137C5A-F607-48A5-9311-D6E102C15F83}"
             }
 
-            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+            Mock Get-MessageFromEvent {return "Mocked Message"}
 
             $result = Split-SingleDscGroupedRecord -singleRecordInGroupedEvents $singleRecordInGroupedEvents -Index 0;
 
@@ -532,7 +538,7 @@ InModuleScope cDscDiagnostics {
     }
 
     Describe 'Get-DscErrorMessage' {
-        Mock -ModuleName cDscDiagnostics Get-SingleRelevantErrorMessage {return "Output Error Message"}
+        Mock Get-SingleRelevantErrorMessage {return "Output Error Message"}
         $errorRecords = @{Id = "4131";}
 
         $result = Get-DscErrorMessage -ErrorRecords $errorRecords
@@ -556,7 +562,7 @@ InModuleScope cDscDiagnostics {
         }
 
         Context 'Property Index is not -1' {
-            Mock -ModuleName cDscDiagnostics Get-MessageFromEvent {return "Mocked Message"}
+            Mock Get-MessageFromEvent {return "Mocked Message"}
 
             $value = @{Value = "Property"}
             $hash = @([Environment]::NewLine; $value)
@@ -565,7 +571,7 @@ InModuleScope cDscDiagnostics {
             $result = Get-SingleRelevantErrorMessage -ErrorEvent $errorEvent;
 
             It 'should call Get-MessageFromEvent' {
-                Assert-MockCalled Get-MessageFromEvent -ModuleName cDscDiagnostics
+                Assert-MockCalled Get-MessageFromEvent 
             }
 
             It 'should reutrn the correct string' {
@@ -575,17 +581,17 @@ InModuleScope cDscDiagnostics {
     }
 
     Describe 'Get-DscOperationInternal' {
-        Mock -ModuleName cDscDiagnostics Get-AllGroupedDscEvents { return "GroupedEvents" }
-        Mock -ModuleName cDscDiagnostics Split-SingleDscGroupedRecord  { return "singleOutputRecord" }
+        Mock Get-AllGroupedDscEvents { return "GroupedEvents" }
+        Mock Split-SingleDscGroupedRecord  { return "singleOutputRecord" }
 
         $result = Get-DscOperationInternal -Newest 1;
 
         It 'should call Get-AllGroupedDscEvents' {
-            Assert-MockCalled Get-AllGroupedDscEvents -ModuleName cDscDiagnostics
+            Assert-MockCalled Get-AllGroupedDscEvents 
         }
 
         It 'should loop over the events the correct amount of times' {
-            Assert-MockCalled Split-SingleDscGroupedRecord -ModuleName cDscDiagnostics -Times 1
+            Assert-MockCalled Split-SingleDscGroupedRecord -Times 1
         }
 
         It 'should return the singleOutputRecord' {
@@ -595,7 +601,7 @@ InModuleScope cDscDiagnostics {
 
     Describe 'Test-DscEventLogStatus' {
         Context 'Log is Enabled' {
-            Mock -ModuleName cDscDiagnostics Get-WinEvent {return @{IsEnabled = $true}}
+            Mock Get-WinEvent {return @{IsEnabled = $true}}
             $result = Test-DscEventLogStatus
 
             It 'should return true' {
@@ -604,9 +610,9 @@ InModuleScope cDscDiagnostics {
         }
 
         Context 'Log is Disabled and not enabled' {
-            Mock -ModuleName cDscDiagnostics Get-WinEvent {return @{IsEnabled = $false}}
-            Mock -ModuleName cDscDiagnostics Log {}
-            Mock -ModuleName cDscDiagnostics Read-Host {return "n"};
+            Mock Get-WinEvent {return @{IsEnabled = $false}}
+            Mock Log {}
+            Mock Read-Host {return "n"};
 
             $result = Test-DscEventLogStatus
 
@@ -615,19 +621,19 @@ InModuleScope cDscDiagnostics {
             }
 
             It 'should call Log' {
-                Assert-MockCalled Log -ModuleName cDscDiagnostics
+                Assert-MockCalled Log 
             }
 
             It 'should call Read-Host' {
-                Assert-MockCalled Read-Host -ModuleName cDscDiagnostics
+                Assert-MockCalled Read-Host 
             }
         }
 
         Context 'Log is Disabled and is enabled' {
-            Mock -ModuleName cDscDiagnostics Get-WinEvent {return @{IsEnabled = $false}}
-            Mock -ModuleName cDscDiagnostics Enable-DscEventLog {}
-            Mock -ModuleName cDscDiagnostics Read-Host {return "y"};
-            Mock -ModuleName cDscDiagnostics Write-Host {};
+            Mock Get-WinEvent {return @{IsEnabled = $false}}
+            Mock Enable-DscEventLog {}
+            Mock Read-Host {return "y"};
+            Mock Write-Host {};
 
             $result = Test-DscEventLogStatus
 
@@ -636,15 +642,15 @@ InModuleScope cDscDiagnostics {
             }
 
             It 'should call Write-Host' {
-                Assert-MockCalled Write-Host -ModuleName cDscDiagnostics
+                Assert-MockCalled Write-Host 
             }
 
             It 'should call Read-Host' {
-                Assert-MockCalled Read-Host -ModuleName cDscDiagnostics
+                Assert-MockCalled Read-Host 
             }
 
             It 'should call Enable-DscEventLog' {
-                Assert-MockCalled Enable-DscEventLog -ModuleName cDscDiagnostics
+                Assert-MockCalled Enable-DscEventLog 
             }
         }
     }
