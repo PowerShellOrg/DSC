@@ -78,7 +78,7 @@ function Get-DscResourceForModule
     }
 
     # We still want to deploy modules that have no testeable resources; they may contain
-    # resources that are composite, or implemented as binary, etc.
+    # resources that are implemented as binary, or with PowerShell Classes in v5, etc.
     $script:DscBuildParameters.TestedModules += $InputObject.FullName
 
     $ResourcesInModule
