@@ -3,7 +3,7 @@
 @{
 
 
-ModuleVersion = '1.0.1'
+ModuleVersion = '1.0.2'
 GUID = 'ef098cb4-f7e9-4763-b636-0cd9799e1c9a'
 
 Author = 'Microsoft Corporation'
