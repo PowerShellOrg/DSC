@@ -345,19 +345,23 @@ end
                 return $null
             } -Verifiable
 
-            $result1 = New-DscManifest -Name 'UserResource' -Path $env:tmp -ClassVersion 1.0 -Force
+            Mock Test-Path {
+                return $true
+            } -Verifiable
 
-            It 'should call all the Mocks' {
-                Assert-VerifiableMocks
+            $newModuleManifestTest = New-DscManifest -Name 'UserResource' -Path $env:tmp -ClassVersion 1.0 -Force
+
+            It 'should call New-ModuleManifest' {
+                Assert-MockCalled New-ModuleManifest
             }
 
-            $result2 = New-DscManifest -Name 'UserResource' -Path $env:tmp -ClassVersion 1.0 -WhatIf *>&1
+            $result = New-DscManifest -Name 'UserResource' -Path $env:tmp -ClassVersion 1.0 -WhatIf *>&1
 
             $ManifestPath = Join-Path $env:tmp "UserResource.psd1"
             $warning = ($localizedData.ManifestNotOverWrittenWarning -f $ManifestPath)
 
-            It 'should write a warning message' {
-                $result2.Message | Should Be $warning
+            It 'should write a warning message if file exists' {
+                $result.Message | Should Be $warning
             }
         }
 
