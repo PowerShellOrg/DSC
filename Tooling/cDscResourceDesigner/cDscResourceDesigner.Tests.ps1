@@ -9,7 +9,7 @@ end
     Describe Test-cDscResource {
         Context 'A module with a psm1 file but no matching schema.mof' {
             Setup -Dir TestResource
-            Setup -File TestResource\TestResource.ps1m -Content (Get-TestDscResourceModuleContent)
+            Setup -File TestResource\TestResource.psm1 -Content (Get-TestDscResourceModuleContent)
 
             $result = Test-cDscResource -Name $TestDrive\TestResource *>&1
 
