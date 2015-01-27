@@ -824,6 +824,89 @@ end
                 $result | should Be $expect
             }
         }
+
+        Describe 'Test-ResourcePath' {
+            Context 'ModuleName is a folder' {
+                $schema = ''
+                # Will hold path to the .psm1 file
+                $resourceModule = ''
+
+                Mock Test-Path {return $true}
+                $result = Test-ResourcePath -ModuleName 'Test' -SchemaRef ([ref]$schema) -ResourceModuleRef ([ref]$resourceModule) -IgnoreSchema;
+
+                It 'should be the correct schema path' {
+                    $schema | should be 'Test\Test.schema.mof'
+                }
+
+                It 'should return the correct resource module path' {
+                    $resourceModule | Should Be 'Test\Test.psm1'
+                }
+            }
+
+            Context 'ModuleName is the file name' {
+                $schema = ''
+                # Will hold path to the .psm1 file
+                $resourceModule = ''
+
+                # Don't find the container path
+                Mock Test-Path -ParameterFilter {$PathType -eq 'Container'} {return $false}
+
+                # Find the file
+                Mock Test-Path -ParameterFilter {$PathType -eq 'Leaf'} {return $true}
+
+                # Give it the file path to return
+                Mock Get-DscResource {return @{Path = $env:tmp}}
+
+                $result = Test-ResourcePath -ModuleName 'Temp' -SchemaRef ([ref]$schema) -ResourceModuleRef ([ref]$resourceModule) -IgnoreSchema;
+
+                It 'should be the correct schema path' {
+                    $schema | should be $(Join-Path $env:tmp Temp.schema.mof)
+                }
+
+                It 'should return the correct resource module path' {
+                    $resourceModule | Should Be $(Join-Path $env:tmp Temp.psm1)
+                }
+            }
+
+            Context 'Get-DscResource can not find the file' {
+                $schema = ''
+                # Will hold path to the .psm1 file
+                $resourceModule = ''
+
+                # Don't find the container path
+                Mock Test-Path -ParameterFilter {$PathType -eq 'Container'} {return $false}
+
+                Mock Get-DscResource {return $null}
+
+                It 'should throw an error' {
+                    {Test-ResourcePath -ModuleName 'Temp' -SchemaRef ([ref]$schema) -ResourceModuleRef ([ref]$resourceModule) | Should Throw }
+                }
+            }
+
+            Context 'schema and module not found in directory' {
+                $schema = ''
+                $resourceModule = ''
+
+                # Don't find the container path
+                Mock Test-Path -ParameterFilter {$PathType -eq 'Container'} {return $true}
+
+                Mock Test-Path -ParameterFilter {$PathType -eq 'Leaf'} {return $false}
+
+
+                $result = Test-ResourcePath -ModuleName 'Temp' -SchemaRef ([ref]$schema) -ResourceModuleRef ([ref]$resourceModule) *>&1
+
+                $schemaMessage = $localizedData['SchemaNotFoundInDirectoryError'] -f 'Temp\Temp.schema.mof'
+                $resourceMessage = $localizedData['ModuleNotFoundInDirectoryError'] -f 'Temp\Temp.psm1'
+
+                It 'schema error should return the correct message' {
+                    $result[0] | Should Be $schemaMessage
+                }
+
+                It 'module error returns the right error' {
+                    $result[1] | Should Be $resourceMessage
+                }
+            }
+        }
     }
 }
 
