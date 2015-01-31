@@ -95,7 +95,6 @@ function Invoke-DscBuild
     if (-not $PSBoundParameters.ContainsKey('CurrentToolsDirectory')) {
         Add-DscBuildParameter -Name CurrentToolsDirectory -value (join-path $env:ProgramFiles 'WindowsPowerShell\Modules')
     }
-    Add-DscBuildParameter -Name ProgramFilesModuleDirectory -value (join-path $env:ProgramFiles 'WindowsPowerShell\Modules')
 
     $ParametersToPass = @{}
     foreach ($key in ('Whatif', 'Verbose', 'Debug'))
@@ -105,22 +104,33 @@ function Invoke-DscBuild
         }
     }
 
-    Clear-InstalledDscResource @ParametersToPass
-    Clear-CachedDscResource @ParametersToPass
+    $originalPSModulePath = $env:PSModulePath
 
-    Invoke-DscResourceUnitTest @ParametersToPass
+    try
+    {
+        $dirPath = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($script:DscBuildParameters.SourceResourceDirectory)
+        $env:PSModulePath = "$dirPath;$env:PSModulePath"
 
-    Copy-CurrentDscResource @ParametersToPass
-    Copy-CurrentDscTools @ParametersToPass
+        Find-ModulesToPublish @ParametersToPass
+        Clear-CachedDscResource @ParametersToPass
 
-    Test-DscResourceIsValid @ParametersToPass
+        Invoke-DscResourceUnitTest @ParametersToPass
 
-    Assert-DestinationDirectory @ParametersToPass
+        Copy-CurrentDscTools @ParametersToPass
 
-    Invoke-DscConfiguration @ParametersToPass
+        Test-DscResourceIsValid @ParametersToPass
 
-    Compress-DscResourceModule @ParametersToPass
-    Publish-DscToolModule @ParametersToPass
-    Publish-DscResourceModule @ParametersToPass
-    Publish-DscConfiguration @ParametersToPass
+        Assert-DestinationDirectory @ParametersToPass
+
+        Invoke-DscConfiguration @ParametersToPass
+
+        Compress-DscResourceModule @ParametersToPass
+        Publish-DscToolModule @ParametersToPass
+        Publish-DscResourceModule @ParametersToPass
+        Publish-DscConfiguration @ParametersToPass
+    }
+    finally
+    {
+        $env:PSModulePath = $originalPSModulePath
+    }
 }

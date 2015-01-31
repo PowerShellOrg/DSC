@@ -2,15 +2,15 @@ function Test-DscResourceIsValid {
     [cmdletbinding(SupportsShouldProcess=$true)]
     param ()
 
-    if ( Test-BuildResource ) {
-        if ($pscmdlet.shouldprocess("modules from $($script:DscBuildParameters.ProgramFilesModuleDirectory)")) {
-            Add-DscBuildParameter -Name TestedModules -value @()
+    Add-DscBuildParameter -Name TestedModules -value @()
 
+    if ( Test-BuildResource ) {
+        if ($pscmdlet.shouldprocess("modules from $($script:DscBuildParameters.SourceResourceDirectory)")) {
             if ($script:DscBuildParameters.ModulesToPublish.Count -gt 0)
             {
                 $AllResources = Get-DscResource | Where-Object {$_.ImplementedAs -like 'PowerShell'}
 
-                Get-ChildItem -Path $script:DscBuildParameters.ProgramFilesModuleDirectory -Directory |
+                Get-ChildItem -Path $script:DscBuildParameters.SourceResourceDirectory -Directory |
                 Where Name -in $script:DscBuildParameters.ModulesToPublish |
                 Assert-DscModuleResourceIsValid
             }
