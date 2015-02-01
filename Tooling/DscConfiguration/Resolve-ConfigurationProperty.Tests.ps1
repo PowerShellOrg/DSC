@@ -51,6 +51,20 @@ describe 'how Resolve-DscConfigurationProperty responds' {
             $result | should be 'ConfiguredByDefault'
         }
     }
+
+    Context 'When a value is not found in the configuration data' {
+        It 'Throws an error if -DefaultValue is not used' {
+            { Resolve-DscConfigurationProperty -Node $Node -PropertyName DoesNotExist } | Should Throw
+        }
+
+        It 'Does not throw an error if a -DefaultValue is specified' {
+            $result = [pscustomobject] @{ Value = $null }
+            $scriptBlock = { $result.Value = Resolve-DscConfigurationProperty -Node $Node -PropertyName DoesNotExist -DefaultValue Default }
+
+            $scriptBlock | Should Not Throw
+            $result.Value | Should Be 'Default'
+        }
+    }
 }
 
 describe 'how Resolve-DscConfigurationProperty (services) responds' {
@@ -179,7 +193,7 @@ describe 'how Resolve-DscConfigurationProperty (services) responds' {
         $Node = @{
             Name = 'TestBox'
             Location = 'NY'
-            Services = 'MyTestService'
+            MemberOfServices = 'MyTestService'
         }
 
         $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName MyTestKey
@@ -262,7 +276,7 @@ Describe 'Resolving multiple values' {
     }
 
     It 'Returns the proper results for multiple services' {
-        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'ServiceLevel1\Property' -MultipleResultBehavior AllowMultipleResultsFromSingleScope }
+        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'ServiceLevel1\Property' -ResolutionBehavior OneLevel }
         $scriptBlock | Should Not Throw
 
         $result = (& $scriptBlock) -join ', '
@@ -270,7 +284,7 @@ Describe 'Resolving multiple values' {
     }
 
     It 'Returns the property results for all scopes' {
-        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Property' -MultipleResultBehavior AllValues }
+        $scriptBlock = { Resolve-DscConfigurationProperty -Node $Node -PropertyName 'NodeLevel1\Property' -ResolutionBehavior AllValues }
         $scriptBlock | Should Not Throw
 
         $result = (& $scriptBlock) -join ', '

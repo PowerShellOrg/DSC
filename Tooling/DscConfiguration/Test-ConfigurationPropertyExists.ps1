@@ -27,7 +27,7 @@ function Test-DscConfigurationPropertyExists
 
     try
     {
-        $null = Resolve-DscConfigurationProperty -Node $Node -PropertyName $PropertyName -MultipleResultBehavior AllValues -ConfigurationData $ConfigurationData
+        $null = Resolve-DscConfigurationProperty -Node $Node -PropertyName $PropertyName -ResolutionBehavior AllValues -ConfigurationData $ConfigurationData
         return $true
     }
     catch

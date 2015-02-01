@@ -2,15 +2,15 @@ function Test-DscResourceIsValid {
     [cmdletbinding(SupportsShouldProcess=$true)]
     param ()
 
-    if ( Test-BuildResource ) {
-        if ($pscmdlet.shouldprocess("modules from $($script:DscBuildParameters.ProgramFilesModuleDirectory)")) {
-            Add-DscBuildParameter -Name TestedModules -value @()
+    Add-DscBuildParameter -Name TestedModules -value @()
 
+    if ( Test-BuildResource ) {
+        if ($pscmdlet.shouldprocess("modules from $($script:DscBuildParameters.SourceResourceDirectory)")) {
             if ($script:DscBuildParameters.ModulesToPublish.Count -gt 0)
             {
                 $AllResources = Get-DscResource | Where-Object {$_.ImplementedAs -like 'PowerShell'}
 
-                Get-ChildItem -Path $script:DscBuildParameters.ProgramFilesModuleDirectory -Directory |
+                Get-ChildItem -Path $script:DscBuildParameters.SourceResourceDirectory -Directory |
                 Where Name -in $script:DscBuildParameters.ModulesToPublish |
                 Assert-DscModuleResourceIsValid
             }
@@ -71,13 +71,15 @@ function Get-DscResourceForModule
             Write-Verbose "`t$Name contains $($_.Name)."
             $_
         }
+
     if ($ResourcesInModule.count -eq 0)
     {
-        Write-Warning "$Name does not contain any resources."
+        Write-Verbose "$Name does not contain any testable resources."
     }
-    else {
-        $script:DscBuildParameters.TestedModules += $InputObject.FullName
-    }
+
+    # We still want to deploy modules that have no testeable resources; they may contain
+    # resources that are implemented as binary, or with PowerShell Classes in v5, etc.
+    $script:DscBuildParameters.TestedModules += $InputObject.FullName
 
     $ResourcesInModule
 }

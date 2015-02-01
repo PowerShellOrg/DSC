@@ -11,7 +11,7 @@ if ([string]::IsNullOrEmpty($LocalCertificateThumbprint))
 {
     try
     {
-        $LocalCertificateThumbprint = (Get-DscLocalConfigurationManager).CertificateId
+        $LocalCertificateThumbprint = (Get-DscLocalConfigurationManager -ErrorAction Stop).CertificateId
     }
     catch { }
 }

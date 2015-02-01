@@ -1,4 +1,3 @@
-#Requires -RunAsAdministrator
 # A global variable that contains localized messages.
 data LocalizedData
 {
@@ -586,7 +585,7 @@ function New-cDscResource
             New-Item $Path -ItemType Directory -ErrorVariable ev -ErrorAction SilentlyContinue
             if($ev)
             {
-                 Write-Error ($localizedData.PathIsInvalidError -f $Path) `
+                 Write-Error ($localizedData.PathIsInvalidError -f $fullPath) `
                         -ErrorId 'PathIsInvalidError' -ErrorAction Stop
             }
         }
@@ -596,7 +595,7 @@ function New-cDscResource
             New-ModuleManifest -Path $manifestPath -ErrorVariable ev -ErrorAction SilentlyContinue
             if($ev)
             {
-                Write-Error ($localizedData.PathIsInvalidError -f $Path) `
+                Write-Error ($localizedData.PathIsInvalidError -f $fullPath) `
                         -ErrorId 'PathIsInvalidError' -ErrorAction Stop
 
             }
