@@ -1,19 +1,3 @@
-function Copy-CurrentDscResource {
-    [cmdletbinding(SupportsShouldProcess=$true)]
-    param ()
-
-    Write-Verbose ''
-    Write-Verbose "Pushing new configuration modules from $($script:DscBuildParameters.SourceResourceDirectory) to $($script:DscBuildParameters.ProgramFilesModuleDirectory)."
-
-    if ($pscmdlet.shouldprocess("$($script:DscBuildParameters.SourceResourceDirectory) to $($script:DscBuildParameters.ProgramFilesModuleDirectory)")) {
-        foreach ($module in $script:DscBuildParameters.ModulesToPublish)
-        {
-            $modulePath = Join-Path $script:DscBuildParameters.SourceResourceDirectory $module
-            Copy-Item -Path $modulePath -Destination $script:DscBuildParameters.ProgramFilesModuleDirectory -Recurse -Force
-        }
-    }
-}
-
 function Copy-CurrentDscTools {
     [cmdletbinding(SupportsShouldProcess=$true)]
     param ()

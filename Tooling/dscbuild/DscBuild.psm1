@@ -1,9 +1,10 @@
 . $psscriptroot\Assert-DestinationDirectory.ps1
 . $psscriptroot\Clear-CachedDscResource.ps1
-. $psscriptroot\Clear-InstalledDscResource.ps1
 . $psscriptroot\Compress-DscResourceModule.ps1
 . $psscriptroot\Copy-CurrentDscResource.ps1
 . $psscriptroot\DscResourceWmiClass.ps1
+. $psscriptroot\Find-ModulesToPublish.ps1
+. $psscriptroot\Get-DscResourceVersion.ps1
 . $psscriptroot\Invoke-DscBuild.ps1
 . $psscriptroot\Invoke-DscConfiguration.ps1
 . $psscriptroot\Invoke-DscResourceUnitTest.ps1
@@ -13,7 +14,6 @@
 . $psscriptroot\Publish-DscResourceModule.ps1
 . $psscriptroot\Publish-DscToolModule.ps1
 . $psscriptroot\Test-DscResourceIsValid.ps1
-. $psscriptroot\Get-DscResourceVersion.ps1
 . $psscriptroot\Update-ModuleMetadataVersion.ps1
 
 
