@@ -1,38 +1,38 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.ps1", ".psm1")
-$pathtosut = join-path $here $sut
+$modulePath = $PSCommandPath -replace '\.Tests\.ps1$', '.psm1'
+$prefix = [guid]::NewGuid().Guid -replace '[^a-f\d]'
 
-iex (gc $pathtosut -Raw)
+$module = $null
 
-Describe 'how Test-TargetResource responds' {
-    Context 'when ' {
-        $expected = ''
-        $result = ''
+try
+{
+    $module = Import-Module $modulePath -PassThru -Prefix $prefix -ErrorAction Stop
 
-        It "should call all the mocks" {
-            Assert-VerifiableMocks
+    Describe 'Get-TargetResource' {
+        It 'Tests the example module Get function' {
+            $name = 'Something'
+            $hashtable = & "Get-${prefix}TargetResource" -Name $name
+
+            $hashtable.PSBase.Count | Should Be 2
+            $hashtable['Name'] | Should Be $name
+            $hashtable['Ensure'] | Should Be 'Absent'
         }
-        It 'should ' {
-            $result | should be ($expected)
-        }
+    }
 
+    Describe 'Test-TargetResource' {
+        It 'Tests the example module Test function' {
+            $result = & "Test-${prefix}TargetResource" -Name SomeName
+            $result | Should Be $true
+        }
+    }
+
+    Describe 'Set-TargetResource' {
+        It 'Tests the example module Set function' {
+            $scriptBlock = { & "Set-${prefix}TargetResource" -Name SomeName }
+            $scriptBlock | Should Not Throw
+        }
     }
 }
-
-Describe 'how Set-TargetResource responds' {
-    Context 'when ' {
-        $expected = ''
-        $result = ''
-
-        It "should call all the mocks" {
-            Assert-VerifiableMocks
-        }
-        It 'should ' {
-            $result | should be ($expected)
-        }
-
-    }
+finally
+{
+    if ($module) { Remove-Module -ModuleInfo $module }
 }
-
-
-

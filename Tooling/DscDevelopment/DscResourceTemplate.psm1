@@ -14,36 +14,28 @@ if (Test-Path $PSScriptRoot\en-us)
 
 function Get-TargetResource
 {
-    [OutputType([Hashtable])]
+    [OutputType([hashtable])]
     param (
-        [parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $Name,
-        [ValidateSet('Present','Absent')]
-        [string]
-        $Ensure = 'Present'
+        [Parameter(Mandatory)]
+        [string] $Name
     )
 
-    #Needs to return a hashtable that returns the current
-    #status of the configuration component
     $Configuration = @{
         Name = $Name
+        Ensure = 'Absent'
     }
+
     return $Configuration
 }
 
 function Set-TargetResource
 {
     param (
-        [parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $Name,
-        [parameter()]
+        [Parameter(Mandatory)]
+        [string] $Name,
+
         [ValidateSet('Present','Absent')]
-        [string]
-        $Ensure = 'Present'
+        [string] $Ensure = 'Present'
     )
 
 
@@ -51,20 +43,17 @@ function Set-TargetResource
 
 function Test-TargetResource
 {
-    [OutputType([boolean])]
+    [OutputType([bool])]
     param (
-        [parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $Name,
-        [parameter()]
+        [Parameter(Mandatory)]
+        [string] $Name,
+
         [ValidateSet('Present','Absent')]
-        [string]
-        $Ensure = 'Present'
+        [string] $Ensure = 'Present'
     )
 
     #Needs to return a boolean
     return $true
 }
 
-
+Export-ModuleMember Get-TargetResource, Test-TargetResource, Set-TargetResource
