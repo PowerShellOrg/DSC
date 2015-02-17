@@ -35,8 +35,6 @@ end
             }
         }
     }
-<<<<<<< HEAD
-=======
 
     InModuleScope cDscResourceDesigner {
         Describe 'New-cDscResourceProperty' {
@@ -274,7 +272,7 @@ end
                         Write-Error 'SomeError'
                     }
 
-                    $path = "$pshome\UserResource"
+                    $path = "$pshome\UserResource\UserResource.psd1"
                     $errorMessage = ($LocalizedData.PathIsInvalidError -f $path)
 
                     {
@@ -814,7 +812,7 @@ end
             }
         }
     }
->>>>>>> parent of d107c61... Adding Test-ResourcePath
+# >>>>>>> parent of d107c61... Adding Test-ResourcePath
 }
 
 begin

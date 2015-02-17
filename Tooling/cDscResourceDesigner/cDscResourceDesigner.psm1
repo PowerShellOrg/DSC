@@ -595,7 +595,7 @@ function New-cDscResource
             New-ModuleManifest -Path $manifestPath -ErrorVariable ev -ErrorAction SilentlyContinue
             if($ev)
             {
-                Write-Error ($localizedData.PathIsInvalidError -f $fullPath) `
+                Write-Error ($localizedData.PathIsInvalidError -f $manifestPath) `
                         -ErrorId 'PathIsInvalidError' -ErrorAction Stop
 
             }
