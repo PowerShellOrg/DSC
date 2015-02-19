@@ -81,8 +81,12 @@ function Invoke-DscBuild
         #This switch is used to indicate that the custom tools should be tested and deployed.
         [parameter()]
         [switch]
-        $Tools
+        $Tools,
 
+        # Paths that should be in the PSModulePath during test execution.  $SourceResourceDirectory and $pshome\Modules are automatically included in this list.
+        [ValidateNotNullOrEmpty()]
+        [string[]]
+        $ModulePath
     )
 
     $script:DscBuildParameters = new-object PSObject -property $PSBoundParameters
@@ -109,7 +113,14 @@ function Invoke-DscBuild
     try
     {
         $dirPath = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($script:DscBuildParameters.SourceResourceDirectory)
-        $env:PSModulePath = "$dirPath;$env:PSModulePath"
+
+        $modulePaths = @(
+            $dirPath
+            Join-Path $pshome Modules
+            $ModulePath
+        )
+
+        $env:PSModulePath = $modulePaths -join ';'
 
         Find-ModulesToPublish @ParametersToPass
         Clear-CachedDscResource @ParametersToPass
