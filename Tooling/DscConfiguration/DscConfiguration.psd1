@@ -12,7 +12,7 @@
 RootModule = 'DscConfiguration.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.3'
+ModuleVersion = '2.0.4'
 
 # ID used to uniquely identify this module
 GUID = '0b48e2a7-dcd7-4888-95ec-f80d6fca03b6'
@@ -49,7 +49,7 @@ Copyright = '(c) 2014 Steven. All rights reserved.'
 
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @(
-    @{ ModuleName = 'ProtectedData'; ModuleVersion = '2.1' }
+    @{ ModuleName = 'ProtectedData'; ModuleVersion = '4.1.0' }
 )
 
 # Assemblies that must be loaded prior to importing this module

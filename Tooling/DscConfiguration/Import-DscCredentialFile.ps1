@@ -34,7 +34,7 @@ function Import-DscCredentialFile
             $bytes = [System.Convert]::FromBase64String($savedTable[$key])
             $xml = [System.Text.Encoding]::UTF8.GetString($bytes)
             $protectedData = [System.Management.Automation.PSSerializer]::Deserialize($xml)
-            $credential = Unprotect-Data -InputObject $protectedData -Certificate $script:LocalCertificatePath -SkipCertificateVerification -ErrorAction Stop
+            $credential = Unprotect-Data -InputObject $protectedData -Certificate $script:LocalCertificatePath -ErrorAction Stop
 
             if ($credential -isnot [pscredential])
             {

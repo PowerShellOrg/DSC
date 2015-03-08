@@ -20,7 +20,7 @@ function Export-DscCredentialFile
         {
             Write-Verbose "Encrypting credential of user $key"
 
-            $protectedData = Protect-Data -InputObject $HashTable[$key] -Certificate $script:LocalCertificatePath -SkipCertificateVerification -ErrorAction Stop
+            $protectedData = Protect-Data -InputObject $HashTable[$key] -Certificate $script:LocalCertificatePath -ErrorAction Stop
             $xml = [System.Management.Automation.PSSerializer]::Serialize($protectedData, 5)
             $bytes = [System.Text.Encoding]::UTF8.GetBytes($xml)
             $base64 = [System.Convert]::ToBase64String($bytes)
