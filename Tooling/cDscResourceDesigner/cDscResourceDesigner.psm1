@@ -347,6 +347,9 @@ function New-cDscResourceProperty
 
     if ($ValidateSet -and ((Test-TypeIsArray $Type) -or $EmbeddedInstances.ContainsKey($Type)))
     {
+    	# No Documentation currently exists on why ValidateSet does not work.
+    	# The Community has tested this and confirmed this an invalidate usage.
+    	# Please see https://github.com/PowerShellOrg/DSC/issues/113
         Write-Error ($localizedData.InvalidValidateSetUsageError) `
                    -ErrorId "InvalidValidateSetUsageError" -ErrorAction Stop
     }
