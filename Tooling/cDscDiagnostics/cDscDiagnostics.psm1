@@ -593,59 +593,66 @@ function Get-AllGroupedDscEvents
 }
 
  
- <#
-.SYNOPSIS 
-Sets any DSC Event log (Operational, analytic, debug )
+function Enable-DscEventLog
+{
+    <#
+        .SYNOPSIS
+        Sets any DSC Event log (Operational, analytic, debug )
 
-.DESCRIPTION
-This cmdlet will set a DSC log when run with Enable-DscEventLog <channel Name>.
+        .DESCRIPTION
+        This cmdlet will set a DSC log when run with Enable-DscEventLog <channel Name>.
 
-.PARAMETER Channel
-Name of the channel of the event log to be set.
+        .PARAMETER Channel
+        Name of the channel of the event log to be set.
 
-.EXAMPLE
-C:\PS> Enable-DscEventLog "Analytic" 
-C:\PS> Enable-DscEventLog -Channel "Debug"
-#>
- function Enable-DscEventLog
- {
-    param(
-        $Channel="Analytic"
+        .EXAMPLE
+        C:\PS> Enable-DscEventLog "Analytic"
+        C:\PS> Enable-DscEventLog -Channel "Debug"
+    #>
+
+    [CmdletBinding()]
+    param
+    (
+        [ValidateSet("Debug", "Analytic", "Operational")]
+        [string] $Channel = "Analytic",
+
+        [string] $ComputerName = $env:ComputerName,
+        $Credential
     )
 
-    $LogName="Microsoft-Windows-Dsc"
+    $LogName = "Microsoft-Windows-Dsc"
 
-	$eventLogFullName="$LogName/$Channel"
+    $eventLogFullName = "$LogName/$Channel"
+
     try
     {
-        Log -Verbose "Enabling the log $eventLogFullName"
-        if($Script:ThisComputerName -eq $env:COMPUTERNAME)
+        Write-Verbose "Enabling the log $eventLogFullName"
+        if($ComputerName -eq $env:COMPUTERNAME)
         {
-            wevtutil set-log $eventLogFullName /e:true /q:true    
+            wevtutil set-log $eventLogFullName /e:true /q:true
         }
         else
         {
+            # For any other computer, invoke command.
+            $scriptTosetChannel = [Scriptblock]::Create(" wevtutil set-log $eventLogFullName /e:true /q:true")
 
-            #For any other computer, invoke command./ 
-            $scriptTosetChannel=[Scriptblock]::Create(" wevtutil set-log $eventLogFullName /e:true /q:true")
-            
-            if($Script:ThisCredential)
+            if($Credential)
             {
-                Invoke-Command -ScriptBlock $scriptTosetChannel -ComputerName $Script:ThisComputerName  -Credential $Script:ThisCredential
+                Invoke-Command -ScriptBlock $scriptTosetChannel -ComputerName $ComputerName -Credential $Credential
             }
             else
             {
-                Invoke-Command -ComputerName $Script:ThisComputerName -ScriptBlock $scriptTosetChannel
+                Invoke-Command -ComputerName $ComputerName -ScriptBlock $scriptTosetChannel
             }
         }
-        Write-Host "The $Channel event log has been Enabled. "
+
+        Write-Verbose "The $Channel event log has been Enabled. "
     }
     catch
     {
-        Log -Error "Error : $_ "
+        Write-Error "Error : $_ "
     }
-
- }
+}
  
  function Get-SingleRelevantErrorMessage(<#[System.Diagnostics.Eventing.Reader.EventRecord]#>$errorEvent)
  {
@@ -785,5 +792,5 @@ C:\PS> Enable-DscEventLog -Channel "Debug"
  }
  
 
-Export-ModuleMember -Function Trace-cDscOperation, Get-cDscOperation
+Export-ModuleMember -Function Trace-cDscOperation, Get-cDscOperation, Enable-DscEventLog
 
