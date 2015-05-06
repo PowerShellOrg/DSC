@@ -8,16 +8,17 @@ end
         WorkingDirectory = (Get-TempDirectory).FullName
         SourceResourceDirectory = "$PSScriptRoot\DSC_Resources"
         SourceToolDirectory = "$PSScriptRoot\DSC_Tooling"
-        DestinationRootDirectory = 'C:\Program Files\WindowsPowerShell\DscService'
+        DestinationRootDirectory = "$PSScriptRoot\BuldOutput"
         DestinationToolDirectory = $env:TEMP
-        ConfigurationData = Get-DscConfigurationData -Path .\DSC_Configuration -Force
+        ConfigurationData = Get-DscConfigurationData -Path "$PSScriptRoot\DSC_Configuration" -Force -verbose
+        ModulePath = "$PSScriptRoot\DSC_Script" , "$PSScriptRoot\DSC_Tooling"
         ConfigurationModuleName = 'SampleConfiguration'
         ConfigurationName = 'SampleConfiguration'
         Configuration = $true
         Resource = $true
     }
 
-    Invoke-DscBuild @params
+    Invoke-DscBuild @params -verbose
 }
 
 begin
