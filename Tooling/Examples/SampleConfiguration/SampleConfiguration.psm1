@@ -1,5 +1,7 @@
 # DscConfiguration module required for the Resolve-DscConfigurationProperty and Test-DscConfigurationPropertyExists functions.
-Import-Module DscConfiguration -ErrorAction Stop
+if (-not (Get-Module DscConfiguration)) {
+ Import-Module DscConfiguration -ErrorAction Stop
+}
 
 configuration SampleConfiguration
 {
