@@ -30,7 +30,7 @@ $ConfigurationData = @{AllNodes=@(); Credentials=@{}; Applications=@{}; Services
 . $psscriptroot\Get-Hashtable.ps1
 . $psscriptroot\Test-LocalCertificate.ps1
 
-. $psscriptroot\New-ConfigurationDataStore
+. $psscriptroot\New-ConfigurationDataStore.ps1
 . $psscriptroot\New-DscNodeMetadata.ps1
 
 . $psscriptroot\Get-AllNodesConfigurationData.ps1
