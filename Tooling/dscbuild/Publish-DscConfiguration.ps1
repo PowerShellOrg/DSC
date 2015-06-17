@@ -4,7 +4,7 @@ function Publish-DscConfiguration {
 
     if ( Test-BuildConfiguration ) {
 
-        Write-Verbose 'Moving Processed Resource Modules from '
+        Write-Verbose 'Moving Configuration MOFs from '
         Write-Verbose "`t$($script:DscBuildParameters.ConfigurationOutputPath) to"
         Write-Verbose "`t$($script:DscBuildParameters.DestinationConfigurationDirectory)"
         if ($pscmdlet.shouldprocess("$($script:DscBuildParameters.ConfigurationOutputPath) to $($script:DscBuildParameters.DestinationConfigurationDirectory)")) {

@@ -11,7 +11,7 @@ function Get-ServiceConfigurationData
         Write-Verbose "Processing Services from $($script:ConfigurationDataPath))."
         foreach ( $item in (Get-ChildItem -Path $servicePath) )
         {
-            Write-Verbose "Loading data for site $($item.basename) from $($item.fullname)."
+            Write-Verbose "Loading data for Service $($item.basename) from $($item.fullname)."
             $script:ConfigurationData.Services.Add($item.BaseName, (Get-Hashtable $item.FullName))
         }
     }
