@@ -233,7 +233,7 @@ function ShouldProcessService
         [hashtable] $Node
     )
 
-    $isNodeAssociatedWithService = ($Node.Name -and (Find-NodeInService -Node $Node.Name -ServiceNodes $Service.Nodes -Verbose)) -or
+    $isNodeAssociatedWithService = ($Node.Name -and (Find-NodeInService -Node $Node -ServiceNodes $Service.Nodes -Verbose)) -or
                                    ($Node['MemberOfServices'] -contains $ServiceName)
 
     if (-not $isNodeAssociatedWithService)
