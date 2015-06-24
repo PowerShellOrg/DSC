@@ -291,3 +291,166 @@ Describe 'Resolving multiple values' {
         $result | Should Be 'Service Value, Service Value, Node Value, Site Value, Global Value'
     }
 }
+
+Describe -Name 'how Resolve-DscConfigurationProperty (services with REGEX and Wildcard) responds' -Fixture {
+    $ConfigurationData = @{
+        AllNodes     = @()
+        SiteData     = @{}
+        Services     = @{}
+        Applications = @{}
+    }
+
+    $Node = @{
+        Name     = 'TestBox'
+        Location = 'NY'
+    }
+
+    Context -Name 'WhenNode list contains a WildCard' -Fixture {
+        $ConfigurationData.Services = @{
+            MyTestService = @{
+                Nodes      = @('Test*')
+                DataSource = 'MyDefaultValue'
+            }
+        }
+ 
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource
+
+        It -name 'should return the default value from the service' -test {
+            $result | Should be 'MyDefaultValue'
+        }
+    }
+    
+    Context -Name 'When Node list contains a REGEX (Box$)' -Fixture {
+        $ConfigurationData.Services = @{
+            MyTestService = @{
+                Nodes      = @('Box$')
+                DataSource = 'ServiceValue'
+            }
+        }
+        $Node = @{
+            Name     = 'TestBox'
+            Location = 'NY'
+        }
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource  -DefaultValue 'DefaultIfNotFound'
+
+        It -name 'should return the value from the service' -test {
+            $result | Should be 'ServiceValue'
+        }
+        It -name 'should NOT return the DefaultValue from Resolve-DscConfigurationProperty' -test {
+            $result | Should NOT be 'DefaultIfNotFound'
+        }
+    }
+
+    Context -Name 'When Node list contains a REGEX (TestBox\d{2}$)' -Fixture {
+        $ConfigurationData.Services = @{
+            MyTestService = @{
+                Nodes      = @('TestBox\d{2}$')
+                DataSource = 'ServiceValue'
+            }
+        }
+        $Node = @{
+            Name     = 'TestBox03'
+            Location = 'NY'
+        }
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource  -DefaultValue 'DefaultIfNotFound'
+
+        It -name 'should return the value from the service' -test {
+            $result | Should be 'ServiceValue'
+        }
+        It -name 'should NOT return the DefaultValue from Resolve-DscConfigurationProperty' -test {
+            $result | Should NOT be 'DefaultIfNotFound'
+        }
+    }
+
+    Context -Name 'When Node list contains a REGEX (TestBox[0-9][0-9])' -Fixture {
+        $ConfigurationData.Services = @{
+            MyTestService = @{
+                Nodes      = @('TestBox[0-9][0-9]')
+                DataSource = 'ServiceValue'
+            }
+        }
+        $Node = @{
+            Name     = 'TestBox03'
+            Location = 'NY'
+        }
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource  -DefaultValue 'DefaultIfNotFound'
+
+        It -name 'should return the value from the service' -test {
+            $result | Should be 'ServiceValue'
+        }
+        It -name 'should NOT return the DefaultValue from Resolve-DscConfigurationProperty' -test {
+            $result | Should NOT be 'DefaultIfNotFound'
+        }
+    }
+
+    Context -Name 'When Node list contains a REGEX ([^(\-hv|\-hv4)]$) and Name TestBox03' -Fixture {
+        $ConfigurationData.Services = @{
+            MyTestService = @{
+                Nodes      = @('[^(\-hv|\-hv4)]$')
+                DataSource = 'ServiceValue'
+            }
+        }
+        $Node = @{
+            Name     = 'TestBox03'
+            Location = 'NY'
+        }
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource  -DefaultValue 'DefaultIfNotFound'
+
+        It -name 'should return the value from the service' -test {
+            $result | Should be 'ServiceValue'
+        }
+        It -name 'should NOT return the DefaultValue from Resolve-DscConfigurationProperty' -test {
+            $result | Should NOT be 'DefaultIfNotFound'
+        }
+    }
+
+    Context -Name 'When Node list contains a REGEX ([^(\-hv|\-hv4)]$) and Name TestBox-HV4' -Fixture {
+        $ConfigurationData.Services = @{
+            MyTestService = @{
+                Nodes      = @('[^(\-hv|\-hv4)]$')
+                DataSource = 'ServiceValue'
+            }
+        }
+        $Node = @{
+            Name     = 'TestBox-HV4'
+            Location = 'NY'
+        }
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource  -DefaultValue 'DefaultIfNotFound'
+
+        It -name 'should return the value from the service' -test {
+            $result | Should NOT be 'ServiceValue'
+        }
+        It -name 'should NOT return the DefaultValue from Resolve-DscConfigurationProperty' -test {
+            $result | Should be 'DefaultIfNotFound'
+        }
+    }
+
+    Context -Name 'When Node list contains a REGEX (^TestBox\d{2}$)' -Fixture {
+        $ConfigurationData.Services = @{
+            MyTestService = @{
+                Nodes      = @('^TestBox\d{2}$')
+                DataSource = 'ServiceValue'
+            }
+        }
+        $Node = @{
+            Name     = 'TestBox02'
+            Location = 'NY'
+        }
+
+        $result = Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource  -DefaultValue 'DefaultIfNotFound'
+
+        It -name 'should return the value from the service' -test {
+            $result | Should be 'ServiceValue'
+        }
+        It -name 'should NOT return the DefaultValue from Resolve-DscConfigurationProperty' -test {
+            $result | Should NOT be 'DefaultIfNotFound'
+        }
+    }
+
+}
+

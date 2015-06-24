@@ -2,7 +2,14 @@ function Resolve-DscConfigurationProperty
 {
     <#
         .Synopsis
-            Searches DSC metadata
+            Searches DSC ConfigurationData metadata for a property
+        .DESCRIPTION
+            Searches DSC ConfigurationData metadata for a property. Returning the value based on this precident
+            Service > Node > Site > Node.Service > Node.Service.Site > Node.site
+        .EXAMPLE
+            Example of how to use this cmdlet
+        .EXAMPLE
+            Another example of how to use this cmdlet
     #>
 
     [cmdletbinding()]
@@ -181,7 +188,7 @@ function Find-NodeInService
     foreach ($serviceNode in $ServiceNodes) 
     {
         
-        if ($serviceNode.IndexOfAny('\.$^+?{}[]') -gt 0)
+        if ($serviceNode.IndexOfAny('\.$^+?{}[]') -ge 0)
         {
            Write-Verbose   "Checking if Node [$($node.Name)] -match [$serviceNode]"
             if ($node.Name -Match $serviceNode)
@@ -223,7 +230,7 @@ function ShouldProcessService
         [hashtable] $Node
     )
 
-    $isNodeAssociatedWithService = ($Node.Name -and (Find-NodeInService -Node $Node -ServiceNodes $Service.Nodes -Verbose)) -or
+    $isNodeAssociatedWithService = ($Node.Name -and (Find-NodeInService -Node $Node -ServiceNodes $Service.Nodes)) -or
                                    ($Node['MemberOfServices'] -contains $ServiceName)
 
     if (-not $isNodeAssociatedWithService)
