@@ -181,17 +181,7 @@ function Find-NodeInService
     foreach ($serviceNode in $ServiceNodes) 
     {
         
-        if ($serviceNode.Contains('\') -or
-            $serviceNode.Contains('.') -or
-            $serviceNode.Contains('$') -or
-            $serviceNode.Contains('^') -or
-            $serviceNode.Contains('+') -or
-            $serviceNode.Contains('?') -or
-            $serviceNode.Contains('{') -or
-            $serviceNode.Contains('}') -or
-            $serviceNode.Contains('[') -or
-            $serviceNode.Contains(']')
-            )
+        if ($serviceNode.IndexOfAny('\.$^+?{}[]') -gt 0)
         {
            Write-Verbose   "Checking if Node [$($node.Name)] -match [$serviceNode]"
             if ($node.Name -Match $serviceNode)
