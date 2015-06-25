@@ -2,14 +2,101 @@ function Resolve-DscConfigurationProperty
 {
     <#
         .Synopsis
-            Searches DSC ConfigurationData metadata for a property
+            Searches DSC ConfigurationData metadata for a property. 
         .DESCRIPTION
-            Searches DSC ConfigurationData metadata for a property. Returning the value based on this precident
-            Service > Node > Site > Node.Service > Node.Service.Site > Node.site
+            Searches DSC ConfigurationData metadata for a property. Getting the value based on this precident:
+                $ConfigurationData.AllNodes.Node.Services.Name.PropertyName
+                $ConfigurationData.SiteData.SiteName.Services.Name.PropertyName
+                $ConfigurationData.Services.Name.PropertyName
+                $ConfigurationData.AllNodes.Node.PropertyName
+                $ConfigurationData.Sites.Name.PropertyName
+                $ConfigurationData.PropertyName
+            
+            If -RsolutionBehavior AllValues used then array of values returned.
+
         .EXAMPLE
-            Example of how to use this cmdlet
+ $ConfigurationData = @{
+                AllNodes = @(
+                    @{
+                        Name='Web01'
+                        DataSource = 'ValueFromNode'
+                        Location = 'NY'
+                    },
+                    @{
+                        Name='Web02'
+                        DataSource = 'ValueFromNode'
+                    },
+                    @{
+                        Name='Web03'
+                        DataSource = 'ValueFromNode'
+                    }
+                    
+                )
+                SiteData = @{ 
+                    NY = @{ 
+                        Services = @{
+                            MyTestService = @{
+                                DataSource = 'ValueFromSite' 
+                            }
+                        }
+                    } 
+                }
+                Services = @{
+                    MyTestService = @{
+                        Nodes = @('Web01', 'Web03')
+                        DataSource = 'ValueFromService'
+                    }
+                } 
+            }
+            
+            Foreach ($Node in $ConfigurationData.AllNodes) {
+                
+                $Node.Name
+                Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource -ConfigurationData $ConfigurationData 
+            }
+
+            Web01
+            ValueFromSite
+            Web02
+            ValueFromNode
+            Web03
+            ValueFromService
         .EXAMPLE
-            Another example of how to use this cmdlet
+            $ConfigurationData = @{
+                AllNodes = @(
+                    @{
+                        Name='Web01'
+                    },
+                    @{
+                        Name='Web02'
+                    },
+                     @{
+                        Name='SQL01'
+                    }
+                    
+                )
+                SiteData = @{ }
+                Services = @{
+                    MyTestService = @{
+                        Nodes = @('Web[0-9][0-9]')
+                        DataSource = 'ValueFromService'
+                    }
+                } 
+            }
+            
+            Foreach ($Node in $ConfigurationData.AllNodes) {
+                
+                $Node.Name
+                Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource -ConfigurationData $ConfigurationData -DefaultValue 'ValueFromDefault'
+            }
+
+
+            Web01
+            ValueFromService
+            Web02
+            ValueFromService
+            SQL01
+            ValueFromDefault    
     #>
 
     [cmdletbinding()]
