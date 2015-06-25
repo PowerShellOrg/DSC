@@ -52,14 +52,14 @@ function Get-DscConfigurationData
                 $script:ConfigurationData.AllNodes = $script:ConfigurationData.AllNodes.Where({$_.NodeName -like $NodeName})
             }
             default {
-                Write-Verbose 'Loading Site Data'
-                Get-SiteDataConfigurationData
-                Write-Verbose 'Loading Services Data'
-                Get-ServiceConfigurationData
-                Write-Verbose 'Loading Credential Data'
-                Get-CredentialConfigurationData
             }
         }
+        Write-Verbose 'Loading Site Data'
+        Get-SiteDataConfigurationData
+        Write-Verbose 'Loading Services Data'
+        Get-ServiceConfigurationData
+        Write-Verbose 'Loading Credential Data'
+        Get-CredentialConfigurationData
 
         return $script:ConfigurationData
     }

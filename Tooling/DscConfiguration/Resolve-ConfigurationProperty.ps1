@@ -2,7 +2,101 @@ function Resolve-DscConfigurationProperty
 {
     <#
         .Synopsis
-            Searches DSC metadata
+            Searches DSC ConfigurationData metadata for a property. 
+        .DESCRIPTION
+            Searches DSC ConfigurationData metadata for a property. Getting the value based on this precident:
+                $ConfigurationData.AllNodes.Node.Services.Name.PropertyName
+                $ConfigurationData.SiteData.SiteName.Services.Name.PropertyName
+                $ConfigurationData.Services.Name.PropertyName
+                $ConfigurationData.AllNodes.Node.PropertyName
+                $ConfigurationData.Sites.Name.PropertyName
+                $ConfigurationData.PropertyName
+            
+            If -RsolutionBehavior AllValues used then array of values returned.
+
+        .EXAMPLE
+ $ConfigurationData = @{
+                AllNodes = @(
+                    @{
+                        Name='Web01'
+                        DataSource = 'ValueFromNode'
+                        Location = 'NY'
+                    },
+                    @{
+                        Name='Web02'
+                        DataSource = 'ValueFromNode'
+                    },
+                    @{
+                        Name='Web03'
+                        DataSource = 'ValueFromNode'
+                    }
+                    
+                )
+                SiteData = @{ 
+                    NY = @{ 
+                        Services = @{
+                            MyTestService = @{
+                                DataSource = 'ValueFromSite' 
+                            }
+                        }
+                    } 
+                }
+                Services = @{
+                    MyTestService = @{
+                        Nodes = @('Web01', 'Web03')
+                        DataSource = 'ValueFromService'
+                    }
+                } 
+            }
+            
+            Foreach ($Node in $ConfigurationData.AllNodes) {
+                
+                $Node.Name
+                Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource -ConfigurationData $ConfigurationData 
+            }
+
+            Web01
+            ValueFromSite
+            Web02
+            ValueFromNode
+            Web03
+            ValueFromService
+        .EXAMPLE
+            $ConfigurationData = @{
+                AllNodes = @(
+                    @{
+                        Name='Web01'
+                    },
+                    @{
+                        Name='Web02'
+                    },
+                     @{
+                        Name='SQL01'
+                    }
+                    
+                )
+                SiteData = @{ }
+                Services = @{
+                    MyTestService = @{
+                        Nodes = @('Web[0-9][0-9]')
+                        DataSource = 'ValueFromService'
+                    }
+                } 
+            }
+            
+            Foreach ($Node in $ConfigurationData.AllNodes) {
+                
+                $Node.Name
+                Resolve-DscConfigurationProperty -Node $Node -PropertyName DataSource -ConfigurationData $ConfigurationData -DefaultValue 'ValueFromDefault'
+            }
+
+
+            Web01
+            ValueFromService
+            Web02
+            ValueFromService
+            SQL01
+            ValueFromDefault    
     #>
 
     [cmdletbinding()]
@@ -164,6 +258,56 @@ function Get-ServiceValue
     }
 }
 
+function Find-NodeInService
+{
+    [CmdletBinding()]
+    [OutputType([bool])]
+    Param
+    (
+        # ConfigurationData Node Hashtable     
+        [hashtable]
+        $Node,
+
+        # ConfigurationData Service Node Array
+        [String[]]
+        $ServiceNodes
+    )
+    foreach ($serviceNode in $ServiceNodes) 
+    {
+        
+        if ($serviceNode.IndexOfAny('\.$^+?{}[]') -ge 0)
+        {
+           Write-Verbose   "Checking if Node [$($node.Name)] -match [$serviceNode]"
+            if ($node.Name -Match $serviceNode)
+            {
+                
+               return $true
+            }
+
+        }
+        elseif ($serviceNode.contains('*'))
+        {
+            
+           Write-Verbose   "Checking if Node [$($node.Name)] -like [$serviceNode]"
+            if ($node.Name -like $serviceNode)
+            {
+               
+               return $true
+            }
+        }
+        else 
+        {
+           Write-Verbose   "Checking if Node [$($node.Name)] -eq [$serviceNode]"
+            if ($node.Name -eq $serviceNode)
+            {
+               return  $true
+            }
+        }
+    }
+    return $false
+}
+
+
 function ShouldProcessService
 {
     param (
@@ -173,7 +317,7 @@ function ShouldProcessService
         [hashtable] $Node
     )
 
-    $isNodeAssociatedWithService = ($Node.Name -and ($Service['Nodes'] -contains $Node.Name)) -or
+    $isNodeAssociatedWithService = ($Node.Name -and (Find-NodeInService -Node $Node -ServiceNodes $Service.Nodes)) -or
                                    ($Node['MemberOfServices'] -contains $ServiceName)
 
     if (-not $isNodeAssociatedWithService)

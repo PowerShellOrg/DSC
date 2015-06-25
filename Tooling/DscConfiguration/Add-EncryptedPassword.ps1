@@ -17,6 +17,7 @@ function Add-DscEncryptedPassword
         [Parameter(Mandatory, ParameterSetName = 'PasswordSecureString')]
         [string] $UserName,
 
+        [string] $FriendlyName = $UserName, 
         [Parameter(Mandatory, ParameterSetName = 'PasswordSecureString')]
         [securestring] $SecurePassword,
 
@@ -70,7 +71,7 @@ function Add-DscEncryptedPassword
     }
 
     Write-Verbose "Adding credential for user $($Credential.UserName)"
-    $hashtable[$Credential.UserName] = $Credential
+    $hashtable[$Credential.FriendlyName] = $Credential
 
     Export-DscCredentialFile -Hashtable $hashtable -Path $encryptedFilePath
 }
