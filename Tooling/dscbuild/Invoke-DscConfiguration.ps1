@@ -20,7 +20,7 @@ function Invoke-DscConfiguration {
                 }
                 catch {
 
-                    Write-Warning "Failed to load configuration module"
+                    Write-Warning "Failed to load configuration module: $($script:DscBuildParameters.ConfigurationModuleName)"
                     $Exception = $_.Exception
                     do {
                         Write-Warning "`t$($_.Message)"
