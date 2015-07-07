@@ -17,7 +17,7 @@ function Add-DscEncryptedPassword
         [Parameter(Mandatory, ParameterSetName = 'PasswordSecureString')]
         [string] $UserName,
 
-        [string] $FriendlyName = $UserName, 
+        [string] $FriendlyName, 
         [Parameter(Mandatory, ParameterSetName = 'PasswordSecureString')]
         [securestring] $SecurePassword,
 
@@ -41,6 +41,10 @@ function Add-DscEncryptedPassword
         {
             $Credential = New-Credential $UserName $SecurePassword
         }
+    }
+
+    if (-not ($FriendlyName)) {
+      $FriendlyName = $Credential.UserName
     }
 
     $encryptedFilePath = Join-Path $Path "$StoreName.psd1.encrypted"
@@ -71,7 +75,15 @@ function Add-DscEncryptedPassword
     }
 
     Write-Verbose "Adding credential for user $($Credential.UserName)"
-    $hashtable[$Credential.FriendlyName] = $Credential
+
+    if ($hashtable.ContainsKey($FriendlyName)) { 
+      
+      $hashtable[$FriendlyName] = $Credential
+    }
+    else {
+      
+      $hashtable += @{ $friendlyname = $Credential}
+    }
 
     Export-DscCredentialFile -Hashtable $hashtable -Path $encryptedFilePath
 }
