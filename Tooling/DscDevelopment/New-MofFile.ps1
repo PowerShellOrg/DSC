@@ -121,6 +121,10 @@ class $ResourceName : OMI_BaseResource
                 [uint32[]]     = 'uint32'
                 [uint64]       = 'uint64'
                 [uint64[]]     = 'uint64'
+                [uint16]       = 'uint16'
+                [uint16[]]     = 'uint16'
+                [int16]        = 'sint16'
+                [int16[]]      = 'sint16'
             }
 
             if ($table.ContainsKey($type))
